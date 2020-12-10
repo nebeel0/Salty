@@ -45,6 +45,10 @@ public class ParticleBehavior : MatterBehavior
     {
         get {return possibleStates[particleStateType].charge;}
     }
+    public int effectiveCharge
+    {
+        get { return antiCharge * charge; }
+    }
     public int spinFactor //Determines position in cube.
     {
         get {return possibleStates[particleStateType].spinFactor;}
@@ -86,6 +90,13 @@ public class ParticleBehavior : MatterBehavior
     {
         get {return isLepton && charge==0;}
     }
+    public bool isElectron
+    {
+        get { return isLepton && charge == -1; }
+    }
+
+
+    public bool available = true; //Used for placing in blocks, mainly for leptons, don't see a use yet for quarks
     public BlockBehavior.LeptonPosition leptonPosition; //maybe wrong thing to do, but so much easier to track if its position is being tracked.
     private bool freeFlag = true;
     public void RandomState()
@@ -93,8 +104,9 @@ public class ParticleBehavior : MatterBehavior
         string[] randomInitialStates = { "quarkPos", "quarkNeg", "leptonNeg", "leptonPos" };
         particleStateType = randomInitialStates[Random.Range(0, randomInitialStates.Length - 1)];  // Could use system.random to get a random pick
     }
-    void Start()
+    public override void Start()
     {
+        base.Start();
         DisableCollision();
         if(mass==0 && maxMass!=0)
         {
@@ -121,8 +133,8 @@ public class ParticleBehavior : MatterBehavior
             newColor.g = 1 - newColor.g;
             newColor.b = 1 - newColor.b;
         }
-        GetComponent<Renderer>().material.color = Color.Lerp(GetComponent<Renderer>().material.color, newColor, 0.05f);
-        GetComponent<TrailRenderer>().startColor = Color.Lerp(GetComponent<Renderer>().material.color, newColor, 0.05f);
+        GetComponent<Renderer>().material.color = Color.Lerp(GetComponent<Renderer>().material.color, newColor, Time.deltaTime);
+        GetComponent<TrailRenderer>().startColor = Color.Lerp(GetComponent<Renderer>().material.color, newColor, Time.deltaTime);
         //GetComponent<TrailRenderer>().endColor = Color.Lerp(GetComponent<Renderer>().material.color, newColor, 0.05f);
     }
     protected override void RefreshState()
@@ -337,11 +349,11 @@ public class ParticleBehavior : MatterBehavior
                 {
                     Annihilate(col.gameObject);
                 }
-                else if (colParticleBehavior.isFermion && isFermion && transform.parent == null && col.transform.parent == null) //Strong force interaction, generate a new block
+                else if (colParticleBehavior.isQuark && isQuark && transform.parent == null && col.transform.parent == null) //Strong force interaction, generate a new block
                 {
                     BlockBehavior newBlock = CreateBlock();
-                    newBlock.collideParticle(this.gameObject);
-                    newBlock.collideParticle(col.gameObject);
+                    newBlock.CollideParticle(this.gameObject);
+                    newBlock.CollideParticle(col.gameObject);
                     // Two fermion particle should always be able to be coupled
                     // Set relative velocity to zero, perhaps this logic should be in block behavior
                 }
@@ -462,6 +474,7 @@ public class ParticleBehavior : MatterBehavior
     public void Free()
     {
         freeFlag = true;
+        available = true;
         transform.SetParent(null);
         EnableCollisionCooldownTimer();
         rigidbody.drag = 0.25f;

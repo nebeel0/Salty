@@ -97,8 +97,6 @@ public class Controller : MonoBehaviour
     }
     protected Dictionary<ActionQueueTypes, Queue<ActionParams>> actionQueues = new Dictionary<ActionQueueTypes, Queue<ActionParams>>();  //Maybe include time stamp so we can also execute them all in the order they were created
 
-    protected SuperBlock perspectiveBlock;
-
     public virtual void Start()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -110,7 +108,6 @@ public class Controller : MonoBehaviour
         {
             actionQueues[aq] = new Queue<ActionParams>();
         }
-        perspectiveBlock = GetComponent<SuperBlock>();  //Todo set camera at center of superBlock.
         m_TargetCameraState.SetFromTransform(transform);
         m_InterpolatingCameraState.SetFromTransform(transform);
     }
@@ -213,7 +210,7 @@ public class Controller : MonoBehaviour
         }
     }
 
-    public void OnDrawPlan()
+    public void OnDrawPlan() // TODO slingshot effect, instead of drawing line, pull camera back
     {
         SetUpLineRenderer();
         if (actionQueues[actionQueue].Count != lineRenderer.positionCount - 1 && actionQueues[actionQueue].Count > 0)
@@ -326,8 +323,8 @@ public class Controller : MonoBehaviour
         {
             if (lineRenderer.enabled && lineRenderer.endColor.a > 0.01)
             {
-                lineRenderer.startColor = Color.Lerp(lineRenderer.startColor, Color.clear, 4 * Time.deltaTime);
-                lineRenderer.endColor = Color.Lerp(lineRenderer.endColor, Color.clear, 2 * Time.deltaTime);
+                lineRenderer.startColor = Color.Lerp(lineRenderer.startColor, Color.clear, Time.deltaTime/1);
+                lineRenderer.endColor = Color.Lerp(lineRenderer.endColor, Color.clear, Time.deltaTime/2);
             }
             else
             {

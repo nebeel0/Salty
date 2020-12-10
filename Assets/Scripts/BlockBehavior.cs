@@ -4,14 +4,187 @@ using UnityEngine;
 
 public class BlockBehavior : MatterBehavior
 {
-    public GameObject particleRef;
-    List<GameObject> quarks = new List<GameObject>();
-    List<GameObject> leptons = new List<GameObject>();
-    LeptonPosition[] allLeptonPositions;
-    List<int> openLeptonPositions;
+    //TODO on merge change camera position
+    // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
+    // TODO rotate on block place
+    public class QuarkGroup
+    {
+        public static int maxLength = 3;
+        public GameObject[] quarks = new GameObject[maxLength];
+        public int netCharge
+        {
+            get
+            {
+                int netCharge = 0;
+                for(int i = 0; i < maxLength; i++)
+                {
+                    if(quarks[i] != null)
+                    {
+                        netCharge += quarks[i].GetComponent<ParticleBehavior>().effectiveCharge;
+                    }
+                    else
+                    {
+                        return 0; // zero if not full
+                    }
+                }
+                return netCharge;
+            }
+        }
+        public QuarkGroup(GameObject quark)
+        {
+            quarks[0] = quark;
+        }
 
-    Dictionary<int, GameObject> connectedBlockDictionary; // max number of connected blocks is 6
+        public bool Valid()
+        {
+            bool filledUp = true;
+            int productCharge = 1;
+            int totalCharge = 0;
+            for (int i = 0; i < maxLength; i++)
+            {
+                GameObject quark = quarks[i];
+                if (quark != null)
+                {
+                    totalCharge += quark.GetComponent<ParticleBehavior>().effectiveCharge;
+                    productCharge *= quark.GetComponent<ParticleBehavior>().effectiveCharge;
+                }
+                else
+                {
+                    filledUp = false;
+                }
+            }
+            if(filledUp)
+            {
+                bool maxTwoSame = productCharge < 0;
+                return (totalCharge == 3 || totalCharge == 0) && maxTwoSame;
+            }
+            return true;
+        }
+    }
+    public class BlockConnection
+    {
+        int forceMultiplier = 1000;
+        public GameObject thisBlock;
+        public GameObject otherBlock;
+        public FixedJoint fixedJoint;
+        public List<GameObject> leptons;
+        public List<GameObject> otherLeptons;
+        public bool inPlace;
+        public bool hasBlock
+        {
+            get { return otherBlock != null; }
+        }
 
+        public bool hasFixedJoint
+        {
+            get { return fixedJoint != null && fixedJoint.connectedBody != null; }
+        }
+
+        public int totalLeptonCount
+        {
+            get { return leptons.Count + otherLeptons.Count; }
+        }
+        public int netOtherCharge
+        {
+            get
+            {
+                int netOtherCharge = 0;
+                for (int i = 0; i < otherLeptons.Count; i++)
+                {
+                    if (leptons[i] != null)
+                    {
+                        netOtherCharge += otherLeptons[i].GetComponent<ParticleBehavior>().effectiveCharge;
+                    }
+                }
+                return netOtherCharge;
+            }
+        }
+        public BlockConnection(GameObject thisBlock)
+        {
+            this.thisBlock = thisBlock;
+            otherBlock = null;
+            fixedJoint = null;
+            inPlace = false;
+            leptons = new List<GameObject>();
+            otherLeptons = new List<GameObject>();
+        }
+
+        public void Refresh()
+        {
+            DeathCheck();
+            if (hasFixedJoint)
+            {
+                for (int i = 0; i < leptons.Count; i++)
+                {
+                    leptons[i].GetComponent<ParticleBehavior>().available = false;
+                }
+                for (int i = 0; i < otherLeptons.Count; i++)
+                {
+                    otherLeptons[i].GetComponent<ParticleBehavior>().available = false;
+                }
+                fixedJoint.breakForce = forceMultiplier * totalLeptonCount; // TODO exponential strength
+                fixedJoint.breakTorque = forceMultiplier * totalLeptonCount;
+            }
+        }
+
+        public void DeathCheck()
+        {
+            leptons.RemoveAll(lepton => lepton == null);
+            otherLeptons.RemoveAll(lepton => lepton == null);
+
+            if( inPlace || !hasBlock)
+            {
+                if (!hasFixedJoint || leptons.Count == 0 || otherLeptons.Count == 0)
+                {
+                    if(hasBlock && otherBlock.GetComponent<Collider>() != null)
+                    {
+                        Physics.IgnoreCollision(otherBlock.GetComponent<Collider>(), thisBlock.GetComponent<Collider>(), false);
+                    }
+                    Destroy(fixedJoint);
+                    otherBlock = null;
+                    fixedJoint = null;
+                    leptons.Clear();
+                    otherLeptons.Clear();
+                }
+            }
+        }
+
+        public void Place(Vector3 blockPosition)
+        {
+            int lockOnSpeed = 10;
+            if (hasBlock && !inPlace)
+            {
+                if (otherBlock.transform.localPosition != blockPosition)
+                {
+                    if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, blockPosition))
+                    {
+                        otherBlock.transform.SetParent(thisBlock.transform);
+                        Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
+                        otherBlockEulerAngles.x = Mathf.LerpAngle(otherBlockEulerAngles.x, Mathf.Round(otherBlockEulerAngles.x / 90) * 90, 1);
+                        otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, 1);
+                        otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, 1);
+                        otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
+                        otherBlock.transform.localPosition = blockPosition;
+                        otherBlock.transform.SetParent(null);
+                        fixedJoint = thisBlock.AddComponent<FixedJoint>();
+                        fixedJoint.enableCollision = false;
+                        fixedJoint.connectedBody = otherBlock.GetComponent<Rigidbody>();
+                        inPlace = true;
+                    }
+                    else
+                    {
+                        otherBlock.transform.SetParent(thisBlock.transform);
+                        Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
+                        otherBlockEulerAngles.x = Mathf.LerpAngle(otherBlockEulerAngles.x, Mathf.Round(otherBlockEulerAngles.x / 90) * 90, lockOnSpeed* Time.deltaTime);
+                        otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, lockOnSpeed * Time.deltaTime);
+                        otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, lockOnSpeed * Time.deltaTime);
+                        otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
+                        otherBlock.transform.localPosition = Vector3.Lerp(otherBlock.transform.localPosition, blockPosition, lockOnSpeed * Time.deltaTime);
+                    }
+                }
+            }
+        }
+    }
     public class LeptonPosition
     {
         public GameObject lepton;
@@ -19,185 +192,426 @@ public class BlockBehavior : MatterBehavior
         public int[] neighborIdx;
         public int id;
     }
-
-
-    void Start()
+    public GameObject particleRef;
+    public int particleSpeed = 5;
+    public int netChargeCache;  // To be used similar to a cache, meaning that while its not the most accurate representation of the current state, it will reduce computations
+    List<QuarkGroup> quarkGroups = new List<QuarkGroup>(); //fifteen max
+    public int numQuarkGroups
     {
+        get { return quarkGroups.Count; }
+    }
+
+    Vector3[] quarkPositions;
+    int quarkGroupMax;
+    
+    List<GameObject> leptons = new List<GameObject>();
+    LeptonPosition[] allLeptonPositions;
+    List<int> openLeptonPositions;
+    int leptonsMax = 8;  //TODO programmatically figure out max number of leptons, which we can figure out from number of vertexes in shape
+    Dictionary<Vector3, BlockConnection> connectedBlocks;
+
+    public override void Start()
+    {
+        base.Start();
+        SetUpQuarkPositions();
         SetUpLeptonPositions();
+        SetUpConnectedBlocks();
         DisableCollision();
         BeginnerElement(); //TODO replace with RandomElement
     }
 
+    protected override void VisualUpdate() //TODO visual update should always reflect actual state
+    {
+        PlaceQuarkGroups();
+        PlaceLeptons();
+        PlaceBlocks();
+    }
+    protected override void RefreshState()
+    {
+        RefreshQuarkGroups();
+        RefreshLeptons();
+        RefreshBlocks();
+        RefreshNetCharge();
+    }
+    protected override void DeathCheck()
+    {
+        if (quarkGroups.Count == 0)
+        {
+            while (leptons.Count > 0)
+            {
+                RemoveLepton(0);
+            }
+            Destroy(gameObject);  // TODO maybe a death loading animation before hand?
+        }
+    }
+    void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
+    {
+        if (col.gameObject.CompareTag("Particle"))
+        {
+            DisableCollision();
+            CollideParticle(col.gameObject);
+        }
+        if (col.gameObject.CompareTag("Block"))
+        {
+            DisableCollision();
+            CollideBlock(col.gameObject);
+        }
+    }
+    // max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2
+
     void BeginnerElement()
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 6; i++)
         {
-            GameObject particle = Instantiate(particleRef);
+            GameObject particle = Instantiate(particleRef, transform);
             ParticleBehavior particleBehavior = getParticleData(particle);
-            if (i <= 1)
+            if (i % 3 != 0)
             {
                 particleBehavior.particleStateType = "quarkPos";
             }
-            else if (i <= 2)
+            else
             {
                 particleBehavior.particleStateType = "quarkNeg";
             }
-            else 
+
+            if ((i + 1) % 4 == 0)
             {
-                particleBehavior.particleStateType = "leptonNeutral";
+                GameObject lepton = Instantiate(particleRef, transform);
+                ParticleBehavior leptonBehavior = getParticleData(lepton);
+                leptonBehavior.particleStateType = "leptonNeg";
+                CollideParticle(lepton);
             }
-            collideParticle(particle);
+            CollideParticle(particle);
         }
     }
     void RandomElement()
     {
-        int numberOfParticles = Random.Range(1,10);
+        int numberOfParticles = Random.Range(1, 10);
         for (int i = 0; i < numberOfParticles; i++)
         {
             GameObject particle = Instantiate(particleRef);
             ParticleBehavior particleBehavior = getParticleData(particle);
             particleBehavior.RandomState();
-            collideParticle(particle);
+            CollideParticle(particle);
         }
     }
 
-
-    protected override void VisualUpdate()
+    protected void RefreshQuarkGroups() // TODO quarks cooldown, give players a chance to recollect particles, and computers a rendering break
     {
-        List<Vector3> quarkPositions = GetQuarkPlacements(quarks.Count);
-        for (int i = 0; i < quarkPositions.Count; i++)
+        //If netCharge != all quarks plus each other rescatter.
+        if (netChargeCache < 0) //Imbalanced, more electrons than protons
         {
-            quarks[i].transform.localPosition = Vector3.Lerp(quarks[i].transform.localPosition, quarkPositions[i], 0.05f);
-        }
-        PlaceLeptons();
-    }
-    protected override void RefreshState()
-    {
-        quarks.RemoveAll(item => item == null);
-        leptons.RemoveAll(item => item == null);
-        int particleI = 0;
-        while (!NetQuarkChargeValid() && (quarks.Count > 0) && (particleI < (quarks.Count-1)))
-        {
-            if(GetParticleGroupNetCharge(quarks) < 0 && getParticleData(quarks[particleI]).charge < 0)
+            Dictionary<int, List<GameObject>> quarkDictionary = new Dictionary<int, List<GameObject>>();
+            foreach (QuarkGroup quarkGroup in quarkGroups)
             {
-                removeParticleFrom(quarks, particleI);
-            }
-            else if (GetParticleGroupNetCharge(quarks) > 0 && getParticleData(quarks[particleI]).charge > 0)
-            {
-                removeParticleFrom(quarks, particleI);
-            }
-            else
-            {
-                particleI += 1;
-            }
-        }
-
-        particleI = 0;
-        while (!NetLeptonChargeValid() && (GetNetCharge() <= -1) && (leptons.Count > 0) && (particleI < leptons.Count-1))
-        {
-            if (getParticleData(leptons[particleI]).charge < 0)
-            {
-                removeParticleFrom(leptons, particleI);
-            }
-            else
-            {
-                particleI += 1;
-            }
-        }
-
-    }
-    protected override void DeathCheck()
-    {
-        if (leptons.Count == 0 && quarks.Count == 0)
-        {
-            Destroy(gameObject);
-        } // TODO if the equilibrium is not correct, transform.DetachChildren();
-    }
-    // max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2
-    public void collideParticle(GameObject particle)
-    {
-        ParticleBehavior particleBehavior = getParticleData(particle);
-        if(particleBehavior.isFermion)
-        {
-            if(NetQuarkChargeValid(particleBehavior))
-            {
-                addParticleTo(quarks, particle);
-            }
-            else if(NetLeptonChargeValid(particleBehavior))
-            {
-                addParticleTo(leptons, particle);
-            }
-        }
-    }
-    void addParticleTo(List<GameObject> particleGroup, GameObject particle)
-    {
-        particleGroup.Add(particle);
-        ParticleBehavior particleBehavior = getParticleData(particle);
-        particleBehavior.Occupy(gameObject);
-    }
-
-    void removeParticleFrom(List<GameObject> particleGroup, int particleIndex)
-    {
-        GameObject particle = particleGroup[particleIndex];
-        particleGroup.RemoveAt(particleIndex);
-        ParticleBehavior particleBehavior = getParticleData(particle);
-        particleBehavior.Free();
-
-    }
-    void collideBlock(GameObject block)
-    {
-    }
-
-    void OnCollisionEnter(Collision col){
-        if (col.gameObject.CompareTag("Particle"))
-        {
-            DisableCollision();
-            collideParticle(col.gameObject);
-        }
-        if (col.gameObject.CompareTag("Block"))
-        {
-            collideBlock(col.gameObject);
-        }
-    }
-    // Visual Update Utils
-    List<Vector3> GetQuarkPlacements(int particleCount)
-    {
-        List<Vector3> placements = new List<Vector3>();
-        Vector3 initPos = new Vector3(x: 0, y: 0, z: 0);
-        int i = 0;
-        int count = 0;
-        float scalingFactor = transform.localScale.x/10; // scale should be same for x,y,z
-        while(true)
-        {
-            float dimY = initPos.y-(i*scalingFactor*0.5f);
-            float initZ = initPos.z+(i*scalingFactor*0.25f);
-            for(int ii = 0; ii <= i; ii++)
-            {
-                float initX = initPos.x+(ii*scalingFactor*0.25f);
-                for(int iii = 0; iii <= ii; iii++)
+                for (int i = 0; i < QuarkGroup.maxLength; i++)
                 {
-                    count++;
-                    if(count > particleCount)
+                    GameObject quark = quarkGroup.quarks[i];
+                    if (quark != null)
                     {
-                        for(int placeI=0; placeI<placements.Count; placeI++)
+                        int quarkCharge = quark.GetComponent<ParticleBehavior>().effectiveCharge;
+                        if (!quarkDictionary.ContainsKey(quarkCharge))
                         {
-                            float newY = placements[placeI].y + ((i+1)*scalingFactor*0.5f)/2;
-                            placements[placeI] = new Vector3(placements[placeI].x, newY, placements[placeI].z);
+                            quarkDictionary[quarkCharge] = new List<GameObject>();
                         }
-                        return placements;
+                        quarkDictionary[quarkCharge].Add(quark);
                     }
-
-                    float dimX = initX - (iii*scalingFactor*0.5f);
-                    float dimZ = initZ - (ii*scalingFactor*0.5f);
-                    Vector3 pos = new Vector3(x: dimX, y: dimY, z: dimZ);
-                    placements.Add(pos);
                 }
             }
-            i++;
+
+            //Make as many protons as possible, till net Charge is back to zero
+            quarkGroups = new List<QuarkGroup>(); //reset Quark Groups
+            int netLeptonCharge = GetNetLeptonCharge();
+            while(netLeptonCharge + GetNetQuarkCharge() < 0)
+            {
+                if(quarkDictionary.ContainsKey(2) && quarkDictionary.ContainsKey(-1) && quarkDictionary[2].Count >= 2 && quarkDictionary[-1].Count >= 1)
+                {
+                    QuarkGroup proton = new QuarkGroup(quarkDictionary[-1][0]);
+                    quarkDictionary[-1].RemoveAt(0);
+                    for (int i = 1; i <= 2; i++)
+                    {
+                        GameObject upParticle = quarkDictionary[2][0];
+                        proton.quarks[i] = upParticle;
+                        quarkDictionary[2].RemoveAt(0);
+                    }
+                    quarkGroups.Add(proton);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            foreach (List<GameObject> quarkList in quarkDictionary.Values)
+            {
+                // For rest of particles just add it back normally
+                foreach(GameObject quark in quarkList)
+                {
+                    if(!AddQuark(quark))
+                    {
+                        netChargeCache -= quark.GetComponent<ParticleBehavior>().effectiveCharge;
+                        quark.GetComponent<ParticleBehavior>().Free();
+                    }
+                }
+            }
+        }
+        netChargeCache = GetNetLeptonCharge() + GetNetQuarkCharge();
+    }
+
+    protected void RefreshLeptons()
+    {
+        leptons.RemoveAll(lepton => lepton == null);
+        for(int i = 0; i < leptons.Count; i++)
+        {
+            leptons[i].GetComponent<ParticleBehavior>().available = true;
+        }
+
+        int leptonI = 0;
+        while (leptonI < leptons.Count - 1) //NO NEUTRINOS
+        {
+            if (leptons[leptonI].GetComponent<ParticleBehavior>().effectiveCharge == 0)
+            {
+                RemoveLepton(leptonI);
+            }
+            else
+            {
+                leptonI += 1;
+            }
+        }
+
+        leptonI = 0;
+        while (!NetLeptonChargeValid() && (leptons.Count > 0) && (leptonI < leptons.Count - 1))
+        {
+            if (getParticleData(leptons[leptonI]).effectiveCharge < 0)
+            {
+                RemoveLepton(leptonI);
+            }
+            else
+            {
+                leptonI += 1;
+            }
         }
     }
+
+    protected void RefreshBlocks()
+    {
+        foreach(BlockConnection blockConnection in connectedBlocks.Values)
+        {
+            blockConnection.Refresh();
+        }
+    }
+
+    protected void RefreshNetCharge()
+    {
+        //TODO cooldown, every 5 seconds,
+        netChargeCache = GetNetLeptonCharge() + GetNetQuarkCharge();
+    }
+    bool AddQuark(GameObject quark)  //Race Condition
+    {
+        ParticleBehavior quarkBehavior = quark.GetComponent<ParticleBehavior>();
+        if(!quarkBehavior.isQuark)
+        {
+            return false;
+        }
+        // TODO figure out if we want particles to fill up sequentually or in parallel
+        for(int quarkGroupI=quarkGroups.Count-1; quarkGroupI >=0; quarkGroupI--)
+        {
+            QuarkGroup quarkGroup = quarkGroups[quarkGroupI];
+            for (int i = 0; i < quarkGroup.quarks.Length; i++)
+            {
+                if (quarkGroup.quarks[i] == null)
+                {
+                    quarkGroup.quarks[i] = quark;
+                    if (quarkGroup.Valid())
+                    {
+                        netChargeCache += quarkBehavior.effectiveCharge;
+                        quark.GetComponent<ParticleBehavior>().Occupy(gameObject);
+                        return true;
+                    }
+                    else
+                    {
+                        quarkGroup.quarks[i] = null;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(quarkGroups.Count < quarkGroupMax)
+        {
+            netChargeCache += quarkBehavior.effectiveCharge;
+            quarkGroups.Add(new QuarkGroup(quark));
+            quark.GetComponent<ParticleBehavior>().Occupy(gameObject);
+            return true;
+        }
+
+        return false;
+    }
+
+    void AddLepton(GameObject particle)
+    {
+        if(NetLeptonChargeValid(particle))
+        {
+            ParticleBehavior particleBehavior = getParticleData(particle);
+            if (!particleBehavior.isLepton)
+            {
+                Debug.LogError("Particle needs to be lepton");
+            }
+            leptons.Add(particle);
+            netChargeCache += particleBehavior.effectiveCharge;
+            particleBehavior.Occupy(gameObject);
+        }
+    }
+
+    void RemoveLepton(int particleIndex)
+    {
+        GameObject particle = leptons[particleIndex];
+        leptons.RemoveAt(particleIndex);
+        ParticleBehavior particleBehavior = getParticleData(particle);
+        netChargeCache -= particleBehavior.effectiveCharge;
+        particleBehavior.Free();
+    }
+    public void CollideParticle(GameObject particle)
+    {
+        ParticleBehavior particleBehavior = getParticleData(particle);
+        if (particleBehavior.isFermion)
+        {
+            if (!AddQuark(particle))
+            {
+                AddLepton(particle);
+            }
+        }
+    }
+    void CollideBlock(GameObject otherBlock) //TODO animation for connecting
+    {
+        if (otherBlock.transform.parent == transform || transform.parent == otherBlock.transform)
+        {
+            return;
+        }
+        otherBlock.transform.SetParent(transform);
+        Vector3 closestPoint = Vector3.zero;
+        float closestDistance = 0;
+        foreach(KeyValuePair<Vector3, BlockConnection> connectedBlock in connectedBlocks)
+        {
+            float distance = Vector3.Distance(connectedBlock.Key, otherBlock.transform.localPosition);
+            if(closestPoint == Vector3.zero || distance < closestDistance)
+            {
+                closestPoint = connectedBlock.Key;  //We're going to assume that this is going to be accurate both ways
+                closestDistance = distance;
+            }
+        }
+        if(!connectedBlocks[closestPoint].hasBlock)
+        {
+            BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
+            List<GameObject> otherBlockAvailableLeptons = otherBlockBehavior.GetAvailableLeptons();
+            int otherBlockAvailableLeptonSpace = otherBlockBehavior.GetAvailableLeptonSpace();
+
+            List<GameObject> availableLeptons = GetAvailableLeptons();
+            int availableLeptonSpace = GetAvailableLeptonSpace();
+
+            bool enoughSpace = otherBlockAvailableLeptonSpace > 0 && availableLeptonSpace > 0;
+            bool enoughCharge = otherBlockBehavior.netChargeCache > 0 && netChargeCache > 0;
+            bool enoughLeptons = otherBlockAvailableLeptons.Count > 0 && availableLeptons.Count > 0;
+            if (enoughSpace && enoughCharge && enoughLeptons) //Both blocks must contribute leptons
+            {
+                // How many electrons to give up, depends on the available space from the otherBlock and how many this block can and have to give up
+                // How many you have to give up depends on how many connected blocks you have
+                if (LastLeptonPairing())
+                {
+                    //pop all
+                    if (otherBlockAvailableLeptonSpace >= availableLeptons.Count)
+                    {
+                        List<GameObject> newOtherLeptons = otherBlockAvailableLeptons.GetRange(0, System.Math.Min(otherBlockAvailableLeptons.Count, availableLeptonSpace));
+                        AddBlock(blockConnection: connectedBlocks[closestPoint], otherBlock: otherBlock, leptons: availableLeptons, otherLeptons: newOtherLeptons);
+                        return;
+                    }
+                }
+                //else if(otherBlockBehavior.LastLeptonPairing())
+                //{
+                //    //take all
+                //    if (availableLeptonSpace >= otherBlockAvailableLeptons.Count)
+                //    {
+                //        List<GameObject> newLeptons = availableLeptons.GetRange(0, System.Math.Min(availableLeptons.Count, otherBlockAvailableLeptonSpace));
+                //        AddBlock(blockConnection: connectedBlocks[closestPoint], otherBlock: otherBlock, leptons: newLeptons, otherLeptons: otherBlockAvailableLeptons);
+                //    }
+                //}
+                else
+                {
+                    AddBlock(blockConnection: connectedBlocks[closestPoint], otherBlock: otherBlock, leptons: availableLeptons.GetRange(0,1), otherLeptons: otherBlockAvailableLeptons.GetRange(0, 1));
+                    return;
+                }
+            }
+        }
+        otherBlock.transform.SetParent(null);
+    }
+    void AddBlock(BlockConnection blockConnection, GameObject otherBlock, List<GameObject> leptons, List<GameObject> otherLeptons)
+    {
+        Physics.IgnoreCollision(otherBlock.GetComponent<Collider>(), GetComponent<Collider>(), true);
+        blockConnection.otherBlock = otherBlock;
+        blockConnection.leptons = leptons;
+        blockConnection.otherLeptons = otherLeptons;
+        blockConnection.Refresh();
+    }
+
+    bool LastLeptonPairing()
+    {
+        return GetAvailableLeptons().Count + GetAvailableLeptonSpace() <= 4;
+    }
+
+    int GetAvailableLeptonSpace()
+    {
+        int availableSpace = leptonsMax - leptons.Count;
+        foreach(BlockConnection blockConnection in connectedBlocks.Values)
+        {
+            availableSpace -= blockConnection.totalLeptonCount;
+        }
+        return System.Math.Max(availableSpace, 0);
+    }
+
+    List<GameObject> GetAvailableLeptons()
+    {
+        List<GameObject> availableLeptons = new List<GameObject>();
+        foreach(GameObject lepton in leptons)
+        {
+            if (lepton.GetComponent<ParticleBehavior>().available)
+            {
+                availableLeptons.Add(lepton);
+            }
+        }
+        return availableLeptons;
+    }
+
+
+    // Visual Update Utils
+    void PlaceQuarkGroups()
+    {
+        int quarkPositionI = 0;
+        for (int i = 0; i < quarkGroups.Count; i++)
+        {
+            for(int ii=0; ii < QuarkGroup.maxLength; ii++)
+            {
+                GameObject quark = quarkGroups[i].quarks[ii];
+                if(quark != null)
+                {
+                    quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], particleSpeed / 2 * Time.deltaTime);
+                    quarkPositionI++; // So that the particles will be displaced from each other, if they are not in the same groups
+                }
+            }
+        }
+    }
+
+    void PlaceBlocks() //Once it has been put in place add the fixed joint
+    {
+        foreach (KeyValuePair<Vector3, BlockConnection> connectedBlock in connectedBlocks)
+        {
+            connectedBlock.Value.Place(connectedBlock.Key);
+        }
+    }
+
+
     void PlaceLeptons()
     {
+        // TODO lock leptons if they are used to connect blocks
         foreach(GameObject lepton in leptons)
         {
             ParticleBehavior leptonBehavior = getParticleData(lepton);
@@ -212,7 +626,6 @@ public class BlockBehavior : MatterBehavior
             {
                 LeptonTransplace(leptonBehavior.leptonPosition);
             }
-
         }
     }
 
@@ -238,13 +651,25 @@ public class BlockBehavior : MatterBehavior
         }
         else
         {
-            leptonPosition.lepton.transform.localPosition = Vector3.Lerp(leptonPosition.lepton.transform.localPosition, leptonPosition.position, 0.05f);
+            leptonPosition.lepton.transform.localPosition = Vector3.Lerp(leptonPosition.lepton.transform.localPosition, leptonPosition.position, particleSpeed * Time.deltaTime);
         }
     }
-
+    void SetUpConnectedBlocks()
+    {
+        connectedBlocks = new Dictionary<Vector3, BlockConnection>();
+        for (int i = 1; i <= 2; i++)
+        {
+            for (int ii = 0; ii < 3; ii++)
+            {
+                Vector3 newFixedJointPosition = new Vector3(0, 0, 0);
+                newFixedJointPosition[ii] = i * (-1) * scalingFactor;
+                connectedBlocks.Add(newFixedJointPosition, new BlockConnection(gameObject));
+            }
+        }
+    }
     void SetUpLeptonPositions()
     {
-        allLeptonPositions = new LeptonPosition[8];
+        allLeptonPositions = new LeptonPosition[leptonsMax];
         openLeptonPositions = new List<int>();
         float[] distances = { -0.5f * scalingFactor, 0.5f * scalingFactor };
         int leptonI = 0;
@@ -268,54 +693,98 @@ public class BlockBehavior : MatterBehavior
         }
     }
 
+    void SetUpQuarkPositions()
+    {
+        //Setting up quarkGroupMax from leptonMax, ie bottlenecked on max neg charge
+        quarkGroupMax = 1;
+        int quarkGroupFibonnacciI = 2;
+        while (quarkGroupMax < leptonsMax)
+        {
+            quarkGroupMax += quarkGroupFibonnacciI++;
+        }
+
+        quarkPositions = new Vector3[quarkGroupMax*QuarkGroup.maxLength];
+        Vector3 initPos = new Vector3(x: 0, y: 0, z: 0);
+        int i = 0;
+        int count = 0;
+        float scalingFactor = transform.localScale.x / 10; // scale should be same for x,y,z
+        while (true)
+        {
+            float dimY = initPos.y - (i * scalingFactor * 0.5f);
+            float initZ = initPos.z + (i * scalingFactor * 0.25f);
+            for (int ii = 0; ii <= i; ii++)
+            {
+                float initX = initPos.x + (ii * scalingFactor * 0.25f);
+                for (int iii = 0; iii <= ii; iii++)
+                {
+                    if (count >= quarkPositions.Length)
+                    {
+                        for (int placeI = 0; placeI < quarkPositions.Length; placeI++)
+                        {
+                            float newY = quarkPositions[placeI].y + ((i + 1) * scalingFactor * 0.5f) / 2;
+                            quarkPositions[placeI] = new Vector3(quarkPositions[placeI].x, newY, quarkPositions[placeI].z);
+                        }
+                        return;
+                    }
+
+                    float dimX = initX - (iii * scalingFactor * 0.5f);
+                    float dimZ = initZ - (ii * scalingFactor * 0.5f);
+                    Vector3 pos = new Vector3(x: dimX, y: dimY, z: dimZ);
+                    quarkPositions[count++] = pos;
+                }
+            }
+            i++;
+        }
+    }
+
     int Vector3ToIdx(int i, int ii, int iii)
     {
         string binaryRep = string.Format("{0}{1}{2}", iii, ii, i);
         return System.Convert.ToInt32(binaryRep, 2);
     }
 
-
     // Refresh State Utils
-    public int GetParticleGroupNetCharge(List<GameObject> particles)
-    {
-        int newCharge = 0;
-        foreach (var quark in particles)
+    public int GetNetLeptonCharge() //TODO get outside lepton charge too
+    { 
+        int leptonNetCharge = 0;
+        for(int i = 0; i < leptons.Count; i++)
         {
-            ParticleBehavior particleBehavior = getParticleData(quark);
-            newCharge += particleBehavior.charge;
+            ParticleBehavior particleBehavior = getParticleData(leptons[i]);
+            leptonNetCharge += particleBehavior.effectiveCharge;
         }
-        return newCharge;
-    }
-    public int GetNetCharge()
-    {
-        return GetParticleGroupNetCharge(leptons) + GetParticleGroupNetCharge(quarks);
+
+        foreach(BlockConnection blockConnection in connectedBlocks.Values)
+        {
+            if(blockConnection.hasBlock)
+            {
+                leptonNetCharge += blockConnection.netOtherCharge;
+            }
+        }
+
+        return leptonNetCharge;
     }
 
-    bool NetQuarkChargeValid(ParticleBehavior particleBehavior=null)
+    public int GetNetQuarkCharge()
     {
-        int totalQuarkCharge = GetParticleGroupNetCharge(quarks);
-        bool check;
-        if(particleBehavior is null)
+        int quarkNetCharge = 0;
+        foreach (QuarkGroup quarkGroup in quarkGroups)
         {
-            check = (totalQuarkCharge >= -2) && (totalQuarkCharge <= 4) && (quarks.Count <= 9);
+            quarkNetCharge += quarkGroup.netCharge;
+        }
+        return quarkNetCharge;
+    }
+
+    bool NetLeptonChargeValid(GameObject particle=null)
+    {
+        bool check;
+        if (particle is null)
+        {
+            check = (netChargeCache >= 0) && (leptons.Count <= leptonsMax - 1);
         }
         else
         {
-            check = particleBehavior.isQuark && (totalQuarkCharge + particleBehavior.charge >= -2) && (totalQuarkCharge + particleBehavior.charge <= 4) && (quarks.Count <= 9);
-        }
-        return check;
-    }
-
-    bool NetLeptonChargeValid(ParticleBehavior particleBehavior=null)
-    {
-        bool check;
-        if (particleBehavior is null)
-        {
-            check = (GetNetCharge() == 0) && (leptons.Count <= 7);
-        }
-        else
-        {
-            check = particleBehavior.isLepton && (particleBehavior.charge + GetNetCharge() >= 0) && (leptons.Count <= 7);
+            ParticleBehavior particleBehavior = particle.GetComponent<ParticleBehavior>();
+            check = particleBehavior.isLepton && (particleBehavior.effectiveCharge + netChargeCache >= 0) && (leptons.Count <= leptonsMax-1);
         }
         return check;
     }
@@ -324,10 +793,5 @@ public class BlockBehavior : MatterBehavior
     ParticleBehavior getParticleData(GameObject particle)
     {
         return particle.GetComponent<ParticleBehavior>();
-    }
-
-    Rigidbody getRigidBody(GameObject particle)
-    {
-        return particle.GetComponent<Rigidbody>();
     }
 }
