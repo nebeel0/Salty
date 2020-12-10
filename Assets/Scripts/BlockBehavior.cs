@@ -134,20 +134,22 @@ public class BlockBehavior : MatterBehavior
             leptons.RemoveAll(lepton => lepton == null);
             otherLeptons.RemoveAll(lepton => lepton == null);
 
-            if( inPlace || !hasBlock)
+            if( inPlace && (!hasBlock || !hasFixedJoint))
             {
                 if (!hasFixedJoint || leptons.Count == 0 || otherLeptons.Count == 0)
                 {
-                    if(hasBlock && otherBlock.GetComponent<Collider>() != null)
+                    if(hasBlock && otherBlock != null)
                     {
                         Physics.IgnoreCollision(otherBlock.GetComponent<Collider>(), thisBlock.GetComponent<Collider>(), false);
                     }
+                    thisBlock.GetComponent<BlockBehavior>().DisableCollision();
                     Destroy(fixedJoint);
                     otherBlock = null;
                     fixedJoint = null;
                     leptons.Clear();
                     otherLeptons.Clear();
-
+                    inPlace = false;
+                    
                     if(thisBlock != null && otherBlock != null)
                     {
                         if (thisBlock.transform.parent == otherBlock.transform)
