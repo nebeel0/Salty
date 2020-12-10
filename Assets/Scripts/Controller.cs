@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Controller : MonoBehaviour
 {
-    protected class CameraState
+    public class CameraState
     {
         public float yaw;
         public float pitch;
@@ -16,6 +16,20 @@ public class Controller : MonoBehaviour
             pitch = t.eulerAngles.x;
             yaw = t.eulerAngles.y;
             roll = t.eulerAngles.z;
+        }
+
+        public void SetFromEulerAngles(Vector3 eulerAngles)
+        {
+            pitch = eulerAngles.x;
+            yaw = eulerAngles.y;
+            roll = eulerAngles.z;
+        }
+
+        public void Copy(CameraState target)
+        {
+            yaw = target.yaw;
+            pitch = target.pitch;
+            roll = target.roll;
         }
 
         public void LerpTowards(CameraState target, float rotationLerpPct)
@@ -34,6 +48,11 @@ public class Controller : MonoBehaviour
         {
             t.eulerAngles = new Vector3(pitch, yaw, roll);
         }
+
+        public void UpdateLocalTransform(Transform t)
+        {
+            t.localEulerAngles = new Vector3(pitch, yaw, roll);
+        }
     }
 
     [Header("Rotation Settings")]
@@ -51,8 +70,11 @@ public class Controller : MonoBehaviour
 
     public Camera primaryCamera;
     public Vector3 primaryCameraRootPosition;
+    public CameraState primaryCameraRootEulerAngles = new CameraState();
     public Vector3 primaryCameraSlingShotPosition;
+    public CameraState primaryCameraSlingShotEulerAngles = new CameraState();
     public float primaryCameraSlingShotSpeed = 0.25f;
+    public float primaryCameraSlingShotRotateLag = 0.25f;
 
     protected CameraState m_TargetCameraState = new CameraState();
     protected CameraState m_InterpolatingCameraState = new CameraState();
@@ -112,6 +134,8 @@ public class Controller : MonoBehaviour
         m_InterpolatingCameraState.SetFromTransform(transform);
         primaryCameraRootPosition = primaryCamera.transform.localPosition;
         primaryCameraSlingShotPosition = primaryCameraRootPosition;
+        primaryCameraRootEulerAngles.SetFromEulerAngles(primaryCamera.transform.localEulerAngles);
+        primaryCameraSlingShotEulerAngles.SetFromEulerAngles(primaryCamera.transform.localEulerAngles);
     }
 
     public virtual void Update()
@@ -128,8 +152,20 @@ public class Controller : MonoBehaviour
         {
             var mouseMovement = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
 
-            m_TargetCameraState.yaw += mouseMovement.x * mouseSensitivity;
-            m_TargetCameraState.pitch += mouseMovement.y * mouseSensitivity;
+            if(planHoldFlag)
+            {
+                primaryCameraSlingShotEulerAngles.yaw += mouseMovement.x * mouseSensitivity;
+                primaryCameraSlingShotEulerAngles.pitch += mouseMovement.y * mouseSensitivity;
+
+                m_TargetCameraState.LerpTowards(primaryCameraSlingShotEulerAngles, rotationLerpPct*primaryCameraSlingShotRotateLag);
+                primaryCameraSlingShotEulerAngles.UpdateTransform(primaryCamera.transform);
+            }
+            else
+            {
+                m_TargetCameraState.yaw += mouseMovement.x * mouseSensitivity;
+                m_TargetCameraState.pitch += mouseMovement.y * mouseSensitivity;
+                primaryCameraSlingShotEulerAngles.UpdateLocalTransform(primaryCamera.transform);
+            }
 
             // Framerate-independent interpolation
             // Calculate the lerp amount, such that we get 99% of the way to our target in the specified time
@@ -172,10 +208,15 @@ public class Controller : MonoBehaviour
         if (planHoldFlag)
         {
             SetUpLineRenderer();
+            primaryCamera.transform.parent = null;
+            primaryCameraSlingShotPosition = primaryCamera.transform.position;
+            primaryCameraSlingShotEulerAngles.SetFromEulerAngles(primaryCamera.transform.eulerAngles);
         }
         else if (!planHoldFlag && planScalar > 0)
         {
+            primaryCamera.transform.parent = transform;
             primaryCameraSlingShotPosition = primaryCameraRootPosition;
+            primaryCameraSlingShotEulerAngles.Copy(primaryCameraRootEulerAngles);
             Vector3 direction = transform.forward;
             float scalar = planScalar;
             planScalar = 0; //Reset
@@ -277,7 +318,7 @@ public class Controller : MonoBehaviour
         if (planHoldFlag)
         {
             planScalar += 1 + planScalar * (float).25 * Time.deltaTime;
-            primaryCameraSlingShotPosition += planScalar * primaryCameraSlingShotSpeed * Vector3.back;
+            primaryCameraSlingShotPosition = transform.position + Mathf.Min(10, planScalar * primaryCameraSlingShotSpeed) * transform.forward * -1;  //max value
             DrawCurrentPlan();
         }
     }
