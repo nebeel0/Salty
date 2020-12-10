@@ -64,6 +64,7 @@ public class BlockBehavior : MatterBehavior
     public class BlockConnection
     {
         int forceMultiplier = 1000;
+        public Vector3Int otherBlockLocalPosition;
         public GameObject thisBlock;
         public GameObject otherBlock;
         public FixedJoint fixedJoint;
@@ -99,8 +100,9 @@ public class BlockBehavior : MatterBehavior
                 return netOtherCharge;
             }
         }
-        public BlockConnection(GameObject thisBlock)
+        public BlockConnection(GameObject thisBlock, Vector3Int otherBlockLocalPosition)
         {
+            this.otherBlockLocalPosition = otherBlockLocalPosition;
             this.thisBlock = thisBlock;
             otherBlock = null;
             fixedJoint = null;
@@ -118,10 +120,10 @@ public class BlockBehavior : MatterBehavior
                 {
                     leptons[i].GetComponent<ParticleBehavior>().available = false;
                 }
-                for (int i = 0; i < otherLeptons.Count; i++)
-                {
-                    otherLeptons[i].GetComponent<ParticleBehavior>().available = false;
-                }
+                //for (int i = 0; i < otherLeptons.Count; i++)
+                //{
+                //    otherLeptons[i].GetComponent<ParticleBehavior>().available = false;
+                //}
                 fixedJoint.breakForce = forceMultiplier * totalLeptonCount; // TODO exponential strength
                 fixedJoint.breakTorque = forceMultiplier * totalLeptonCount;
             }
@@ -145,18 +147,39 @@ public class BlockBehavior : MatterBehavior
                     fixedJoint = null;
                     leptons.Clear();
                     otherLeptons.Clear();
+
+                    if(thisBlock != null && otherBlock != null)
+                    {
+                        if (thisBlock.transform.parent == otherBlock.transform)
+                        {
+                            thisBlock.transform.parent = null;
+                        }
+                        else if (otherBlock.transform.parent == thisBlock.transform)
+                        {
+                            otherBlock.transform.parent = null;
+                        }
+                    }
                 }
             }
         }
 
-        public void Place(Vector3 blockPosition)
+        public void Reflect(BlockConnection otherBlockConnection)
+        {
+            fixedJoint = otherBlockConnection.fixedJoint;
+            otherBlock = otherBlockConnection.thisBlock;
+            leptons = otherBlockConnection.otherLeptons;
+            otherLeptons = otherBlockConnection.leptons;
+            inPlace = true;
+        }
+
+        public void Place()
         {
             int lockOnSpeed = 10;
             if (hasBlock && !inPlace)
             {
-                if (otherBlock.transform.localPosition != blockPosition)
+                if (otherBlock.transform.localPosition != otherBlockLocalPosition)
                 {
-                    if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, blockPosition))
+                    if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, otherBlockLocalPosition))
                     {
                         otherBlock.transform.SetParent(thisBlock.transform);
                         Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
@@ -164,12 +187,21 @@ public class BlockBehavior : MatterBehavior
                         otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, 1);
                         otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, 1);
                         otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
-                        otherBlock.transform.localPosition = blockPosition;
+                        otherBlock.transform.localPosition = otherBlockLocalPosition;
                         otherBlock.transform.SetParent(null);
+
                         fixedJoint = thisBlock.AddComponent<FixedJoint>();
                         fixedJoint.enableCollision = false;
                         fixedJoint.connectedBody = otherBlock.GetComponent<Rigidbody>();
                         inPlace = true;
+
+                        //sets other blockConnection to this joint
+                        BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
+                        thisBlock.transform.SetParent(otherBlock.transform);
+                        Vector3Int positionFromOtherBlock = Vector3Int.RoundToInt(thisBlock.transform.localPosition);
+                        BlockConnection otherBlockConnection = otherBlockBehavior.connectedBlocks[positionFromOtherBlock.ToString()];
+                        otherBlockConnection.Reflect(this);
+                        thisBlock.transform.SetParent(null);
                     }
                     else
                     {
@@ -179,7 +211,7 @@ public class BlockBehavior : MatterBehavior
                         otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, lockOnSpeed * Time.deltaTime);
                         otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, lockOnSpeed * Time.deltaTime);
                         otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
-                        otherBlock.transform.localPosition = Vector3.Lerp(otherBlock.transform.localPosition, blockPosition, lockOnSpeed * Time.deltaTime);
+                        otherBlock.transform.localPosition = Vector3.Lerp(otherBlock.transform.localPosition, otherBlockLocalPosition, lockOnSpeed * Time.deltaTime);
                     }
                 }
             }
@@ -208,7 +240,7 @@ public class BlockBehavior : MatterBehavior
     LeptonPosition[] allLeptonPositions;
     List<int> openLeptonPositions;
     int leptonsMax = 8;  //TODO programmatically figure out max number of leptons, which we can figure out from number of vertexes in shape
-    Dictionary<Vector3, BlockConnection> connectedBlocks;
+    Dictionary<string, BlockConnection> connectedBlocks;
 
     public override void Start()
     {
@@ -489,18 +521,18 @@ public class BlockBehavior : MatterBehavior
             return;
         }
         otherBlock.transform.SetParent(transform);
-        Vector3 closestPoint = Vector3.zero;
+        string closestBlockConnectionI = "";
         float closestDistance = 0;
-        foreach(KeyValuePair<Vector3, BlockConnection> connectedBlock in connectedBlocks)
+        foreach(KeyValuePair<string, BlockConnection> connectedBlock in connectedBlocks)
         {
-            float distance = Vector3.Distance(connectedBlock.Key, otherBlock.transform.localPosition);
-            if(closestPoint == Vector3.zero || distance < closestDistance)
+            float distance = Vector3.Distance(connectedBlock.Value.otherBlockLocalPosition, otherBlock.transform.localPosition);
+            if(closestBlockConnectionI == "" || distance < closestDistance)
             {
-                closestPoint = connectedBlock.Key;  //We're going to assume that this is going to be accurate both ways
+                closestBlockConnectionI = connectedBlock.Key;
                 closestDistance = distance;
             }
         }
-        if(!connectedBlocks[closestPoint].hasBlock)
+        if(!connectedBlocks[closestBlockConnectionI].hasBlock)
         {
             BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
             List<GameObject> otherBlockAvailableLeptons = otherBlockBehavior.GetAvailableLeptons();
@@ -522,7 +554,7 @@ public class BlockBehavior : MatterBehavior
                     if (otherBlockAvailableLeptonSpace >= availableLeptons.Count)
                     {
                         List<GameObject> newOtherLeptons = otherBlockAvailableLeptons.GetRange(0, System.Math.Min(otherBlockAvailableLeptons.Count, availableLeptonSpace));
-                        AddBlock(blockConnection: connectedBlocks[closestPoint], otherBlock: otherBlock, leptons: availableLeptons, otherLeptons: newOtherLeptons);
+                        AddBlock(blockConnection: connectedBlocks[closestBlockConnectionI], otherBlock: otherBlock, leptons: availableLeptons, otherLeptons: newOtherLeptons);
                         return;
                     }
                 }
@@ -537,7 +569,7 @@ public class BlockBehavior : MatterBehavior
                 //}
                 else
                 {
-                    AddBlock(blockConnection: connectedBlocks[closestPoint], otherBlock: otherBlock, leptons: availableLeptons.GetRange(0,1), otherLeptons: otherBlockAvailableLeptons.GetRange(0, 1));
+                    AddBlock(blockConnection: connectedBlocks[closestBlockConnectionI], otherBlock: otherBlock, leptons: availableLeptons.GetRange(0,1), otherLeptons: otherBlockAvailableLeptons.GetRange(0, 1));
                     return;
                 }
             }
@@ -602,9 +634,9 @@ public class BlockBehavior : MatterBehavior
 
     void PlaceBlocks() //Once it has been put in place add the fixed joint
     {
-        foreach (KeyValuePair<Vector3, BlockConnection> connectedBlock in connectedBlocks)
+        foreach (KeyValuePair<string, BlockConnection> connectedBlock in connectedBlocks)
         {
-            connectedBlock.Value.Place(connectedBlock.Key);
+            connectedBlock.Value.Place();
         }
     }
 
@@ -656,14 +688,14 @@ public class BlockBehavior : MatterBehavior
     }
     void SetUpConnectedBlocks()
     {
-        connectedBlocks = new Dictionary<Vector3, BlockConnection>();
+        connectedBlocks = new Dictionary<string, BlockConnection>();
         for (int i = 1; i <= 2; i++)
         {
             for (int ii = 0; ii < 3; ii++)
             {
-                Vector3 newFixedJointPosition = new Vector3(0, 0, 0);
-                newFixedJointPosition[ii] = i * (-1) * scalingFactor;
-                connectedBlocks.Add(newFixedJointPosition, new BlockConnection(gameObject));
+                Vector3Int newFixedJointPosition = Vector3Int.zero;
+                newFixedJointPosition[ii] = (int) System.Math.Pow(-1, i) * (int) scalingFactor;
+                connectedBlocks.Add(newFixedJointPosition.ToString(), new BlockConnection(gameObject, newFixedJointPosition));
             }
         }
     }
