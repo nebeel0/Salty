@@ -49,23 +49,23 @@ public class Controller : MonoBehaviour
     [Tooltip("Whether or not to invert our Y axis for mouse input to rotation.")]
     public bool invertY = false;
 
-    protected Camera primaryCamera;
+    public Camera primaryCamera;
+    public Vector3 primaryCameraRootPosition;
+    public Vector3 primaryCameraSlingShotPosition;
+    public float primaryCameraSlingShotSpeed = 0.25f;
+
     protected CameraState m_TargetCameraState = new CameraState();
     protected CameraState m_InterpolatingCameraState = new CameraState();
-
     protected bool visualFlag = true;
     protected bool lockPerspective = false;
     protected bool lockOn = false;
     protected bool fadeOutFlag = false;
     protected bool planHoldFlag = false;
     protected bool resetOrientationFlag = false;
-
     protected PlayerInput playerInput;
     protected new Rigidbody rigidbody;
     protected LineRenderer lineRenderer;
-
     protected float planScalar = 0;
-
     protected enum ActionQueueTypes
     {
         Default, //Launch Forward, or movement action
@@ -110,6 +110,8 @@ public class Controller : MonoBehaviour
         }
         m_TargetCameraState.SetFromTransform(transform);
         m_InterpolatingCameraState.SetFromTransform(transform);
+        primaryCameraRootPosition = primaryCamera.transform.localPosition;
+        primaryCameraSlingShotPosition = primaryCameraRootPosition;
     }
 
     public virtual void Update()
@@ -134,6 +136,7 @@ public class Controller : MonoBehaviour
             m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, rotationLerpPct);
             m_InterpolatingCameraState.UpdateTransform(transform);
         }
+        primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, primaryCameraSlingShotPosition, Time.deltaTime);
     }
 
     protected void ActionQueueUpdate()
@@ -172,6 +175,7 @@ public class Controller : MonoBehaviour
         }
         else if (!planHoldFlag && planScalar > 0)
         {
+            primaryCameraSlingShotPosition = primaryCameraRootPosition;
             Vector3 direction = transform.forward;
             float scalar = planScalar;
             planScalar = 0; //Reset
@@ -273,6 +277,7 @@ public class Controller : MonoBehaviour
         if (planHoldFlag)
         {
             planScalar += 1 + planScalar * (float).25 * Time.deltaTime;
+            primaryCameraSlingShotPosition += planScalar * primaryCameraSlingShotSpeed * Vector3.back;
             DrawCurrentPlan();
         }
     }
