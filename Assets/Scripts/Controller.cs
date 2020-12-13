@@ -68,13 +68,18 @@ public class Controller : MonoBehaviour
     [Tooltip("Whether or not to invert our Y axis for mouse input to rotation.")]
     public bool invertY = false;
 
-    public Camera primaryCamera;
+    protected GameObject mainBlock;
+    public GameObject directionalLight;
+    public GameObject primaryCameraGameObject;
+
+    protected Camera primaryCamera;
     public Vector3 primaryCameraRootPosition;
     public CameraState primaryCameraRootEulerAngles = new CameraState();
     public Vector3 primaryCameraSlingShotPosition;
     public CameraState primaryCameraSlingShotEulerAngles = new CameraState();
     public float primaryCameraSlingShotSpeed = 0.25f;
     public float primaryCameraSlingShotRotateLag = 0.25f;
+    public float primaryCameraDisplacement = 0;
 
     protected CameraState m_TargetCameraState = new CameraState();
     protected CameraState m_InterpolatingCameraState = new CameraState();
@@ -88,6 +93,10 @@ public class Controller : MonoBehaviour
     protected new Rigidbody rigidbody;
     protected LineRenderer lineRenderer;
     protected float planScalar = 0;
+    protected bool isGhost = true;
+
+    //TODO collision frequency
+
     protected enum ActionQueueTypes
     {
         Default, //Launch Forward, or movement action
@@ -121,8 +130,13 @@ public class Controller : MonoBehaviour
 
     public virtual void Start()
     {
+        // TODO when you die you can exist as a camera and find a new block to be come your host?
+        // Clear Camera or Directional Light
+        Instantiate(directionalLight, transform);
+        primaryCamera = Instantiate(primaryCameraGameObject, transform).GetComponent<Camera>();
+
         playerInput = GetComponent<PlayerInput>();
-        rigidbody = GetComponent<Rigidbody>();
+        //rigidbody = GetComponent<Rigidbody>(); //TODO fix
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.enabled = false;
         lineRenderer.positionCount = 0;
@@ -145,19 +159,18 @@ public class Controller : MonoBehaviour
         VisualUpdate();
     }
 
-    protected virtual void PerspectiveUpdate()
+    protected void PlayerPerspectiveUpdate()
     {
-        ResetOrientationUpdate();
         if (!lockPerspective && !resetOrientationFlag)
         {
             var mouseMovement = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
 
-            if(planHoldFlag)
+            if (planHoldFlag)
             {
                 primaryCameraSlingShotEulerAngles.yaw += mouseMovement.x * mouseSensitivity;
                 primaryCameraSlingShotEulerAngles.pitch += mouseMovement.y * mouseSensitivity;
 
-                m_TargetCameraState.LerpTowards(primaryCameraSlingShotEulerAngles, rotationLerpPct*primaryCameraSlingShotRotateLag);
+                m_TargetCameraState.LerpTowards(primaryCameraSlingShotEulerAngles, rotationLerpPct * primaryCameraSlingShotRotateLag);
                 primaryCameraSlingShotEulerAngles.UpdateTransform(primaryCamera.transform);
             }
             else
@@ -172,7 +185,68 @@ public class Controller : MonoBehaviour
             m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, rotationLerpPct);
             m_InterpolatingCameraState.UpdateTransform(transform);
         }
-        primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, primaryCameraSlingShotPosition, Time.deltaTime);
+        float cameraLerpFactor;
+        if (planHoldFlag)
+        {
+            cameraLerpFactor = Time.deltaTime;
+        }
+        else
+        {
+            cameraLerpFactor = 1;
+        }
+        primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, primaryCameraSlingShotPosition, cameraLerpFactor);
+    }
+
+    protected void GhostPerspectiveUpdate()
+    {
+        if (!lockPerspective && !resetOrientationFlag)
+        {
+            var mouseMovement = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
+
+            if (planHoldFlag)
+            {
+                primaryCameraSlingShotEulerAngles.yaw += mouseMovement.x * mouseSensitivity;
+                primaryCameraSlingShotEulerAngles.pitch += mouseMovement.y * mouseSensitivity;
+
+                m_TargetCameraState.LerpTowards(primaryCameraSlingShotEulerAngles, rotationLerpPct * primaryCameraSlingShotRotateLag);
+                primaryCameraSlingShotEulerAngles.UpdateTransform(primaryCamera.transform);
+            }
+            else
+            {
+                m_TargetCameraState.yaw += mouseMovement.x * mouseSensitivity;
+                m_TargetCameraState.pitch += mouseMovement.y * mouseSensitivity;
+                primaryCameraSlingShotEulerAngles.UpdateLocalTransform(primaryCamera.transform);
+            }
+
+            // Framerate-independent interpolation
+            // Calculate the lerp amount, such that we get 99% of the way to our target in the specified time
+            m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, rotationLerpPct);
+            m_InterpolatingCameraState.UpdateTransform(transform);
+        }
+        float cameraLerpFactor;
+        if (planHoldFlag)
+        {
+            cameraLerpFactor = Time.deltaTime;
+        }
+        else
+        {
+            cameraLerpFactor = 1;
+        }
+        primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, primaryCameraSlingShotPosition, cameraLerpFactor);
+    }
+
+    protected virtual void PerspectiveUpdate()
+    {
+        ResetOrientationUpdate();
+        if(!isGhost)
+        {
+            PlayerPerspectiveUpdate();
+        }
+        else
+        {
+            GhostPerspectiveUpdate();
+        }
+
     }
 
     protected void ActionQueueUpdate()
@@ -318,7 +392,7 @@ public class Controller : MonoBehaviour
         if (planHoldFlag)
         {
             planScalar += 1 + planScalar * (float).25 * Time.deltaTime;
-            primaryCameraSlingShotPosition = transform.position + Mathf.Min(10, planScalar * primaryCameraSlingShotSpeed) * transform.forward * -1;  //max value
+            primaryCameraSlingShotPosition = transform.position + 10 * transform.forward * -1;  //max value //TODO find a good value for sling shot position
             DrawCurrentPlan();
         }
     }
@@ -369,8 +443,8 @@ public class Controller : MonoBehaviour
         {
             if (lineRenderer.enabled && lineRenderer.endColor.a > 0.01)
             {
-                lineRenderer.startColor = Color.Lerp(lineRenderer.startColor, Color.clear, Time.deltaTime/1);
-                lineRenderer.endColor = Color.Lerp(lineRenderer.endColor, Color.clear, Time.deltaTime/2);
+                lineRenderer.startColor = Color.Lerp(lineRenderer.startColor, Color.clear, Time.deltaTime);
+                lineRenderer.endColor = Color.Lerp(lineRenderer.endColor, Color.clear, Time.deltaTime);
             }
             else
             {
