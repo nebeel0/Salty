@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VRController : Controller
+public class VRController : PlayerController
 {
     
     // Start is called before the first frame update
@@ -12,7 +12,7 @@ public class VRController : Controller
     }
 
     // Update is called once per frame
-    public override void Update()
+    protected override void Update()
     {
         
     }

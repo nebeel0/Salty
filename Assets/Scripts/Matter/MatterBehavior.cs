@@ -13,7 +13,7 @@ public class MatterBehavior : MonoBehaviour
 
     protected GameObject gameMaster;
     protected Vector3 gameBounds;
-    protected float collisionCooldownTime = 3; // needs three seconds before cooldown is over
+    protected float collisionCooldownTime = 0.5f; // needs three seconds before cooldown is over
     protected float scalingFactor //TODO int
     {
         get { return transform.localScale.x; }  // x,y,z should all be the same

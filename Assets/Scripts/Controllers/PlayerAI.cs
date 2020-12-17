@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AIController : UserController
+public class PlayerAI : PlayerController
 {
     
     // Start is called before the first frame update
@@ -12,7 +12,7 @@ public class AIController : UserController
     }
 
     // Update is called once per frame
-    public override void Update()
+    protected override void Update()
     {
         
     }

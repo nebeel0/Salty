@@ -14,7 +14,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "LockPerspective",
+                    "name": "QuantumLock",
                     "type": "Button",
                     "id": "88611795-d76a-419c-a449-0a509f3539f6",
                     "expectedControlType": "Button",
@@ -22,7 +22,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Plan",
+                    "name": "Hold",
                     "type": "Button",
                     "id": "eb0647b3-723b-4c81-94b4-0b1e282d9dd6",
                     "expectedControlType": "Button",
@@ -30,7 +30,7 @@
                     "interactions": "Press(behavior=2)"
                 },
                 {
-                    "name": "AddModeToggle",
+                    "name": "AddMode",
                     "type": "Button",
                     "id": "4029ce0c-6ae5-4ea4-95bb-4788298029fe",
                     "expectedControlType": "Button",
@@ -54,9 +54,17 @@
                     "interactions": ""
                 },
                 {
-                    "name": "DrawPlan",
+                    "name": "DrawPath",
                     "type": "Button",
                     "id": "9ac48d2e-e919-43ea-93c6-88c2a739549a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "ResetOrientation",
+                    "type": "Button",
+                    "id": "ca6e80e6-239c-4986-b5a4-43da811c3d87",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -70,9 +78,41 @@
                     "interactions": ""
                 },
                 {
-                    "name": "ResetOrientation",
+                    "name": "FirstPerson",
                     "type": "Button",
-                    "id": "ca6e80e6-239c-4986-b5a4-43da811c3d87",
+                    "id": "a0b28dc5-598e-4d5a-be7a-069619c73db8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "ThirdPerson",
+                    "type": "Button",
+                    "id": "1a766bd5-2cd2-4739-afb3-64f5becebc82",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "BlockMode",
+                    "type": "Button",
+                    "id": "67344905-c345-4bd1-b92a-14a371f20b2c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "GodMode",
+                    "type": "Button",
+                    "id": "1c5f88d5-e25d-4be9-9dff-1a5b661316d5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "PerspectiveAlign",
+                    "type": "Button",
+                    "id": "75c5b533-d2e9-4ed7-869b-7eadb45b9f3b",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -119,7 +159,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
-                    "action": "LockPerspective",
+                    "action": "QuantumLock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -130,7 +170,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "LockPerspective",
+                    "action": "QuantumLock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -141,7 +181,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Touch",
-                    "action": "LockPerspective",
+                    "action": "QuantumLock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -152,7 +192,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
-                    "action": "LockPerspective",
+                    "action": "QuantumLock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -163,7 +203,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "XR",
-                    "action": "LockPerspective",
+                    "action": "QuantumLock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -174,7 +214,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Plan",
+                    "action": "Hold",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -185,7 +225,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "AddModeToggle",
+                    "action": "AddMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -218,7 +258,40 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "DrawPlan",
+                    "action": "DrawPath",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7f5f16fd-e5c2-475f-9a52-1177a47134c3",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ResetOrientation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c1ab3e6c-8a1d-4561-9272-0005664b6382",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "FirstPerson",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0b15c54e-9b00-4376-a940-cbfe7ff74637",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ThirdPerson",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -235,12 +308,34 @@
                 },
                 {
                     "name": "",
-                    "id": "7f5f16fd-e5c2-475f-9a52-1177a47134c3",
-                    "path": "<Keyboard>/r",
+                    "id": "0fe9ec34-c219-4d65-b847-4bf88b06624e",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse;Gamepad",
+                    "action": "BlockMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0efc9c21-aa25-408a-adb0-4428fc9d77d3",
+                    "path": "<Mouse>/rightButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "ResetOrientation",
+                    "action": "GodMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4922b74a-ad86-4fe8-933a-f2d63976ec9b",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PerspectiveAlign",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

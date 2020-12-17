@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 259323466092311923}
   m_Layer: 0
   m_Name: SuperBlock
-  m_TagString: Untagged
+  m_TagString: SuperBlock
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40,14 +40,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 6599264614019995199}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92402d10c21fcb840981048afac84bf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 14e132a9c49ffcf418c8ce8e392c4155, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerOverride: 0
-  collisionCooldown: 0
-  noBlockCollisionLayer: 16
-  blockLayer: 8
-  timerEnabled: 1
-  colliderEnabled: 0
+  mainBlock: {fileID: 0}
   blockRef: {fileID: 4819842358078350356, guid: 37e523f2e600fcb448684e1434888982,
     type: 3}
+  playerOverride: 0
