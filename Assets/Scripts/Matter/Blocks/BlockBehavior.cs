@@ -18,7 +18,6 @@ public class BlockBehavior : MatterBehavior
             return false;
         }
     }
-
     public class QuarkGroup
     {
         public static int maxLength = 3;
@@ -75,7 +74,6 @@ public class BlockBehavior : MatterBehavior
     }
     public class BlockConnection
     {
-        int forceMultiplier = 1000;
         public Vector3Int otherBlockLocalPosition;
         public GameObject thisBlock;
         public GameObject otherBlock;
@@ -127,14 +125,12 @@ public class BlockBehavior : MatterBehavior
         public void Refresh()
         {
             DeathCheck();
-            if (hasFixedJoint)
+            if (hasOtherBlock && hasFixedJoint)
             {
                 for (int i = 0; i < leptons.Count; i++)
                 {
                     leptons[i].GetComponent<ParticleBehavior>().available = false;
                 }
-                fixedJoint.breakForce = forceMultiplier * totalLeptonCount; // TODO exponential strength
-                fixedJoint.breakTorque = forceMultiplier * totalLeptonCount;
             }
         }
         public void DeathCheck()
@@ -142,21 +138,16 @@ public class BlockBehavior : MatterBehavior
             leptons.RemoveAll(lepton => lepton == null);
             otherLeptons.RemoveAll(lepton => lepton == null);
 
-            if(!Valid())
+            if(inPlace && !Valid())
             {
                 Death();
             }
         }
         public bool Valid()
         {
-            bool placingCheck = placing && !hasOtherBlock;
-            bool inPlaceCheck = inPlace && (!hasOtherBlock || !hasFixedJoint);
-            if (placingCheck || inPlaceCheck)
+            if (!hasOtherBlock || leptons.Count == 0 || otherLeptons.Count == 0 || !hasFixedJoint)
             {
-                if (!hasOtherBlock || !hasFixedJoint || leptons.Count == 0 || otherLeptons.Count == 0)
-                {
-                    return false;
-                }
+                return false;
             }
             return true;
         }
@@ -199,46 +190,54 @@ public class BlockBehavior : MatterBehavior
         }
         public void Place()
         {
-            int lockOnSpeed = 10;
+            float lockOnSpeed = 10;
             if (hasOtherBlock && !inPlace && placing)
             {
                 if (otherBlock.transform.localPosition != otherBlockLocalPosition)
                 {
                     if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, otherBlockLocalPosition))
                     {
-                        otherBlock.transform.SetParent(thisBlock.transform);
+                        //Snapping
+                        Transform otherBlockParent = otherBlock.transform.parent;
+                        otherBlock.transform.parent = thisBlock.transform;
+
                         Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
                         otherBlockEulerAngles.x = Mathf.LerpAngle(otherBlockEulerAngles.x, Mathf.Round(otherBlockEulerAngles.x / 90) * 90, 1);
                         otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, 1);
                         otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, 1);
                         otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
-                        otherBlock.transform.localPosition = otherBlockLocalPosition;
-                        otherBlock.transform.SetParent(null);
 
+                        otherBlock.transform.localPosition = otherBlockLocalPosition;
+                        otherBlock.transform.parent = otherBlockParent;
+
+                        //Setting fixed joint AKA glue, also terminates the Place Loop
                         fixedJoint = thisBlock.AddComponent<FixedJoint>();
                         fixedJoint.enableCollision = false;
                         fixedJoint.connectedBody = otherBlock.GetComponent<Rigidbody>();
                         inPlace = true;
+                        placing = false;
 
-                        //sets other blockConnection to this joint
+                       
                         BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
-                        thisBlock.transform.SetParent(otherBlock.transform);
-                        Vector3Int positionFromOtherBlock = Vector3Int.RoundToInt(thisBlock.transform.localPosition);
+                        Vector3Int positionFromOtherBlock = Vector3Int.RoundToInt(otherBlock.transform.InverseTransformPoint(thisBlock.transform.position));
                         BlockConnection otherBlockConnection = otherBlockBehavior.connectedBlocks[positionFromOtherBlock.ToString()];
                         otherBlockConnection.Reflect(this);
-                        thisBlock.transform.SetParent(null);
-
-                        placing = false;
                     }
                     else
                     {
+                        Transform otherBlockParent = otherBlock.transform.parent;
                         otherBlock.transform.SetParent(thisBlock.transform);
+
                         Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
+
+                        lockOnSpeed += 1 / (Vector3.Distance(otherBlock.transform.localPosition, otherBlockLocalPosition));
                         otherBlockEulerAngles.x = Mathf.LerpAngle(otherBlockEulerAngles.x, Mathf.Round(otherBlockEulerAngles.x / 90) * 90, lockOnSpeed* Time.deltaTime);
                         otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, lockOnSpeed * Time.deltaTime);
                         otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, lockOnSpeed * Time.deltaTime);
                         otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
                         otherBlock.transform.localPosition = Vector3.Lerp(otherBlock.transform.localPosition, otherBlockLocalPosition, lockOnSpeed * Time.deltaTime);
+
+                        otherBlock.transform.SetParent(otherBlockParent);
                     }
                 }
             }
@@ -316,7 +315,7 @@ public class BlockBehavior : MatterBehavior
         if (col.gameObject.CompareTag("Block"))
         {
             DisableCollision();
-            //CollideBlock(col.gameObject);
+            CollideBlock(col.gameObject);
         }
     }
     // max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2

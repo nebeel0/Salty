@@ -142,6 +142,13 @@ public class SuperBlockBehavior : MonoBehaviour
         {
             block.transform.parent = transform;
         }
+    }
 
+    public void Brake()
+    {
+        foreach(GameObject block in blocks)
+        {
+            block.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        }
     }
 }

@@ -90,7 +90,10 @@ public class PlayerController : Controller
             base.Update();
             ResetOrientationUpdate();
             CameraUpdate();
-            ActionQueueUpdate();
+            if(!godMode)
+            {
+                ActionQueueUpdate();
+            }
             VisualUpdate();
         }
     }
@@ -151,6 +154,11 @@ public class PlayerController : Controller
     protected override void OnHold()
     {
         holdFlag = !holdFlag; //Sets to hold
+        if (godMode)
+        {
+            return;
+        }
+
         if (holdFlag)
         {
             SetUpLineRenderer();
@@ -261,6 +269,7 @@ public class PlayerController : Controller
             godMode = !godMode;
             if (godMode)
             {
+                superBlock.GetComponent<SuperBlockBehavior>().Brake();
                 target = transform;
                 transform.parent = null;
                 primaryCamera.transform.parent = null;
