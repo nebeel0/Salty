@@ -85,7 +85,7 @@ public class Controller : MonoBehaviour
     protected float holdScalar = 0;
     protected bool holdFlag = false;
     protected bool resetOrientation = false;
-
+    protected bool menu = false;
 
     public virtual void Start()
     {
@@ -96,14 +96,11 @@ public class Controller : MonoBehaviour
         Instantiate(directionalLight, primaryCamera.transform);
         playerInput = gameObject.GetComponent<PlayerInput>();
     }
-
     protected virtual void Update()
     {
         ResetOrientationUpdate();
         RotationUpdate();
     }
-
-
     protected virtual void RotationUpdate()
     {
         if(target != null)
@@ -118,19 +115,15 @@ public class Controller : MonoBehaviour
             m_InterpolatingCameraState.UpdateTransform(target);
         }
     }
-
-
     protected void OnLook(InputValue value) //TODO Will Probably be overridden for xr
     {
         lookDelta = value.Get<Vector2>() * Time.deltaTime;
         lookDelta.y *= (invertY ? 1 : -1);
     }
-
     public void OnResetOrientation()
     {
         resetOrientation = true;
     }
-
     protected void ResetOrientationUpdate()
     {
         //TODO maybe just rotate camera and not body
@@ -158,8 +151,6 @@ public class Controller : MonoBehaviour
             }
         }
     }
-
-
     protected virtual void OnHold()
     {
         holdFlag = !holdFlag; //Sets to hold
@@ -168,7 +159,6 @@ public class Controller : MonoBehaviour
             holdScalar = 0; //Reset
         }
     }
-
     protected virtual void HoldUpdate()
     {
         if (holdFlag)
@@ -177,5 +167,17 @@ public class Controller : MonoBehaviour
         }
     }
 
-
+    protected void OnMenu()
+    {
+        //TODO implement menu functions
+        menu = !menu;
+        if(menu)
+        {
+            Time.timeScale = 0;
+        }
+        else
+        {
+            Time.timeScale = 1;
+        }
+    }
 }

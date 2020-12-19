@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 
 //Aggregates blocks
 public class SuperBlockBehavior : MonoBehaviour
@@ -8,8 +9,8 @@ public class SuperBlockBehavior : MonoBehaviour
     public GameObject mainBlock = null;
     public GameObject blockRef;
     public GameObject player;
-
-    int prevBlockCount = 0;
+    [ReadOnly]
+    public int prevBlockCount = 0;
     Vector3 prevCenterOfMass = Vector3.zero;
     //TODO multiple cameras per game Object, multiple players on one block?
     float totalMass = 0; //We're going to treat each block as having the same mass.
@@ -131,7 +132,6 @@ public class SuperBlockBehavior : MonoBehaviour
 
     void PositionUpdate()
     {
-        Debug.Log(prevCenterOfMass);
         foreach (GameObject block in blocks)
         {
             block.transform.parent = null;
@@ -144,11 +144,28 @@ public class SuperBlockBehavior : MonoBehaviour
         }
     }
 
+    public void DistributeForce(Vector3 forceVector, ForceMode forceMode)
+    {
+        Vector3 distributedForce = forceVector / blocks.Count;
+        foreach (GameObject block in blocks)
+        {
+            block.GetComponent<Rigidbody>().AddForce(distributedForce, forceMode);
+        }
+    }
+
     public void Brake()
     {
         foreach(GameObject block in blocks)
         {
             block.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            block.GetComponent<Rigidbody>().freezeRotation = true;
+        }
+    }
+    public void UnBrake()
+    {
+        foreach (GameObject block in blocks)
+        {
+            block.GetComponent<Rigidbody>().freezeRotation = false;
         }
     }
 }

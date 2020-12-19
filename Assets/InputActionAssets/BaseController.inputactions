@@ -38,6 +38,14 @@
                     "interactions": ""
                 },
                 {
+                    "name": "Subtract",
+                    "type": "Button",
+                    "id": "28cb1a85-e861-4847-8949-50e9ae3ffd98",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "Fire",
                     "type": "Button",
                     "id": "c0568c3b-bed9-4cda-86f5-be92ef22d720",
@@ -113,6 +121,14 @@
                     "name": "PerspectiveAlign",
                     "type": "Button",
                     "id": "75c5b533-d2e9-4ed7-869b-7eadb45b9f3b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "91bfc0a0-01f2-4058-81aa-814d42580ed7",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -320,7 +336,7 @@
                 {
                     "name": "",
                     "id": "0efc9c21-aa25-408a-adb0-4428fc9d77d3",
-                    "path": "<Mouse>/rightButton",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -336,6 +352,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "PerspectiveAlign",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "53f4bea8-45fa-4e70-8317-3da2830bd1c2",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "697f3b22-9e78-4806-bec9-47dbceeae8cc",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Subtract",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

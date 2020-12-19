@@ -536,9 +536,10 @@ public class ParticleBehavior : MatterBehavior
 
     }
     //Creating Particle Utils, have to deal with conversation of mass, energy, momentum
-    ParticleBehavior CreateNeutrino(int mass, float energy)
+    ParticleBehavior CreateNeutrino(int mass, float energy, GameObject particleRef=null)
     //Neutrinos can be created by wBosons decaying
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject neutrino = Instantiate(particleRef);
         ParticleBehavior neutrinoBehavior = neutrino.GetComponent<ParticleBehavior>();
         neutrinoBehavior.particleStateType = "leptonNeutral";
@@ -546,9 +547,10 @@ public class ParticleBehavior : MatterBehavior
         neutrinoBehavior.rigidbody.isKinematic = false; // Movement should be affected by physics.
         return neutrinoBehavior;
     }
-    ParticleBehavior CreateElectron(int mass, float energy, int antiCharge=1)
+    public ParticleBehavior CreateElectron(int mass, float energy, int antiCharge=1, GameObject particleRef = null)
     //Leptons can be created by wBosons decaying
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject electron = Instantiate(particleRef);
         ParticleBehavior electronBehavior = electron.GetComponent<ParticleBehavior>();
         electronBehavior.particleStateType = "leptonNeg";
@@ -558,8 +560,9 @@ public class ParticleBehavior : MatterBehavior
         return electronBehavior;
     }
     //Quarks can be created by wBosons decaying
-    ParticleBehavior CreateQuarkPos(int mass, float energy, int antiCharge=1)
+    ParticleBehavior CreateQuarkPos(int mass, float energy, int antiCharge=1, GameObject particleRef = null)
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject posQuark = Instantiate(particleRef);
         ParticleBehavior posQuarkBehavior = posQuark.GetComponent<ParticleBehavior>();
         posQuarkBehavior.particleStateType = "quarkPos";
@@ -568,8 +571,9 @@ public class ParticleBehavior : MatterBehavior
         posQuarkBehavior.rigidbody.isKinematic = false; // Movement should be affected by physics.
         return posQuarkBehavior;
     }
-    ParticleBehavior CreateQuarkNeg(int mass, float energy, int antiCharge=1)
+    ParticleBehavior CreateQuarkNeg(int mass, float energy, int antiCharge=1, GameObject particleRef = null)
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject negQuark = Instantiate(particleRef);
         ParticleBehavior negQuarkBehavior = negQuark.GetComponent<ParticleBehavior>();
         negQuarkBehavior.particleStateType = "quarkNeg";
@@ -578,12 +582,13 @@ public class ParticleBehavior : MatterBehavior
         negQuarkBehavior.rigidbody.isKinematic = false; // Movement should be affected by physics.
         return negQuarkBehavior;
     }
-    ParticleBehavior CreatePhoton(float energy)
+    ParticleBehavior CreatePhoton(float energy, GameObject particleRef = null)
     //Created by annihilation
     //Created by decay processes 
     //Created by collisions
     //All processes can cause photon creation, as it takes extra mass and converts to energy.
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject photon = Instantiate(particleRef);
         ParticleBehavior photonBehavior = photon.GetComponent<ParticleBehavior>();
         photonBehavior.particleStateType = "pBoson";
@@ -593,9 +598,10 @@ public class ParticleBehavior : MatterBehavior
         //TODO Set initial velocity
         return photonBehavior;
     }
-    ParticleBehavior CreateZBoson(int mass, float energy)
+    ParticleBehavior CreateZBoson(int mass, float energy, GameObject particleRef = null)
     //Created when collions occur between neutrinos
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject zBoson = Instantiate(particleRef);
         ParticleBehavior zBosonBehavior = zBoson.GetComponent<ParticleBehavior>();
         zBosonBehavior.particleStateType = "zBoson";
@@ -603,10 +609,11 @@ public class ParticleBehavior : MatterBehavior
         zBosonBehavior.rigidbody.isKinematic = true; // Movement should not be affected by physics.
         return zBosonBehavior;
     }
-    ParticleBehavior CreateWBoson(int mass, float energy, int antiCharge=1)
+    ParticleBehavior CreateWBoson(int mass, float energy, int antiCharge=1, GameObject particleRef = null)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
+        particleRef = particleRef == null ? this.particleRef : particleRef;
         GameObject wBoson = Instantiate(particleRef);
         ParticleBehavior wBosonBehavior = wBoson.GetComponent<ParticleBehavior>();
         wBosonBehavior.particleStateType = "wBoson";

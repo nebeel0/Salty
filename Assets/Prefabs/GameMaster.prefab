@@ -52,6 +52,8 @@ MonoBehaviour:
     type: 3}
   blockRef: {fileID: 4819842358078350356, guid: 37e523f2e600fcb448684e1434888982,
     type: 3}
+  particleRef: {fileID: 674584312230123643, guid: 4c15830bc4ae7cd478374956cbe0fa72,
+    type: 3}
 --- !u!82 &5057495366608567596
 AudioSource:
   m_ObjectHideFlags: 0

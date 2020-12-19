@@ -7,13 +7,22 @@ public class CageBehavior : MonoBehaviour
     //TODO support non box shaped cages
     public Vector3 dimensions = new Vector3(500, 500, 500);
     public int resolution=10;  //default resolution of a plane is 10x10
-
     public GameObject cagePlaneRef;
+    List<GameObject> planes = new List<GameObject>();
 
-    public List<GameObject> planes = new List<GameObject>();
+    float scalingFactor
+    {
+        get { return transform.localScale.x; } //Should be square-esque TODO shift so rectangles can exist
+    }
     void Start()
     {
-        transform.position = new Vector3(0, 0, 0);
+        if(resolution < 10)
+        {
+            Debug.LogError("Resolution can't be lower than 10");
+        }
+        transform.localPosition = Vector3.zero;
+        Vector3 savedEulerAngles = transform.eulerAngles;
+        transform.eulerAngles = Vector3.zero;
         dimensions = new Vector3(RoundToResolution(dimensions.x), RoundToResolution(dimensions.y), RoundToResolution(dimensions.z));
         //opposites rotated around same axis
         planes.Add(GeneratePlane(0, 1, false));  //Rotates along x axis and moved along z
@@ -22,6 +31,7 @@ public class CageBehavior : MonoBehaviour
         planes.Add(GeneratePlane(0, 1, true));  //Rotates along x axis and moved along z
         planes.Add(GeneratePlane(1, 2, true));  //Rotates along x axis and y axis and moved along x
         planes.Add(GeneratePlane(0, 2, true));  //moved along y
+        transform.eulerAngles = savedEulerAngles;
     }
 
     GameObject GeneratePlane(int dim_1, int dim_2, bool opposite)
@@ -46,8 +56,8 @@ public class CageBehavior : MonoBehaviour
         }
 
         float displaceDistance = dimensions[planeType] / 2;
-        Vector3 rotatedAxis = new Vector3(0, 0, 0);
-        Vector3 displacement = new Vector3(0, 0, 0);
+        Vector3 rotatedAxis = Vector3.zero;
+        Vector3 displacement = Vector3.zero;
         rotatedAxis[dim_1] = 1;
         displacement[planeType] = displaceDistance;
         if (opposite)
@@ -56,7 +66,7 @@ public class CageBehavior : MonoBehaviour
             displacement *= -1;
         }
         plane.transform.RotateAround(transform.position, rotatedAxis, 180);
-        plane.transform.position += displacement;
+        plane.transform.localPosition += displacement*scalingFactor;
         return plane;
     }
 

@@ -105,8 +105,8 @@ public class MatterBehavior : MonoBehaviour
     }
 
     //Vector Utils
-    public static bool V3Equal(Vector3 a, Vector3 b)
+    public static bool V3Equal(Vector3 a, Vector3 b, float threshold=0.001f)
     {
-        return Vector3.SqrMagnitude(a - b) < 0.0001;
+        return Vector3.SqrMagnitude(a - b) < threshold;
     }
 }

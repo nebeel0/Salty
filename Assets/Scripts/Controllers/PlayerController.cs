@@ -6,6 +6,10 @@ using UnityEngine;
 public class PlayerController : Controller
 {
     public GameObject superBlock;
+    protected SuperBlockBehavior superBlockBehavior
+    {
+        get { return superBlock.GetComponent<SuperBlockBehavior>(); }
+    }
 
     protected bool visualToggle = true;
     protected bool quantumLock = false; //invincible, but no actions can be performed, and you're transform can't be changed. All collisions will just phase through
@@ -67,7 +71,7 @@ public class PlayerController : Controller
         {
             base.Start();
             OnFirstPerson();
-            rigidbody = superBlock.GetComponent<SuperBlockBehavior>().mainBlock.GetComponent<Rigidbody>(); //TODO rigidbody should be a net object
+            rigidbody = superBlockBehavior.mainBlock.GetComponent<Rigidbody>(); //TODO rigidbody should be a net object
             transform.localPosition = Vector3.zero;
             transform.localEulerAngles = Vector3.zero;
 
@@ -121,7 +125,7 @@ public class PlayerController : Controller
         {
             if(!godMode)
             {
-                float displacement = Mathf.Max(4, primaryCameraDisplacement);
+                float displacement = Mathf.Max(4, superBlockBehavior.prevBlockCount*1.5f);
                 Vector3 finalCameraPosition = primaryCameraRootPosition + Vector3.back * displacement;
                 primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, finalCameraPosition, 1);
                 transform.position = superBlock.transform.position;
@@ -147,7 +151,7 @@ public class PlayerController : Controller
 
         if (actionQueue == ActionQueueTypes.Default)
         {
-            rigidbody.AddForce(direction * scalar, ForceMode.Impulse);
+            superBlockBehavior.DistributeForce(direction * scalar, ForceMode.Impulse);
         }
     }
 
@@ -269,7 +273,7 @@ public class PlayerController : Controller
             godMode = !godMode;
             if (godMode)
             {
-                superBlock.GetComponent<SuperBlockBehavior>().Brake();
+                superBlockBehavior.Brake();
                 target = transform;
                 transform.parent = null;
                 primaryCamera.transform.parent = null;
@@ -279,6 +283,7 @@ public class PlayerController : Controller
             }
             else
             {
+                superBlockBehavior.UnBrake();
                 target = transform;
                 ResetParenting();
             }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 
 public class BlockBehavior : MatterBehavior
 {
@@ -74,6 +75,7 @@ public class BlockBehavior : MatterBehavior
     }
     public class BlockConnection
     {
+        //TODO ttl for placing
         public Vector3Int otherBlockLocalPosition;
         public GameObject thisBlock;
         public GameObject otherBlock;
@@ -82,6 +84,8 @@ public class BlockBehavior : MatterBehavior
         public List<GameObject> otherLeptons;
         public bool inPlace;
         public bool placing;
+        int placingTimeLimit = 2; //seconds
+        float placingTimeCounter = 0; //seconds
         public bool hasOtherBlock
         {
             get { return otherBlock != null; }
@@ -122,6 +126,12 @@ public class BlockBehavior : MatterBehavior
             leptons = new List<GameObject>();
             otherLeptons = new List<GameObject>();
         }
+        public void StartPlacing()
+        {
+            placing = true;
+            inPlace = false;
+            placingTimeCounter = placingTimeLimit;
+        }
         public void Refresh()
         {
             DeathCheck();
@@ -132,13 +142,21 @@ public class BlockBehavior : MatterBehavior
                     leptons[i].GetComponent<ParticleBehavior>().available = false;
                 }
             }
+            if(placing)
+            {
+                placingTimeCounter -= Time.deltaTime;
+            }
         }
         public void DeathCheck()
         {
             leptons.RemoveAll(lepton => lepton == null);
             otherLeptons.RemoveAll(lepton => lepton == null);
+            if(placing && placingTimeCounter <= 0)
+            {
+                Death();
+            }
 
-            if(inPlace && !Valid())
+            if (inPlace && !Valid())
             {
                 Death();
             }
@@ -195,7 +213,7 @@ public class BlockBehavior : MatterBehavior
             {
                 if (otherBlock.transform.localPosition != otherBlockLocalPosition)
                 {
-                    if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, otherBlockLocalPosition))
+                    if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, otherBlockLocalPosition, threshold: 0.1f))
                     {
                         //Snapping
                         Transform otherBlockParent = otherBlock.transform.parent;
@@ -221,7 +239,7 @@ public class BlockBehavior : MatterBehavior
                         BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
                         Vector3Int positionFromOtherBlock = Vector3Int.RoundToInt(otherBlock.transform.InverseTransformPoint(thisBlock.transform.position));
                         BlockConnection otherBlockConnection = otherBlockBehavior.connectedBlocks[positionFromOtherBlock.ToString()];
-                        otherBlockConnection.Reflect(this);
+                           otherBlockConnection.Reflect(this);
                     }
                     else
                     {
@@ -251,7 +269,7 @@ public class BlockBehavior : MatterBehavior
         public int id;
     }
     public GameObject particleRef;
-    public int particleSpeed = 5;
+    public int particleAnimationSpeed = 5;
     public int netChargeCache;  // To be used similar to a cache, meaning that while its not the most accurate representation of the current state, it will reduce computations
     List<QuarkGroup> quarkGroups = new List<QuarkGroup>(); //fifteen max
     public int numQuarkGroups
@@ -279,15 +297,13 @@ public class BlockBehavior : MatterBehavior
 
     protected override void VisualUpdate() //TODO visual update should always reflect actual state
     {
+        //Order matters, leptons set all electrons to available, while blocks set all electrons used to not available
         PlaceQuarkGroups();
         PlaceLeptons();
         PlaceBlocks();
     }
     protected override void RefreshState()
     {
-        RefreshQuarkGroups();
-        RefreshLeptons();
-        RefreshBlocks();
         RefreshNetCharge();
     }
     protected override void DeathCheck()
@@ -322,9 +338,10 @@ public class BlockBehavior : MatterBehavior
 
     void BeginnerElement()
     {
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 15; i++)
         {
-            GameObject particle = Instantiate(particleRef, transform);
+            GameObject particle = Instantiate(particleRef);
+            particle.transform.position = transform.position;
             ParticleBehavior particleBehavior = getParticleData(particle);
             if (i % 3 != 0)
             {
@@ -335,9 +352,10 @@ public class BlockBehavior : MatterBehavior
                 particleBehavior.particleStateType = "quarkNeg";
             }
 
-            if ((i + 1) % 4 == 0)
+            if ((i / 4) == 1 && i <= 4)
             {
-                GameObject lepton = Instantiate(particleRef, transform);
+                GameObject lepton = Instantiate(particleRef);
+                lepton.transform.position = transform.position;
                 ParticleBehavior leptonBehavior = getParticleData(lepton);
                 leptonBehavior.particleStateType = "leptonNeg";
                 CollideParticle(lepton);
@@ -345,6 +363,7 @@ public class BlockBehavior : MatterBehavior
             CollideParticle(particle);
         }
     }
+
     void RandomElement()
     {
         int numberOfParticles = Random.Range(1, 10);
@@ -430,7 +449,8 @@ public class BlockBehavior : MatterBehavior
         int leptonI = 0;
         while (leptonI < leptons.Count - 1) //NO NEUTRINOS
         {
-            if (leptons[leptonI].GetComponent<ParticleBehavior>().effectiveCharge == 0)
+            bool neutrinoCheck = leptons[leptonI].GetComponent<ParticleBehavior>().effectiveCharge == 0;
+            if (neutrinoCheck)
             {
                 RemoveLepton(leptonI);
             }
@@ -545,6 +565,7 @@ public class BlockBehavior : MatterBehavior
     }
     void CollideBlock(GameObject otherBlock) //TODO animation for connecting
     {
+        //TODO check if in valid space
         bool bothBlocksInSuperBlocks = this.inSuperBlock && otherBlock.GetComponent<BlockBehavior>().inSuperBlock; //Super blocks are controlled by a sentient force
         if (otherBlock.transform.parent == transform || transform.parent == otherBlock.transform || bothBlocksInSuperBlocks) //TODO allow connecting with other player blocks
         {
@@ -603,7 +624,7 @@ public class BlockBehavior : MatterBehavior
         blockConnection.otherBlock = otherBlock;
         blockConnection.leptons = leptons;
         blockConnection.otherLeptons = otherLeptons;
-        blockConnection.placing = true;
+        blockConnection.StartPlacing();
         blockConnection.Refresh();
     }
 
@@ -639,6 +660,7 @@ public class BlockBehavior : MatterBehavior
     // Visual Update Utils
     void PlaceQuarkGroups()
     {
+        RefreshQuarkGroups();
         int quarkPositionI = 0;
         for (int i = 0; i < quarkGroups.Count; i++)
         {
@@ -647,7 +669,7 @@ public class BlockBehavior : MatterBehavior
                 GameObject quark = quarkGroups[i].quarks[ii];
                 if(quark != null)
                 {
-                    quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], particleSpeed / 2 * Time.deltaTime);
+                    quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], particleAnimationSpeed / 2 * Time.deltaTime);
                     quarkPositionI++; // So that the particles will be displaced from each other, if they are not in the same groups
                 }
             }
@@ -656,18 +678,21 @@ public class BlockBehavior : MatterBehavior
 
     void PlaceBlocks() //Once it has been put in place add the fixed joint
     {
+        RefreshBlocks();
         foreach (KeyValuePair<string, BlockConnection> connectedBlock in connectedBlocks)
         {
             connectedBlock.Value.Place();
         }
     }
+
     void PlaceLeptons()
     {
+        RefreshLeptons();
         // TODO lock leptons if they are used to connect blocks
-        foreach(GameObject lepton in leptons)
+        foreach (GameObject lepton in leptons)
         {
-            ParticleBehavior leptonBehavior = getParticleData(lepton);
-            if(leptonBehavior.leptonPosition is null)
+            ParticleBehavior leptonBehavior = lepton.GetComponent<ParticleBehavior>();
+            if (leptonBehavior.leptonPosition is null)
             {
                 LeptonPosition openLeptonPosition = allLeptonPositions[openLeptonPositions[0]];
                 leptonBehavior.leptonPosition = openLeptonPosition;
@@ -676,6 +701,10 @@ public class BlockBehavior : MatterBehavior
             }
             else
             {
+                if (leptonBehavior.leptonPosition.lepton is null)
+                {
+                    leptonBehavior.leptonPosition.lepton = lepton; //TODO find out how this condition occurs
+                }
                 LeptonTransplace(leptonBehavior.leptonPosition);
             }
         }
@@ -702,7 +731,7 @@ public class BlockBehavior : MatterBehavior
         }
         else
         {
-            leptonPosition.lepton.transform.localPosition = Vector3.Lerp(leptonPosition.lepton.transform.localPosition, leptonPosition.position, particleSpeed * Time.deltaTime);
+            leptonPosition.lepton.transform.localPosition = Vector3.Lerp(leptonPosition.lepton.transform.localPosition, leptonPosition.position, particleAnimationSpeed * Time.deltaTime);
         }
     }
 
