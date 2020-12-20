@@ -237,6 +237,11 @@ PrefabInstance:
       propertyPath: resolution
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 5057495366608567633, guid: 8bac7f7c04dd82343969d4dfefa3a62b,
+        type: 3}
+      propertyPath: grayScale
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5057495366608567634, guid: 8bac7f7c04dd82343969d4dfefa3a62b,
         type: 3}
       propertyPath: m_LocalPosition.x

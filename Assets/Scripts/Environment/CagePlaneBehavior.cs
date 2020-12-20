@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class CagePlaneBehavior : MonoBehaviour
 {
+    public int randomChance;
+    public int coolDownTime;
+    public float fadeOutPeriodMax;
+    public int loadingTimeMax;
+    public bool grayScale;
+    public bool allOn;
     public GameObject cagePanelRef;
     // Start is called before the first frame update
     Vector2 dimensions = new Vector2(300, 300);
@@ -23,6 +29,12 @@ public class CagePlaneBehavior : MonoBehaviour
                 Vector3 panelPosition = new Vector3(currX, 0, currY); //y is actually z
                 GameObject instatiatedCagePanel = Instantiate(cagePanelRef, transform);
                 CagePanelBehavior cagePanelBehavior = instatiatedCagePanel.GetComponent<CagePanelBehavior>();
+                cagePanelBehavior.coolDownTime = coolDownTime;
+                cagePanelBehavior.fadeOutPeriodMax = fadeOutPeriodMax;
+                cagePanelBehavior.grayScale = grayScale;
+                cagePanelBehavior.randomChance = randomChance;
+                cagePanelBehavior.loadingTimeMax = loadingTimeMax;
+                cagePanelBehavior.allOn = allOn;
                 cagePanelBehavior.resolution = resolution;
                 instatiatedCagePanel.transform.localPosition = panelPosition;
             }

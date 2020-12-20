@@ -8,6 +8,13 @@ public class CageBehavior : MonoBehaviour
     public Vector3 dimensions = new Vector3(500, 500, 500);
     public int resolution=10;  //default resolution of a plane is 10x10
     public GameObject cagePlaneRef;
+    public int randomChance;
+    public int coolDownTime = 120;
+    public float fadeOutPeriodMax = 10;
+    public int loadingTimeMax;
+    public bool grayScale;
+    public bool allOn;
+
     List<GameObject> planes = new List<GameObject>();
 
     float scalingFactor
@@ -39,6 +46,13 @@ public class CageBehavior : MonoBehaviour
         int planeType = 3 - dim_1 - dim_2;
         GameObject plane = Instantiate(cagePlaneRef, transform);
         CagePlaneBehavior planeBehavior= plane.GetComponent<CagePlaneBehavior>();
+
+        planeBehavior.randomChance = randomChance;
+        planeBehavior.loadingTimeMax = loadingTimeMax;
+        planeBehavior.allOn = allOn;
+        planeBehavior.coolDownTime = coolDownTime;
+        planeBehavior.fadeOutPeriodMax = fadeOutPeriodMax;
+        planeBehavior.grayScale = grayScale;
         planeBehavior.SetDimensions(new Vector2(dimensions[dim_1], dimensions[dim_2]));
         planeBehavior.SetResolution(resolution);
 
@@ -70,11 +84,6 @@ public class CageBehavior : MonoBehaviour
         return plane;
     }
 
-
-    void Update()
-    {
-        
-    }
 
     int RoundToResolution(float param)
     {
