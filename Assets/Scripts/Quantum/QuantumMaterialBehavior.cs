@@ -15,7 +15,7 @@ public class QuantumMaterialBehavior : MonoBehaviour
 
     public float fadeInPeriodMax = 10;
     public float fadeInPeriodMin = 10;
-    public float fadeInPeriod = 10;
+    float fadeInPeriod;
     bool fadingIn = true;
 
     Color panelColor;

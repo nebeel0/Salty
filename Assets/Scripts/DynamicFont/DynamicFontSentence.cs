@@ -12,7 +12,7 @@ public class DynamicFontSentence : MonoBehaviour
 
     void Start()
     {
-        Vector3 initPos = new Vector3(-5*sentence.Length/2f - (sentence.Length*space), 0, 0);
+        Vector3 initPos = Vector3.zero;
         for(int i=0; i < sentence.Length; i++)
         {
             Vector3 currentPos = new Vector3(initPos.x + 5*i + space*i, 0, 0);
