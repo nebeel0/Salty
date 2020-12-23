@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,14 +9,18 @@ public class DynamicFontSentence : MonoBehaviour
     public string sentence = "hello world";
     public GameObject dynamicFontLetterRef;
     public float space = 5 / 3f;
+    public bool left;
     List<GameObject> letters = new List<GameObject>();
 
     void Start()
     {
         Vector3 initPos = Vector3.zero;
+        sentence = left ? sentence : Reverse(sentence);
         for(int i=0; i < sentence.Length; i++)
         {
-            Vector3 currentPos = new Vector3(initPos.x + 5*i + space*i, 0, 0);
+            float displaceMent = 5 * i + space * i;
+            displaceMent = left ? displaceMent : -1 * displaceMent;
+            Vector3 currentPos = new Vector3(initPos.x + displaceMent, 0, 0);
             if (sentence[i] != ' ')
             {
                 letters.Add(CreateLetter(letter: sentence[i], position: currentPos));
@@ -29,7 +34,6 @@ public class DynamicFontSentence : MonoBehaviour
         
     }
 
-
     GameObject CreateLetter(char letter, Vector3 position)
     {
         GameObject letterObject = Instantiate(dynamicFontLetterRef, transform);
@@ -37,5 +41,12 @@ public class DynamicFontSentence : MonoBehaviour
         letterBehavior.letter = letter.ToString();
         letterObject.transform.localPosition = position;
         return letterObject;
+    }
+
+    static string Reverse(string s)
+    {
+        char[] charArray = s.ToCharArray();
+        Array.Reverse(charArray);
+        return new string(charArray);
     }
 }

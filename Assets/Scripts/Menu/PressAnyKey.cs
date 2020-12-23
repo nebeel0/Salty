@@ -17,15 +17,15 @@ public class PressAnyKey : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.anyKey && fadeFlicker.loadingOffset < 0)
+        if (Input.anyKey && fadeFlicker.loadingOffset <= 0)
         {
             fadeFlicker.turnOff = true;
         }
         if(fadeFlicker.turnOff && fadeFlicker.faceColor.a <= 0)
         {
             Debug.Log("Turning off press any key");
-            Destroy(gameObject);
-            menuManager.LoadStartMenu();
+            gameObject.SetActive(false);
+            menuManager.PressButton("main");
         }
     }
 }
