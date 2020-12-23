@@ -8,6 +8,7 @@ using TMPro;
 
 public class CustomButtonBehavior : MonoBehaviour
 {
+    public bool isSelected;
     Button thisButton;
     MenuManager menuManager;
 
@@ -32,7 +33,8 @@ public class CustomButtonBehavior : MonoBehaviour
 
     void TaskOnClick()
     {
-        menuManager.PressButton(gameObject.name);
+        isSelected = true;
+        menuManager.PressButton(gameObject.name, gameObject);
     }
 
 }

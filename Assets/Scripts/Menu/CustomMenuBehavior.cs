@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CustomMenuBehavior : MonoBehaviour
 {
-    // Start is called before the first frame update
+    // TODO offload transition to another class
     MenuManager menuManager;
 
     float transitionTime = 3;

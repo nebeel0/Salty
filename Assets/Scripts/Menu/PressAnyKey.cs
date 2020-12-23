@@ -25,7 +25,7 @@ public class PressAnyKey : MonoBehaviour
         {
             Debug.Log("Turning off press any key");
             gameObject.SetActive(false);
-            menuManager.PressButton("main");
+            menuManager.PressButton_Start(menuManager.StartPageKey);
         }
     }
 }

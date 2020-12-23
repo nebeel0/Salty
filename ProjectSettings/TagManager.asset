@@ -9,6 +9,10 @@ TagManager:
   - GameMaster
   - SuperBlock
   - MenuManager
+  - Parent Tab System
+  - Child Tab System
+  - Lobby
+  - Social Bar
   layers:
   - Default
   - TransparentFX
