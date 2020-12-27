@@ -67,7 +67,6 @@ public class MatterBehavior : MonoBehaviour
     {
         gameMaster = GameObject.FindGameObjectWithTag("GameMaster");
         gameBounds = gameMaster.GetComponent<CageBehavior>().dimensions;
-        Debug.Log(gameBounds);
     }
 
     public virtual void Update()

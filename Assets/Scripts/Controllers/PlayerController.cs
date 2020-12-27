@@ -5,14 +5,13 @@ using UnityEngine;
 
 public class PlayerController : Controller
 {
-    public GameObject superBlock;
+    GameObject superBlock;
     protected SuperBlockBehavior superBlockBehavior
     {
         get { return superBlock.GetComponent<SuperBlockBehavior>(); }
     }
 
     protected bool visualToggle = true;
-    protected bool quantumLock = false; //invincible, but no actions can be performed, and you're transform can't be changed. All collisions will just phase through
     protected bool lockOn = false;
     protected bool thirdPerson = false;
     protected bool firstPerson = true;
@@ -64,14 +63,24 @@ public class PlayerController : Controller
     }
     protected Dictionary<ActionQueueTypes, Queue<ActionParams>> actionQueues = new Dictionary<ActionQueueTypes, Queue<ActionParams>>();  //Maybe include time stamp so we can also execute them all in the order they were created
 
+    void OnEnable()
+    {
+        Start();
+    }
 
     public override void Start()
     {
-        if(superBlock != null)
+        gameObject.tag = "Player";
+        Destroy(GetComponent<Rigidbody>());
+        GetComponent<SphereCollider>().enabled = false;
+        if (transform.parent.gameObject.CompareTag("SuperBlock"))
+        {
+            superBlock = transform.parent.gameObject;
+        }
+        if (superBlock != null)
         {
             base.Start();
             OnFirstPerson();
-            rigidbody = superBlockBehavior.mainBlock.GetComponent<Rigidbody>(); //TODO rigidbody should be a net object
             transform.localPosition = Vector3.zero;
             transform.localEulerAngles = Vector3.zero;
 
@@ -82,7 +91,6 @@ public class PlayerController : Controller
             {
                 actionQueues[aq] = new Queue<ActionParams>();
             }
-
         }
     }
 
@@ -155,9 +163,13 @@ public class PlayerController : Controller
         }
     }
 
-    protected override void OnHold()
+    protected override void OnHold() // Press and Release
     {
         holdFlag = !holdFlag; //Sets to hold
+        if (!enabled)
+        {
+            return;
+        }
         if (godMode)
         {
             return;
@@ -196,13 +208,12 @@ public class PlayerController : Controller
         }
     }
 
-    void OnQuantumLock() //Should be right click, also serves as a shield function, with cooldown dependent on size
-    {
-        quantumLock = !quantumLock;
-    }
-
     void OnAddMode()
     {
+        if (!enabled)
+        {
+            return;
+        }
         if (actionQueueMode == ActionQueueModeTypes.Add)
         {
             actionQueueMode = ActionQueueModeTypes.Default;
@@ -215,6 +226,10 @@ public class PlayerController : Controller
 
     void OnFire()
     {
+        if (!enabled)
+        {
+            return;
+        }
         if (actionQueues[actionQueue].Count > 0)
         {
             ActionRouter(actionQueues[actionQueue].Dequeue());
@@ -222,11 +237,19 @@ public class PlayerController : Controller
     }
     void OnVisualToggle()
     {
+        if (!enabled)
+        {
+            return;
+        }
         visualToggle = !visualToggle;
     }
 
     void OnFirstPerson()
     {
+        if (!enabled)
+        {
+            return;
+        }
         firstPerson = true;
         thirdPerson = false;
         target = superBlock.transform;
@@ -235,6 +258,10 @@ public class PlayerController : Controller
 
     void OnThirdPerson()
     {
+        if (!enabled)
+        {
+            return;
+        }
         thirdPerson = true;
         firstPerson = false;
         target = transform;
@@ -242,6 +269,10 @@ public class PlayerController : Controller
 
     void OnBlockMode()  //Rotates the block
     {
+        if (!enabled)
+        {
+            return;
+        }
         //if(thirdPerson && !godMode)
         //{
         //    blockMode = !blockMode;
@@ -260,6 +291,10 @@ public class PlayerController : Controller
 
     void OnPerspectiveAlign()  //Rotates the block
     {
+        if (!enabled)
+        {
+            return;
+        }
         if (thirdPerson)
         {
             perspectiveAlign = true;
@@ -268,6 +303,10 @@ public class PlayerController : Controller
 
     void OnGodMode() //Moves the block
     {
+        if (!enabled)
+        {
+            return;
+        }
         if (thirdPerson && !blockMode)
         {
             godMode = !godMode;
@@ -303,6 +342,10 @@ public class PlayerController : Controller
 
     void OnDrawPath() // TODO slingshot effect, instead of drawing line, pull camera back
     {
+        if (!enabled)
+        {
+            return;
+        }
         SetUpLineRenderer();
         if (actionQueues[actionQueue].Count != lineRenderer.positionCount - 1 && actionQueues[actionQueue].Count > 0)
         {
@@ -349,11 +392,11 @@ public class PlayerController : Controller
     }
     protected Vector3 EstimateLaunchDestination(ActionParams actionParams, Vector3 initPosition)
     {
-        float initVelocity = actionParams.scalar / rigidbody.mass;
-        while (initVelocity > 0.01)
+        float initVelocity = actionParams.scalar / superBlockBehavior.totalMass;
+        while (initVelocity > 0.01) // TODO stop when block slows down, if successive positions
         {
             initPosition += actionParams.direction * Time.fixedDeltaTime * initVelocity;
-            initVelocity = initVelocity * (1 - Time.fixedDeltaTime * rigidbody.drag);
+            initVelocity = initVelocity * (1 - Time.fixedDeltaTime * superBlockBehavior.averageDrag);
         }
         return initPosition;
     }

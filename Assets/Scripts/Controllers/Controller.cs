@@ -71,8 +71,6 @@ public class Controller : MonoBehaviour
     }
     public bool invertY = false;
 
-    public GameObject directionalLight;
-    public GameObject primaryCameraGameObject;
     protected PlayerInput playerInput;
 
     protected Camera primaryCamera;
@@ -89,11 +87,14 @@ public class Controller : MonoBehaviour
 
     public virtual void Start()
     {
-        // TODO when you die you can exist as a camera and find a new block to be come your host?
-        // Clear Camera or Directional Light
-        primaryCamera = Instantiate(primaryCameraGameObject, transform).GetComponent<Camera>();
+        foreach(Transform child in transform)
+        {
+            if(child.gameObject.tag == "Player Camera")
+            {
+                primaryCamera = child.GetComponent<Camera>();
+            }
+        }
         primaryCamera.transform.localPosition = primaryCameraRootPosition;
-        Instantiate(directionalLight, primaryCamera.transform);
         playerInput = gameObject.GetComponent<PlayerInput>();
     }
     protected virtual void Update()
@@ -117,12 +118,18 @@ public class Controller : MonoBehaviour
     }
     protected void OnLook(InputValue value) //TODO Will Probably be overridden for xr
     {
-        lookDelta = value.Get<Vector2>() * Time.deltaTime;
-        lookDelta.y *= (invertY ? 1 : -1);
+        if(enabled)
+        {
+            lookDelta = value.Get<Vector2>() * Time.deltaTime;
+            lookDelta.y *= (invertY ? 1 : -1);
+        }
     }
     public void OnResetOrientation()
     {
-        resetOrientation = true;
+        if(enabled)
+        {
+            resetOrientation = true;
+        }
     }
     protected void ResetOrientationUpdate()
     {
@@ -153,10 +160,13 @@ public class Controller : MonoBehaviour
     }
     protected virtual void OnHold()
     {
-        holdFlag = !holdFlag; //Sets to hold
-        if (!holdFlag && holdScalar > 0)
+        if(enabled)
         {
-            holdScalar = 0; //Reset
+            holdFlag = !holdFlag; //Sets to hold
+            if (!holdFlag && holdScalar > 0)
+            {
+                holdScalar = 0; //Reset
+            }
         }
     }
     protected virtual void HoldUpdate()
@@ -170,14 +180,17 @@ public class Controller : MonoBehaviour
     protected void OnMenu()
     {
         //TODO implement menu functions
-        menu = !menu;
-        if(menu)
+        if(enabled)
         {
-            Time.timeScale = 0;
-        }
-        else
-        {
-            Time.timeScale = 1;
+            menu = !menu;
+            if (menu)
+            {
+                Time.timeScale = 0;
+            }
+            else
+            {
+                Time.timeScale = 1;
+            }
         }
     }
 }

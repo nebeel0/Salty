@@ -6,34 +6,27 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-public class CustomButtonBehavior : MonoBehaviour
+public class CustomButtonBehavior : MonoBehaviour, IPointerClickHandler
 {
-    public bool isSelected;
-    Button thisButton;
-    MenuManager menuManager;
+    protected MenuManager menuManager;
+    protected TMP_Text ButtonText;
+    protected Image ButtonImage;
 
-    private void OnAwake()
+    public virtual void Start()
     {
-        gameObject.GetComponentInChildren<TMP_Text>().text = " " + gameObject.name + " ";
-        gameObject.GetComponentInChildren<TMP_Text>().faceColor = Color.white;
-    }
-
-    void Start()
-    {
-        thisButton = GetComponent<Button>();
-        thisButton.onClick.AddListener(TaskOnClick);
         menuManager = GameObject.FindWithTag("MenuManager").GetComponent<MenuManager>();
+
+        ButtonText = gameObject.GetComponentInChildren<TMP_Text>();
+        ButtonText.text = gameObject.name;
     }
 
-    void Update()
+    public virtual void OnPointerClick(PointerEventData pointerEventData) //TODO set background to white, and selected text to black
     {
-        gameObject.GetComponentInChildren<TMP_Text>().text = " " + gameObject.name + " ";
-        gameObject.GetComponentInChildren<TMP_Text>().faceColor = Color.white;
+        ClickedButton();
     }
 
-    void TaskOnClick()
+    protected virtual void ClickedButton()
     {
-        isSelected = true;
         menuManager.PressButton(gameObject.name, gameObject);
     }
 

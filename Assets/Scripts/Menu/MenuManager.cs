@@ -34,10 +34,14 @@ public class MenuManager : MonoBehaviour
     GameObject SocialBar;
     GameObject CurrentTab;
 
+    static string PlayOnline = "play online";
+    static string PlayLocal = "play local";
+
+
     Dictionary<string, List<string>> InitParentTabs = new Dictionary<string, List<string>>  //TODO store this in json, if players want to be able to edit the menu themselves
     {
-        ["play local"] = new List<string> {"boss fight", "free for all", "teams", "journey"},
-        ["play online"] = new List<string> { "boss fight", "free for all", "teams", "poop"},
+        [PlayLocal] = new List<string> {"boss fight", "free for all", "teams", "journey"},
+        [PlayOnline] = new List<string> { "boss fight", "free for all", "teams", "poop"},
     };
     Dictionary<GameObject, List<GameObject>> ParentTabs = new Dictionary<GameObject, List<GameObject>>(); //Initialized at Runtime at LoadPlayMenu
     Dictionary<string, GameObject> ChildTabs = new Dictionary<string, GameObject>(); //TODO Dictionary for child tab to GameObject menu to load
@@ -64,10 +68,6 @@ public class MenuManager : MonoBehaviour
 
     public void Update()
     {
-        if(InPlayMenu)
-        {
-            PlayMenuUpdate();
-        }
     }
     public void SetUpStartMenu()
     {
@@ -106,13 +106,13 @@ public class MenuManager : MonoBehaviour
         {
             PressButton_Start(buttonName);
         }
-        else if(InPlayMenu)
+        else
         {
-            PressButton_Play(buttonName, button);
+            Debug.LogError("Some button is causing issues, since its not for play or start.");
         }
     }
 
-    public void PressButton_Start(string buttonName)
+    void PressButton_Start(string buttonName)
     {
         switch (buttonName)
         {
@@ -160,29 +160,6 @@ public class MenuManager : MonoBehaviour
         CurrentStartPage = null;
     }
 
-    void PressButton_Play(string buttonName, GameObject button)
-    {
-
-        if (ChildTabs.ContainsKey(buttonName))
-        {
-            if (CurrentChildTab == null || button != CurrentChildTab)
-            {
-                CurrentChildTab = button;
-            }
-        }
-        else if (InitParentTabs.ContainsKey(buttonName))
-        {
-            if (CurrentParentTab == null || button != CurrentParentTab)
-            {
-                CurrentParentTab = button;
-            }
-        }
-        else
-        {
-            Debug.Log("Unknown key: " + buttonName);
-        }
-    }
-
     void LoadPlayMenu()
     {
         CurrentElements.Add(Instantiate(PlayMenuRef, Overall.transform));
@@ -193,6 +170,9 @@ public class MenuManager : MonoBehaviour
 
         SetUpChildTabs();
         SetUpParentTabs();
+
+        CurrentParentTab = ParentTabs.Keys.ToList()[0];
+        CurrentParentTab.GetComponent<TabBehavior>().Select();
     }
 
     void SetUpParentTabs()
@@ -200,6 +180,8 @@ public class MenuManager : MonoBehaviour
         foreach (KeyValuePair<string, List<string>> parentTab in InitParentTabs)
         {
             GameObject parentButton = InstantiateButton(parentTab.Key, ParentTabSystem.transform);
+            parentButton.GetComponent<TabBehavior>().Start();
+            parentButton.GetComponent<TabBehavior>().SetTextSize(48);
             ParentTabs[parentButton] = new List<GameObject>();
             foreach (string childTab in parentTab.Value)
             {
@@ -220,7 +202,84 @@ public class MenuManager : MonoBehaviour
         for (int i = 0; i < childTabs_String.Count; i++)
         {
             ChildTabs[childTabs_String[i]] = InstantiateButton(childTabs_String[i], ChildTabSystem.transform);
+            ChildTabs[childTabs_String[i]].GetComponent<TabBehavior>().Start();
+            ChildTabs[childTabs_String[i]].GetComponent<TabBehavior>().SetTextSize(24);
             ChildTabs[childTabs_String[i]].SetActive(false);
+        }
+    }
+
+    public void TabRefresh(GameObject tab)
+    {
+        Debug.Log(tab.name);
+        if(tab.transform.parent == ParentTabSystem.gameObject.transform)
+        {
+            ParentTabRefresh(tab);
+        }
+        else if(tab.transform.parent == ChildTabSystem.gameObject.transform)
+        {
+            ChildTabRefresh(tab);
+        }
+        else
+        {
+            Debug.LogError("Tab doesn't belong to parent or child.");
+        }
+    }    
+
+    public void ParentTabRefresh(GameObject tab)
+    {
+        if(tab.name == PlayOnline)
+        {
+            SocialBar.SetActive(true);
+        }
+        else
+        {
+            SocialBar.SetActive(false);
+        }
+        for (int i = 0; i < ParentTabSystem.transform.childCount; i++)
+        {
+            GameObject parentTab = ParentTabSystem.transform.GetChild(i).gameObject;
+            if (parentTab != tab)
+            {
+                parentTab.GetComponent<TabBehavior>().DeSelect();
+            }
+        }
+
+        CurrentParentTab = tab;
+        CurrentChildTab = ParentTabs[CurrentParentTab][0];
+        ReloadChildTabs();
+        CurrentChildTab.GetComponent<TabBehavior>().Select();
+    }
+
+    public void ChildTabRefresh(GameObject tab)
+    {
+        for (int i = 0; i < ChildTabSystem.transform.childCount; i++)
+        {
+            GameObject childTab = ChildTabSystem.transform.GetChild(i).gameObject;
+            if (childTab != tab)
+            {
+                childTab.GetComponent<TabBehavior>().DeSelect();
+            }
+        }
+        CurrentChildTab = tab;
+    }
+
+    public void ReloadChildTabs()
+    {
+        for (int i = 0; i < ChildTabSystem.transform.childCount; i++)
+        {
+            GameObject child = ChildTabSystem.transform.GetChild(i).gameObject;
+            if (!ParentTabs[CurrentParentTab].Contains(child))
+            {
+                child.SetActive(false);
+            }
+        }
+
+        for (int i = 0; i < ParentTabs[CurrentParentTab].Count; i++)
+        {
+            if (!ParentTabs[CurrentParentTab][i].activeSelf)
+            {
+                ParentTabs[CurrentParentTab][i].SetActive(true);
+            }
         }
     }
 
@@ -229,39 +288,6 @@ public class MenuManager : MonoBehaviour
         GameObject button = Instantiate(CenteredHorizontalButtonRef, parent);
         button.name = name;
         return button;
-    }
-
-    //TODO only one button can be selected, on button callback deselect the other button
-
-
-    void PlayMenuUpdate()
-    {
-        PlayMenuTabUpdate();
-    }
-
-    void PlayMenuTabUpdate()
-    {
-        if(CurrentParentTab == null)
-        {
-            CurrentParentTab = ParentTabs.Keys.ToList()[0];
-        }
-
-        for (int i = 0; i < ChildTabSystem.transform.childCount; i++)
-        {
-            var child = ChildTabSystem.transform.GetChild(i).gameObject;
-            if(!ParentTabs[CurrentParentTab].Contains(child))
-            {
-                child.SetActive(false);
-            }
-        }
-
-        for(int i = 0; i < ParentTabs[CurrentParentTab].Count; i++)
-        {
-            if (!ParentTabs[CurrentParentTab][i].activeSelf)
-            {
-                ParentTabs[CurrentParentTab][i].SetActive(true);
-            }
-        }
     }
 
 }

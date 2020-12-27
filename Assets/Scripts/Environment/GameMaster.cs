@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using UnityEngine.InputSystem;
 
 public class GameMaster : MonoBehaviour
 {
@@ -20,7 +21,6 @@ public class GameMaster : MonoBehaviour
         SetPhysicsRules();
         //Number of Particles/Blocks,cage, time limit, depends on how many players.
         SpawnParticles();
-        SpawnPlayers();
         GetComponent<AudioSource>().Play();
     }
     void Update()
@@ -57,6 +57,19 @@ public class GameMaster : MonoBehaviour
             lepton.transform.position = RandomBoundedVector3(new Vector3(50, 50, 50));
         }
     }
+    //Player Spawning Utils
+    void OnPlayerJoined(PlayerInput playerInput)
+    {
+        Debug.Log("Player Joining.");
+        Debug.Log(playerInput.gameObject.tag);
+    }
+
+    void OnPlayerLeft(PlayerInput playerInput)
+    {
+        Debug.Log("Player Leaving.");
+        Debug.Log(playerInput.gameObject.tag);
+    }
+
     void SpawnPlayers()
     {
         SpawnPlayer(Vector3.zero);
@@ -65,11 +78,10 @@ public class GameMaster : MonoBehaviour
     {
         GameObject superBlock = Instantiate(superBlockRef);
         GameObject player = Instantiate(playerRef, superBlock.transform);
-        player.GetComponent<PlayerController>().superBlock = superBlock;
-        superBlock.GetComponent<SuperBlockBehavior>().player = player;
         superBlock.transform.position = position;
         return superBlock;
     }
+
     //Random Utils
     Vector3 RandomEulerAngles()
     {

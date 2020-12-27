@@ -40,7 +40,6 @@ public class QuantumMaterialBehavior : MonoBehaviour
         GetComponent<MeshRenderer>().enabled = false;
         currentColor = panelColor;
         panelMaterial.SetColor("_BaseColor", panelColor);
-        //panelMaterial.SetColor("_EmissionColor", panelColor);
     }
 
     protected void VisualUpdate()
@@ -111,10 +110,8 @@ public class QuantumMaterialBehavior : MonoBehaviour
     {
         Material panelMaterial = GetComponent<MeshRenderer>().material;
         Color interpolatedColor = Color.Lerp(panelMaterial.GetColor("_BaseColor"), currentColor, Time.deltaTime);
-        //Color interpolatedColorEmit = Color.Lerp(panelMaterial.GetColor("_EmissionColor"), currentColor, Time.deltaTime);
 
         panelMaterial.SetColor("_BaseColor", interpolatedColor);
-        //panelMaterial.SetColor("_EmissionColor", interpolatedColorEmit);
         if (currentColor.a > 0.01)
         {
             currentColor = Color.Lerp(currentColor, Color.clear, Time.deltaTime / fadeOutPeriod);

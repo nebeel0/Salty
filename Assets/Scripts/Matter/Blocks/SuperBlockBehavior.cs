@@ -8,12 +8,41 @@ public class SuperBlockBehavior : MonoBehaviour
 {
     public GameObject mainBlock = null;
     public GameObject blockRef;
-    public GameObject player;
+    public List<GameObject> childPlayers
+    {
+        get
+        {
+            List<GameObject> players = new List<GameObject>();
+            foreach (Transform child in transform)
+            {
+                if (child.CompareTag("Player"))
+                {
+                    players.Add(child.gameObject);
+                }
+            }
+            return players;
+        }
+    }
+
+    public GameObject parentPlayer
+    {
+        get
+        {
+            if(transform.parent.CompareTag("Player"))
+            {
+                return transform.parent.gameObject;
+            }
+            return null;
+        }
+    }
+
+
     [ReadOnly]
     public int prevBlockCount = 0;
     Vector3 prevCenterOfMass = Vector3.zero;
     //TODO multiple cameras per game Object, multiple players on one block?
-    float totalMass = 0; //We're going to treat each block as having the same mass.
+    public float totalMass = 0; //We're going to treat each block as having the same mass.
+    public float averageDrag = 0; //We're going to treat each block as having the same mass.
     float displacementFactor = 1.2f;
     float diagonal;
     Vector3 centerOfMass;
@@ -24,12 +53,6 @@ public class SuperBlockBehavior : MonoBehaviour
 
     void Start()
     {
-        if(mainBlock == null)
-        {
-            mainBlock = Instantiate(blockRef);
-            mainBlock.transform.SetParent(gameObject.transform);
-        }
-        //TODO if player is null, use an AI player
         centerUpdateCooldownMax = blocks.Count + 1;
         centerUpdateCooldownTimer = centerUpdateCooldownMax;
     }
@@ -40,7 +63,7 @@ public class SuperBlockBehavior : MonoBehaviour
         //TODO if player is null, use an AI player
         DeathCheck();
         CenterUpdateCooldownUpdate();
-        if(centerUpdateCooldownTimer > 0)
+        if (centerUpdateCooldownTimer > 0)
         {
             UpdateCenterOfBlocks();
             centerUpdateCooldownTimer = centerUpdateCooldownMax;
@@ -50,8 +73,10 @@ public class SuperBlockBehavior : MonoBehaviour
 
     void DeathCheck()
     {
-        if(mainBlock == null)
+        bool noPlayers = childPlayers.Count == 0 && parentPlayer == null;
+        if (mainBlock == null || noPlayers)
         {
+            transform.DetachChildren();
             Destroy(gameObject);
         }
     }
@@ -69,20 +94,26 @@ public class SuperBlockBehavior : MonoBehaviour
         blockBehavior.gameObject.transform.SetParent(gameObject.transform);
     }
 
+    void DetachBlocks()
+    {
+        foreach(Transform child in transform)
+        {
+            if(child.CompareTag("Block"))
+            {
+                child.parent = null;
+            }
+        }
+    }
+
     void UpdateCenterOfBlocks()
     {
-        bool playerIsChild = player.transform.parent == transform;
-        transform.DetachChildren();
-        if(playerIsChild)
-        {
-            player.transform.SetParent(transform);
-        }
-
+        DetachBlocks();
         BlockBehavior currentBlockBehavior;
         Queue<BlockBehavior> blockBehaviorQueue = new Queue<BlockBehavior>();
         HashSet<GameObject> seenBlocks = new HashSet<GameObject>();
         blockBehaviorQueue.Enqueue(mainBlock.GetComponent<BlockBehavior>());
 
+        float drag = 0;
         float mass = 0;
         Vector3 currentCenterOfMass = Vector3.zero;
         Vector3 min = Vector3.zero;
@@ -97,6 +128,7 @@ public class SuperBlockBehavior : MonoBehaviour
                 seenBlocks.Add(currentBlockBehavior.gameObject);
                 Vector3 currentRelativePosition = mainBlock.transform.position - currentBlockBehavior.gameObject.transform.position;
                 mass += 1;
+                drag += currentBlockBehavior.gameObject.GetComponent<Rigidbody>().drag;
                 currentCenterOfMass += currentRelativePosition;
 
                 min.x = System.Math.Min(min.x, currentRelativePosition.x);
@@ -127,6 +159,7 @@ public class SuperBlockBehavior : MonoBehaviour
             centerOfMass = currentCenterOfMass; //TODO don't do this if we want third person and 1st person
         }
         totalMass = mass;
+        averageDrag = drag / blocks.Count;
         prevBlockCount = blocks.Count;
     }
 
