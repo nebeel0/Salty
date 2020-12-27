@@ -13,6 +13,8 @@ TagManager:
   - Child Tab System
   - Lobby
   - Social Bar
+  - Player Camera
+  - Ghost
   layers:
   - Default
   - TransparentFX
