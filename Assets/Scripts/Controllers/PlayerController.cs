@@ -16,7 +16,6 @@ public class PlayerController : Controller
     protected bool thirdPerson = false;
     protected bool firstPerson = true;
     protected bool godMode = false;
-    protected bool blockMode = false;
     protected bool perspectiveAlign = false;
 
     protected bool fadeOutFlag = false;
@@ -199,6 +198,7 @@ public class PlayerController : Controller
         }
     }
 
+
     protected override void HoldUpdate()
     {
         if (holdFlag)
@@ -206,6 +206,16 @@ public class PlayerController : Controller
             holdScalar += 1 + holdScalar * (float).25 * Time.deltaTime;
             DrawCurrentPath();
         }
+    }
+
+    void OnGhostMode()
+    {
+        if (!enabled)
+        {
+            return;
+        }
+        GetComponent<GhostPlayerController>().enabled = true;
+        enabled = false;
     }
 
     void OnAddMode()
@@ -267,28 +277,6 @@ public class PlayerController : Controller
         target = transform;
     }
 
-    void OnBlockMode()  //Rotates the block
-    {
-        if (!enabled)
-        {
-            return;
-        }
-        //if(thirdPerson && !godMode)
-        //{
-        //    blockMode = !blockMode;
-        //    if(blockMode)
-        //    {
-        //        target = mainBlock.transform;
-        //        transform.parent = null;
-        //    }
-        //    else
-        //    {
-        //        target = transform;
-        //        transform.SetParent(mainBlock.transform);
-        //    }
-        //}
-    }
-
     void OnPerspectiveAlign()  //Rotates the block
     {
         if (!enabled)
@@ -307,7 +295,7 @@ public class PlayerController : Controller
         {
             return;
         }
-        if (thirdPerson && !blockMode)
+        if (thirdPerson)
         {
             godMode = !godMode;
             if (godMode)

@@ -11,8 +11,6 @@ public class MatterBehavior : MonoBehaviour
     public bool timerEnabled = true;
     public bool colliderEnabled = false;
 
-    protected GameObject gameMaster;
-    protected Vector3 gameBounds;
     protected float collisionCooldownTime = 0.5f; // needs three seconds before cooldown is over
     protected float scalingFactor //TODO int
     {
@@ -65,8 +63,6 @@ public class MatterBehavior : MonoBehaviour
 
     public virtual void Start()
     {
-        gameMaster = GameObject.FindGameObjectWithTag("GameMaster");
-        gameBounds = gameMaster.GetComponent<CageBehavior>().dimensions;
     }
 
     public virtual void Update()
@@ -76,7 +72,6 @@ public class MatterBehavior : MonoBehaviour
         RefreshState();
         DeathCheck();
         this.colliderEnabled = collider.enabled && timerEnabled;
-        BoundCheck();
     }
 
     protected virtual void VisualUpdate()
@@ -90,17 +85,6 @@ public class MatterBehavior : MonoBehaviour
     protected virtual void DeathCheck()
     {
         Debug.LogError("Override Death Check");
-    }
-    protected void BoundCheck()  //Going to use the collisions bounds instead way better.
-    {
-        this.transform.position = new Vector3(
-                Mathf.Min(gameBounds.x / 2, transform.position.x),
-                Mathf.Min(gameBounds.y / 2, transform.position.y),
-                Mathf.Min(gameBounds.z / 2, transform.position.z));
-        this.transform.position = new Vector3(
-        Mathf.Max(-gameBounds.x / 2, transform.position.x),
-        Mathf.Max(-gameBounds.y / 2, transform.position.y),
-        Mathf.Max(-gameBounds.z / 2, transform.position.z));
     }
 
     //Vector Utils

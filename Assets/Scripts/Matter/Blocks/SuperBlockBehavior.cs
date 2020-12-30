@@ -28,7 +28,7 @@ public class SuperBlockBehavior : MonoBehaviour
     {
         get
         {
-            if(transform.parent.CompareTag("Player"))
+            if(transform.parent != null && transform.parent.CompareTag("Player"))
             {
                 return transform.parent.gameObject;
             }

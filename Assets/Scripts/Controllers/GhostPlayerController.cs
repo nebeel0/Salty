@@ -20,6 +20,7 @@ public class GhostPlayerController : Controller
 
     public override void Start()
     {
+        transform.SetParent(null);
         gameObject.tag = "Ghost";
         GetComponent<SphereCollider>().enabled = true;
         gameObject.AddComponent<Rigidbody>();
@@ -45,6 +46,8 @@ public class GhostPlayerController : Controller
             Vector3 newPosition = transform.position + transform.forward * ghostSpeed;
             transform.position = Vector3.Lerp(transform.position, newPosition, Time.deltaTime); //holdscalar is already created with time.delta
         }
+        GetComponent<Rigidbody>().velocity = Vector3.zero;
+        GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
     }
 
     void DeathCheck()

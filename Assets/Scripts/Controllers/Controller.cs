@@ -83,7 +83,7 @@ public class Controller : MonoBehaviour
     protected float holdScalar = 0;
     protected bool holdFlag = false;
     protected bool resetOrientation = false;
-    protected bool menu = false;
+    protected bool gamePause = false;
 
     public virtual void Start()
     {
@@ -160,9 +160,9 @@ public class Controller : MonoBehaviour
     }
     protected virtual void OnHold()
     {
-        if(enabled)
+        holdFlag = !holdFlag; //Sets to hold
+        if (enabled)
         {
-            holdFlag = !holdFlag; //Sets to hold
             if (!holdFlag && holdScalar > 0)
             {
                 holdScalar = 0; //Reset
@@ -177,13 +177,13 @@ public class Controller : MonoBehaviour
         }
     }
 
-    protected void OnMenu()
+    protected void OnGamePause()
     {
         //TODO implement menu functions
         if(enabled)
         {
-            menu = !menu;
-            if (menu)
+            gamePause = !gamePause;
+            if (gamePause)
             {
                 Time.timeScale = 0;
             }

@@ -19,6 +19,7 @@ public class BlockBehavior : MatterBehavior
             return false;
         }
     }
+
     public class QuarkGroup
     {
         public static int maxLength = 3;

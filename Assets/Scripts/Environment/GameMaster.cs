@@ -6,28 +6,37 @@ using UnityEngine.InputSystem;
 
 public class GameMaster : MonoBehaviour
 {
+    //Example You must survive till the end of the waves
+    //Example You must find the wrong block
+    //Example be the last block standing on the platform
+    //Example climb to the top
+
+    GameRules gameRules;
+
     ParticleBehavior particleEnv = new ParticleBehavior();
-    public int seed = 1;
-    public GameObject playerRef;
-    public GameObject superBlockRef;
-    public GameObject blockRef;
-    public GameObject particleRef;
+    static public GameObject playerRef;
+    static public GameObject superBlockRef;
+    static public GameObject blockRef;
+    static public GameObject particleRef;
     [ReadOnly]
     public float timeCounter = 0;
+
+    private void OnEnable()
+    {
+        Start();
+    }
+
 
     void Start()
     {
         //Add Cage Ref
-        SetPhysicsRules();
-        //Number of Particles/Blocks,cage, time limit, depends on how many players.
-        SpawnParticles();
-        GetComponent<AudioSource>().Play();
+        SetBasePhysicsRules();
     }
+
     void Update()
     {
-        
     }
-    void SetPhysicsRules()
+    void SetBasePhysicsRules()
     {
         foreach (KeyValuePair<string, ParticleBehavior.ParticleState> entry in particleEnv.possibleStates)
         {
@@ -40,12 +49,12 @@ public class GameMaster : MonoBehaviour
         Physics.IgnoreLayerCollision(layer1: particleEnv.noBlockCollisionLayer, layer2: particleEnv.noBlockCollisionLayer);
     }
     //Spawn Utils
-    void SpawnParticles()
+    static void SpawnParticles(int seed, Vector3 bounds)
     {
         for (int i = 0; i < seed; i++)
         {
             GameObject block = Instantiate(blockRef);
-            block.transform.position = RandomBoundedVector3(new Vector3(50, 50, 50));
+            block.transform.position = RandomBoundedVector3(bounds);
             block.transform.eulerAngles = RandomEulerAngles();
         }
 
@@ -54,43 +63,19 @@ public class GameMaster : MonoBehaviour
             GameObject lepton = Instantiate(particleRef);
             ParticleBehavior leptonBehavior = lepton.GetComponent<ParticleBehavior>();
             leptonBehavior.particleStateType = "leptonNeg";
-            lepton.transform.position = RandomBoundedVector3(new Vector3(50, 50, 50));
+            lepton.transform.position = RandomBoundedVector3(bounds);
         }
-    }
-    //Player Spawning Utils
-    void OnPlayerJoined(PlayerInput playerInput)
-    {
-        Debug.Log("Player Joining.");
-        Debug.Log(playerInput.gameObject.tag);
-    }
-
-    void OnPlayerLeft(PlayerInput playerInput)
-    {
-        Debug.Log("Player Leaving.");
-        Debug.Log(playerInput.gameObject.tag);
-    }
-
-    void SpawnPlayers()
-    {
-        SpawnPlayer(Vector3.zero);
-    }
-    GameObject SpawnPlayer(Vector3 position)
-    {
-        GameObject superBlock = Instantiate(superBlockRef);
-        GameObject player = Instantiate(playerRef, superBlock.transform);
-        superBlock.transform.position = position;
-        return superBlock;
     }
 
     //Random Utils
-    Vector3 RandomEulerAngles()
+    static Vector3 RandomEulerAngles()
     {
         float x = Random.Range(-90, 90);
         float y = Random.Range(-90, 90);
         float z = Random.Range(-90, 90);
         return new Vector3(x, y, z);
     }
-    Vector3 RandomBoundedVector3(Vector3 dimensions)
+    static Vector3 RandomBoundedVector3(Vector3 dimensions)
     {
         float x = Random.Range(dimensions.x * -1, dimensions.x);
         float y = Random.Range(dimensions.y * -1, dimensions.y);

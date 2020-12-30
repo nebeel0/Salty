@@ -22,6 +22,22 @@
                     "interactions": "Press(behavior=2)"
                 },
                 {
+                    "name": "GodMode",
+                    "type": "Button",
+                    "id": "1c5f88d5-e25d-4be9-9dff-1a5b661316d5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "GhostMode",
+                    "type": "Button",
+                    "id": "1e29f96b-26bc-485a-8721-3773fae72b2c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "AddMode",
                     "type": "Button",
                     "id": "4029ce0c-6ae5-4ea4-95bb-4788298029fe",
@@ -94,22 +110,6 @@
                     "interactions": ""
                 },
                 {
-                    "name": "BlockMode",
-                    "type": "Button",
-                    "id": "67344905-c345-4bd1-b92a-14a371f20b2c",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
-                    "name": "GodMode",
-                    "type": "Button",
-                    "id": "1c5f88d5-e25d-4be9-9dff-1a5b661316d5",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)"
-                },
-                {
                     "name": "PerspectiveAlign",
                     "type": "Button",
                     "id": "75c5b533-d2e9-4ed7-869b-7eadb45b9f3b",
@@ -118,7 +118,7 @@
                     "interactions": ""
                 },
                 {
-                    "name": "Menu",
+                    "name": "GamePause",
                     "type": "Button",
                     "id": "91bfc0a0-01f2-4058-81aa-814d42580ed7",
                     "expectedControlType": "Button",
@@ -338,12 +338,34 @@
                 },
                 {
                     "name": "",
-                    "id": "0fe9ec34-c219-4d65-b847-4bf88b06624e",
-                    "path": "<Keyboard>/2",
+                    "id": "4922b74a-ad86-4fe8-933a-f2d63976ec9b",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Keyboard&Mouse;Gamepad",
-                    "action": "BlockMode",
+                    "groups": "",
+                    "action": "PerspectiveAlign",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "53f4bea8-45fa-4e70-8317-3da2830bd1c2",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "GamePause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "697f3b22-9e78-4806-bec9-47dbceeae8cc",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Subtract",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -371,34 +393,12 @@
                 },
                 {
                     "name": "",
-                    "id": "4922b74a-ad86-4fe8-933a-f2d63976ec9b",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "PerspectiveAlign",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "53f4bea8-45fa-4e70-8317-3da2830bd1c2",
-                    "path": "<Keyboard>/escape",
+                    "id": "aa06d963-ccbe-49e5-a28a-99471e2c110a",
+                    "path": "<Keyboard>/g",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Menu",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "697f3b22-9e78-4806-bec9-47dbceeae8cc",
-                    "path": "<Keyboard>/s",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Subtract",
+                    "action": "GhostMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
