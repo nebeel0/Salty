@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 
 public class GhostPlayerController : Controller
 {
-    public GameObject SuperBlockRef;
     PlayerController playerController
     {
         get { return GetComponent<PlayerController>(); }
@@ -65,16 +64,13 @@ public class GhostPlayerController : Controller
         if (col.gameObject.CompareTag("Block"))
         {
             // TODO super block permission check to join
-            if(col.gameObject.GetComponent<BlockBehavior>().inSuperBlock)
+            if(col.gameObject.GetComponent<BlockConnectionBehavior>().ParentCluster)
             {
 
             }
             else
             {
                 GameObject mainBlock = col.gameObject;
-                GameObject superBlock = Instantiate(SuperBlockRef);
-                transform.SetParent(superBlock.transform);
-                superBlock.GetComponent<SuperBlockBehavior>().mainBlock = mainBlock;
 
                 playerController.enabled = true;
                 enabled = false;

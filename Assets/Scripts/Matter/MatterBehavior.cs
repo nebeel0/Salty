@@ -76,15 +76,12 @@ public class MatterBehavior : MonoBehaviour
 
     protected virtual void VisualUpdate()
     {
-        //Debug.Log("No Visual Updates");
     }
     protected virtual void RefreshState()
     {
-        Debug.LogError("Override RefreshState");
     }
     protected virtual void DeathCheck()
     {
-        Debug.LogError("Override Death Check");
     }
 
     //Vector Utils

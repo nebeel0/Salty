@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class PlayerController : Controller
 {
-    GameObject superBlock;
-    protected SuperBlockBehavior superBlockBehavior
+    GameObject cluster;
+    protected ClusterBehavior clusterBehavior
     {
-        get { return superBlock.GetComponent<SuperBlockBehavior>(); }
+        get { return cluster.GetComponent<ClusterBehavior>(); }
     }
 
     protected bool visualToggle = true;
@@ -26,7 +26,7 @@ public class PlayerController : Controller
     {
         get
         {
-            return (superBlock.transform.position - primaryCamera.transform.position).normalized;
+            return (cluster.transform.position - primaryCamera.transform.position).normalized;
         }
     }
 
@@ -72,11 +72,11 @@ public class PlayerController : Controller
         gameObject.tag = "Player";
         Destroy(GetComponent<Rigidbody>());
         GetComponent<SphereCollider>().enabled = false;
-        if (transform.parent.gameObject.CompareTag("SuperBlock"))
+        if (transform.parent.gameObject.CompareTag("Cluster"))
         {
-            superBlock = transform.parent.gameObject;
+            cluster = transform.parent.gameObject;
         }
-        if (superBlock != null)
+        if (cluster != null)
         {
             base.Start();
             OnFirstPerson();
@@ -96,7 +96,7 @@ public class PlayerController : Controller
     protected override void Update()
     {
         DeathCheck();
-        if(superBlock != null)
+        if(cluster != null)
         {
             base.Update();
             ResetOrientationUpdate();
@@ -112,7 +112,7 @@ public class PlayerController : Controller
 
     protected void DeathCheck()
     {
-        if(superBlock == null)
+        if(cluster == null)
         {
             Destroy(gameObject);
         }
@@ -132,10 +132,10 @@ public class PlayerController : Controller
         {
             if(!godMode)
             {
-                float displacement = Mathf.Max(4, superBlockBehavior.prevBlockCount*1.5f);
+                float displacement = Mathf.Max(4, clusterBehavior.prevBlockCount*1.5f);
                 Vector3 finalCameraPosition = primaryCameraRootPosition + Vector3.back * displacement;
                 primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, finalCameraPosition, 1);
-                transform.position = superBlock.transform.position;
+                transform.position = cluster.transform.position;
             }
         }
     }
@@ -158,7 +158,7 @@ public class PlayerController : Controller
 
         if (actionQueue == ActionQueueTypes.Default)
         {
-            superBlockBehavior.DistributeForce(direction * scalar, ForceMode.Impulse);
+            clusterBehavior.DistributeForce(direction * scalar, ForceMode.Impulse);
         }
     }
 
@@ -262,7 +262,7 @@ public class PlayerController : Controller
         }
         firstPerson = true;
         thirdPerson = false;
-        target = superBlock.transform;
+        target = cluster.transform;
         ResetParenting();
     }
 
@@ -300,17 +300,17 @@ public class PlayerController : Controller
             godMode = !godMode;
             if (godMode)
             {
-                superBlockBehavior.Brake();
+                clusterBehavior.Brake();
                 target = transform;
                 transform.parent = null;
                 primaryCamera.transform.parent = null;
                 transform.position = primaryCamera.transform.position;
                 primaryCamera.transform.parent = transform;
-                superBlock.transform.SetParent(transform);
+                cluster.transform.SetParent(transform);
             }
             else
             {
-                superBlockBehavior.UnBrake();
+                clusterBehavior.UnBrake();
                 target = transform;
                 ResetParenting();
             }
@@ -319,12 +319,12 @@ public class PlayerController : Controller
 
     void ResetParenting()
     {
-        superBlock.transform.parent = null;
+        cluster.transform.parent = null;
         transform.parent = null;
         primaryCamera.transform.parent = null;
 
-        transform.position = superBlock.transform.position;
-        transform.SetParent(superBlock.transform);
+        transform.position = cluster.transform.position;
+        transform.SetParent(cluster.transform);
         primaryCamera.transform.SetParent(transform);
     }
 
@@ -337,7 +337,7 @@ public class PlayerController : Controller
         SetUpLineRenderer();
         if (actionQueues[actionQueue].Count != lineRenderer.positionCount - 1 && actionQueues[actionQueue].Count > 0)
         {
-            Vector3 positionTracker = superBlock.transform.position; //tracker for default action queue
+            Vector3 positionTracker = cluster.transform.position; //tracker for default action queue
             List<Vector3> points = new List<Vector3>();
             points.Add(positionTracker);
             IEnumerator<ActionParams> enumerator = GetActionQueueEnumerator();
@@ -364,11 +364,11 @@ public class PlayerController : Controller
     protected void DrawCurrentPath()
     {
         Vector3[] points = new Vector3[2];
-        points[0] = superBlock.transform.position;
+        points[0] = cluster.transform.position;
         if (actionQueue == ActionQueueTypes.Default)
         {
             ActionParams actionParams = new ActionParams(transform.forward, holdScalar, false);
-            points[1] = EstimateLaunchDestination(actionParams, superBlock.transform.position);
+            points[1] = EstimateLaunchDestination(actionParams, cluster.transform.position);
         }
 
         lineRenderer.positionCount = points.Length;
@@ -380,11 +380,11 @@ public class PlayerController : Controller
     }
     protected Vector3 EstimateLaunchDestination(ActionParams actionParams, Vector3 initPosition)
     {
-        float initVelocity = actionParams.scalar / superBlockBehavior.totalMass;
+        float initVelocity = actionParams.scalar / clusterBehavior.totalMass;
         while (initVelocity > 0.01) // TODO stop when block slows down, if successive positions
         {
             initPosition += actionParams.direction * Time.fixedDeltaTime * initVelocity;
-            initVelocity = initVelocity * (1 - Time.fixedDeltaTime * superBlockBehavior.averageDrag);
+            initVelocity = initVelocity * (1 - Time.fixedDeltaTime * clusterBehavior.averageDrag);
         }
         return initPosition;
     }

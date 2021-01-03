@@ -7,7 +7,6 @@ TagManager:
   - Particle
   - Block
   - GameMaster
-  - SuperBlock
   - MenuManager
   - Parent Tab System
   - Child Tab System
@@ -15,6 +14,7 @@ TagManager:
   - Social Bar
   - Player Camera
   - Ghost
+  - Cluster
   layers:
   - Default
   - TransparentFX

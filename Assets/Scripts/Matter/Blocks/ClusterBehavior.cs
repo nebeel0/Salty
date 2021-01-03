@@ -4,10 +4,10 @@ using UnityEngine;
 using Unity.Collections;
 
 //Aggregates blocks
-public class SuperBlockBehavior : MonoBehaviour
+public class ClusterBehavior : MonoBehaviour
 {
-    public GameObject mainBlock = null;
-    public GameObject blockRef;
+    public HashSet<GameObject> blocks = new HashSet<GameObject>();
+
     public List<GameObject> childPlayers
     {
         get
@@ -28,7 +28,7 @@ public class SuperBlockBehavior : MonoBehaviour
     {
         get
         {
-            if(transform.parent != null && transform.parent.CompareTag("Player"))
+            if (transform.parent != null && transform.parent.CompareTag("Player"))
             {
                 return transform.parent.gameObject;
             }
@@ -37,33 +37,50 @@ public class SuperBlockBehavior : MonoBehaviour
     }
 
 
-    [ReadOnly]
-    public int prevBlockCount = 0;
+    [ReadOnly] public int prevBlockCount = 0;
     Vector3 prevCenterOfMass = Vector3.zero;
     //TODO multiple cameras per game Object, multiple players on one block?
     public float totalMass = 0; //We're going to treat each block as having the same mass.
     public float averageDrag = 0; //We're going to treat each block as having the same mass.
     float displacementFactor = 1.2f;
     float diagonal;
-    Vector3 centerOfMass;
+    Vector3 centerOfMass = Vector3.zero;
 
-    HashSet<GameObject> blocks = new HashSet<GameObject>();
     float centerUpdateCooldownMax;
     float centerUpdateCooldownTimer;
 
+    public void Merge(ClusterBehavior cluster)
+    {
+        //TODO do we need mutex locks?
+        if(cluster != null)
+        {
+            ClusterBehavior parentCluster = cluster.blocks.Count > blocks.Count ? cluster : this;
+            ClusterBehavior childCluster = cluster.blocks.Count <= blocks.Count ? cluster : this;
+
+            foreach (Transform child in childCluster.gameObject.transform)
+            {
+                child.parent = parentCluster.transform;
+            }
+            if (childCluster.parentPlayer != null)
+            {
+                childCluster.parentPlayer.transform.parent = parentCluster.transform;
+            }
+            parentCluster.UpdateCenterOfBlocks();
+            Destroy(childCluster.gameObject);
+        }
+    }
+
     void Start()
     {
-        centerUpdateCooldownMax = blocks.Count + 1;
+        centerUpdateCooldownMax = blocks.Count;
         centerUpdateCooldownTimer = centerUpdateCooldownMax;
     }
 
 
     void Update()
     {
-        //TODO if player is null, use an AI player
-        DeathCheck();
         CenterUpdateCooldownUpdate();
-        if (centerUpdateCooldownTimer > 0)
+        if (centerUpdateCooldownTimer <= 0)
         {
             UpdateCenterOfBlocks();
             centerUpdateCooldownTimer = centerUpdateCooldownMax;
@@ -73,8 +90,7 @@ public class SuperBlockBehavior : MonoBehaviour
 
     void DeathCheck()
     {
-        bool noPlayers = childPlayers.Count == 0 && parentPlayer == null;
-        if (mainBlock == null || noPlayers)
+        if (blocks.Count == 0)
         {
             transform.DetachChildren();
             Destroy(gameObject);
@@ -89,11 +105,6 @@ public class SuperBlockBehavior : MonoBehaviour
         }
     }
 
-    void BlockUpdate(BlockBehavior blockBehavior)
-    {
-        blockBehavior.gameObject.transform.SetParent(gameObject.transform);
-    }
-
     void DetachBlocks()
     {
         foreach(Transform child in transform)
@@ -105,13 +116,38 @@ public class SuperBlockBehavior : MonoBehaviour
         }
     }
 
+    GameObject GetFirstBlock()
+    {
+        foreach (Transform child in transform)
+        {
+            if (child.CompareTag("Block"))
+            {
+                return child.gameObject;
+            }
+        }
+        return null;
+    }
+
+
     void UpdateCenterOfBlocks()
     {
-        DetachBlocks();
-        BlockBehavior currentBlockBehavior;
-        Queue<BlockBehavior> blockBehaviorQueue = new Queue<BlockBehavior>();
+        BlockConnectionBehavior currentBlockConnectionBehavior;
+        Queue<BlockConnectionBehavior> BlockConnectionBehaviorQueue = new Queue<BlockConnectionBehavior>();
         HashSet<GameObject> seenBlocks = new HashSet<GameObject>();
-        blockBehaviorQueue.Enqueue(mainBlock.GetComponent<BlockBehavior>());
+
+        GameObject firstBlock = GetFirstBlock();
+        if (firstBlock == null)
+        {
+            blocks = seenBlocks;
+            DeathCheck();
+            return;
+        }
+        else
+        {
+            BlockConnectionBehaviorQueue.Enqueue(firstBlock.GetComponent<BlockConnectionBehavior>());
+        }
+
+        DetachBlocks();
 
         float drag = 0;
         float mass = 0;
@@ -119,16 +155,16 @@ public class SuperBlockBehavior : MonoBehaviour
         Vector3 min = Vector3.zero;
         Vector3 max = Vector3.zero;
 
-        while (blockBehaviorQueue.Count != 0)
+        while (BlockConnectionBehaviorQueue.Count != 0)
         {
-            currentBlockBehavior = blockBehaviorQueue.Dequeue();
-            if (currentBlockBehavior != null && !seenBlocks.Contains(currentBlockBehavior.gameObject) && currentBlockBehavior.connectedBlocks != null)
+            currentBlockConnectionBehavior = BlockConnectionBehaviorQueue.Dequeue();
+            if (currentBlockConnectionBehavior != null && !seenBlocks.Contains(currentBlockConnectionBehavior.gameObject) && currentBlockConnectionBehavior.connectedBlocks != null)
             {
-                BlockUpdate(currentBlockBehavior);
-                seenBlocks.Add(currentBlockBehavior.gameObject);
-                Vector3 currentRelativePosition = mainBlock.transform.position - currentBlockBehavior.gameObject.transform.position;
+                currentBlockConnectionBehavior.gameObject.transform.SetParent(gameObject.transform);
+                seenBlocks.Add(currentBlockConnectionBehavior.gameObject);
+                Vector3 currentRelativePosition = Vector3.zero - currentBlockConnectionBehavior.gameObject.transform.position;
                 mass += 1;
-                drag += currentBlockBehavior.gameObject.GetComponent<Rigidbody>().drag;
+                drag += currentBlockConnectionBehavior.gameObject.GetComponent<Rigidbody>().drag;
                 currentCenterOfMass += currentRelativePosition;
 
                 min.x = System.Math.Min(min.x, currentRelativePosition.x);
@@ -138,14 +174,11 @@ public class SuperBlockBehavior : MonoBehaviour
                 max.x = System.Math.Max(max.x, currentRelativePosition.x);
                 max.y = System.Math.Max(max.y, currentRelativePosition.y);
                 max.z = System.Math.Max(max.z, currentRelativePosition.z);
-                foreach (BlockBehavior.BlockConnection blockConnection in currentBlockBehavior.connectedBlocks.Values)
+                foreach (BlockConnectionBehavior.BlockConnection blockConnection in currentBlockConnectionBehavior.connectedBlocks.Values)
                 {
-                    if (blockConnection.Valid())
+                    if (!seenBlocks.Contains(blockConnection.otherBlock) && blockConnection.otherBlock != null)
                     {
-                        if (!seenBlocks.Contains(blockConnection.otherBlock) && blockConnection.otherBlock != null)
-                        {
-                            blockBehaviorQueue.Enqueue(blockConnection.otherBlock.GetComponent<BlockBehavior>());
-                        }
+                        BlockConnectionBehaviorQueue.Enqueue(blockConnection.otherBlock.GetComponent<BlockConnectionBehavior>());
                     }
                 }
             }
@@ -170,7 +203,7 @@ public class SuperBlockBehavior : MonoBehaviour
             block.transform.parent = null;
         }
         prevCenterOfMass = Vector3.Lerp(prevCenterOfMass, centerOfMass, Time.deltaTime);
-        transform.position = mainBlock.transform.position - prevCenterOfMass;
+        transform.position = prevCenterOfMass;
         foreach (GameObject block in blocks)
         {
             block.transform.parent = transform;

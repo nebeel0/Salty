@@ -15,7 +15,7 @@ public class GameMaster : MonoBehaviour
 
     ParticleBehavior particleEnv = new ParticleBehavior();
     static public GameObject playerRef;
-    static public GameObject superBlockRef;
+    static public GameObject clusterRef;
     static public GameObject blockRef;
     static public GameObject particleRef;
     [ReadOnly]

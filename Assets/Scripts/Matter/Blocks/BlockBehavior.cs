@@ -8,17 +8,7 @@ public class BlockBehavior : MatterBehavior
     //TODO on merge change camera position
     // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
     // TODO rotate on block place
-    public bool inSuperBlock
-    {
-        get
-        {
-            if(transform.parent != null)
-            {
-                return transform.parent.tag == "SuperBlock";
-            }
-            return false;
-        }
-    }
+
 
     public class QuarkGroup
     {
@@ -74,194 +64,7 @@ public class BlockBehavior : MatterBehavior
             return true;
         }
     }
-    public class BlockConnection
-    {
-        //TODO ttl for placing
-        public Vector3Int otherBlockLocalPosition;
-        public GameObject thisBlock;
-        public GameObject otherBlock;
-        public FixedJoint fixedJoint;
-        public List<GameObject> leptons;
-        public List<GameObject> otherLeptons;
-        public bool inPlace;
-        public bool placing;
-        int placingTimeLimit = 2; //seconds
-        float placingTimeCounter = 0; //seconds
-        public bool hasOtherBlock
-        {
-            get { return otherBlock != null; }
-        }
 
-        public bool hasFixedJoint
-        {
-            get { return fixedJoint != null && fixedJoint.connectedBody != null; }
-        }
-
-        public int totalLeptonCount
-        {
-            get { return leptons.Count + otherLeptons.Count; }
-        }
-        public int netOtherCharge
-        {
-            get
-            {
-                int netOtherCharge = 0;
-                for (int i = 0; i < otherLeptons.Count; i++)
-                {
-                    if (leptons[i] != null)
-                    {
-                        netOtherCharge += otherLeptons[i].GetComponent<ParticleBehavior>().effectiveCharge;
-                    }
-                }
-                return netOtherCharge;
-            }
-        }
-        public BlockConnection(GameObject thisBlock, Vector3Int otherBlockLocalPosition)
-        {
-            this.otherBlockLocalPosition = otherBlockLocalPosition;
-            this.thisBlock = thisBlock;
-            otherBlock = null;
-            fixedJoint = null;
-            inPlace = false;
-            placing = false;
-            leptons = new List<GameObject>();
-            otherLeptons = new List<GameObject>();
-        }
-        public void StartPlacing()
-        {
-            placing = true;
-            inPlace = false;
-            placingTimeCounter = placingTimeLimit;
-        }
-        public void Refresh()
-        {
-            DeathCheck();
-            if (hasOtherBlock && hasFixedJoint)
-            {
-                for (int i = 0; i < leptons.Count; i++)
-                {
-                    leptons[i].GetComponent<ParticleBehavior>().available = false;
-                }
-            }
-            if(placing)
-            {
-                placingTimeCounter -= Time.deltaTime;
-            }
-        }
-        public void DeathCheck()
-        {
-            leptons.RemoveAll(lepton => lepton == null);
-            otherLeptons.RemoveAll(lepton => lepton == null);
-            if(placing && placingTimeCounter <= 0)
-            {
-                Death();
-            }
-
-            if (inPlace && !Valid())
-            {
-                Death();
-            }
-        }
-        public bool Valid()
-        {
-            if (!hasOtherBlock || leptons.Count == 0 || otherLeptons.Count == 0 || !hasFixedJoint)
-            {
-                return false;
-            }
-            return true;
-        }
-        public void Death()
-        {
-            if (hasOtherBlock)
-            {
-                Physics.IgnoreCollision(otherBlock.GetComponent<Collider>(), thisBlock.GetComponent<Collider>(), false);
-            }
-            thisBlock.GetComponent<BlockBehavior>().DisableCollision();
-            Destroy(fixedJoint);
-            otherBlock = null;
-            fixedJoint = null;
-            leptons.Clear();
-            otherLeptons.Clear();
-            inPlace = false;
-            placing = false;
-
-            if (thisBlock != null && otherBlock != null)
-            {
-                if (thisBlock.transform.parent == otherBlock.transform)
-                {
-                    thisBlock.transform.parent = null;
-                }
-                else if (otherBlock.transform.parent == thisBlock.transform)
-                {
-                    otherBlock.transform.parent = null;
-                }
-            }
-        }
-
-        public void Reflect(BlockConnection otherBlockConnection)
-        {
-            fixedJoint = otherBlockConnection.fixedJoint;
-            otherBlock = otherBlockConnection.thisBlock;
-            leptons = otherBlockConnection.otherLeptons;
-            otherLeptons = otherBlockConnection.leptons;
-            inPlace = true;
-            placing = false;
-        }
-        public void Place()
-        {
-            float lockOnSpeed = 10;
-            if (hasOtherBlock && !inPlace && placing)
-            {
-                if (otherBlock.transform.localPosition != otherBlockLocalPosition)
-                {
-                    if (MatterBehavior.V3Equal(otherBlock.transform.localPosition, otherBlockLocalPosition, threshold: 0.1f))
-                    {
-                        //Snapping
-                        Transform otherBlockParent = otherBlock.transform.parent;
-                        otherBlock.transform.parent = thisBlock.transform;
-
-                        Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
-                        otherBlockEulerAngles.x = Mathf.LerpAngle(otherBlockEulerAngles.x, Mathf.Round(otherBlockEulerAngles.x / 90) * 90, 1);
-                        otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, 1);
-                        otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, 1);
-                        otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
-
-                        otherBlock.transform.localPosition = otherBlockLocalPosition;
-                        otherBlock.transform.parent = otherBlockParent;
-
-                        //Setting fixed joint AKA glue, also terminates the Place Loop
-                        fixedJoint = thisBlock.AddComponent<FixedJoint>();
-                        fixedJoint.enableCollision = false;
-                        fixedJoint.connectedBody = otherBlock.GetComponent<Rigidbody>();
-                        inPlace = true;
-                        placing = false;
-
-                       
-                        BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
-                        Vector3Int positionFromOtherBlock = Vector3Int.RoundToInt(otherBlock.transform.InverseTransformPoint(thisBlock.transform.position));
-                        BlockConnection otherBlockConnection = otherBlockBehavior.connectedBlocks[positionFromOtherBlock.ToString()];
-                           otherBlockConnection.Reflect(this);
-                    }
-                    else
-                    {
-                        Transform otherBlockParent = otherBlock.transform.parent;
-                        otherBlock.transform.SetParent(thisBlock.transform);
-
-                        Vector3 otherBlockEulerAngles = otherBlock.transform.localEulerAngles;
-
-                        lockOnSpeed += 1 / (Vector3.Distance(otherBlock.transform.localPosition, otherBlockLocalPosition));
-                        otherBlockEulerAngles.x = Mathf.LerpAngle(otherBlockEulerAngles.x, Mathf.Round(otherBlockEulerAngles.x / 90) * 90, lockOnSpeed* Time.deltaTime);
-                        otherBlockEulerAngles.y = Mathf.LerpAngle(otherBlockEulerAngles.y, Mathf.Round(otherBlockEulerAngles.y / 90) * 90, lockOnSpeed * Time.deltaTime);
-                        otherBlockEulerAngles.z = Mathf.LerpAngle(otherBlockEulerAngles.z, Mathf.Round(otherBlockEulerAngles.z / 90) * 90, lockOnSpeed * Time.deltaTime);
-                        otherBlock.transform.localEulerAngles = otherBlockEulerAngles;
-                        otherBlock.transform.localPosition = Vector3.Lerp(otherBlock.transform.localPosition, otherBlockLocalPosition, lockOnSpeed * Time.deltaTime);
-
-                        otherBlock.transform.SetParent(otherBlockParent);
-                    }
-                }
-            }
-        }
-    }
     public class LeptonPosition
     {
         public GameObject lepton;
@@ -284,14 +87,13 @@ public class BlockBehavior : MatterBehavior
     LeptonPosition[] allLeptonPositions;
     List<int> openLeptonPositions;
     int leptonsMax = 8;  //TODO programmatically figure out max number of leptons, which we can figure out from number of vertexes in shape
-    public Dictionary<string, BlockConnection> connectedBlocks;
 
     public override void Start()
     {
         base.Start();
         SetUpQuarkPositions();
         SetUpLeptonPositions();
-        SetUpConnectedBlocks();
+        //SetUpConnectedBlocks();
         DisableCollision();
         BeginnerElement(); //TODO replace with RandomElement
     }
@@ -301,7 +103,7 @@ public class BlockBehavior : MatterBehavior
         //Order matters, leptons set all electrons to available, while blocks set all electrons used to not available
         PlaceQuarkGroups();
         PlaceLeptons();
-        PlaceBlocks();
+        //PlaceBlocks();
     }
     protected override void RefreshState()
     {
@@ -315,10 +117,10 @@ public class BlockBehavior : MatterBehavior
             {
                 RemoveLepton(0);
             }
-            foreach (BlockConnection blockConnection in connectedBlocks.Values)
-            {
-                blockConnection.Death();
-            }
+            //foreach (BlockConnection blockConnection in connectedBlocks.Values)
+            //{
+            //    blockConnection.Death();
+            //}
             Destroy(gameObject);  // TODO maybe a death loading animation before hand?
         }
     }
@@ -328,11 +130,6 @@ public class BlockBehavior : MatterBehavior
         {
             DisableCollision();
             CollideParticle(col.gameObject);
-        }
-        if (col.gameObject.CompareTag("Block"))
-        {
-            DisableCollision();
-            CollideBlock(col.gameObject);
         }
     }
     // max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2
@@ -475,13 +272,7 @@ public class BlockBehavior : MatterBehavior
         }
     }
 
-    protected void RefreshBlocks()
-    {
-        foreach(BlockConnection blockConnection in connectedBlocks.Values)
-        {
-            blockConnection.Refresh();
-        }
-    }
+
 
     protected void RefreshNetCharge()
     {
@@ -564,70 +355,7 @@ public class BlockBehavior : MatterBehavior
             }
         }
     }
-    void CollideBlock(GameObject otherBlock) //TODO animation for connecting
-    {
-        //TODO check if in valid space
-        bool bothBlocksInSuperBlocks = this.inSuperBlock && otherBlock.GetComponent<BlockBehavior>().inSuperBlock; //Super blocks are controlled by a sentient force
-        if (otherBlock.transform.parent == transform || transform.parent == otherBlock.transform || bothBlocksInSuperBlocks) //TODO allow connecting with other player blocks
-        {
-            return;
-        }
-        otherBlock.transform.SetParent(transform);
-        string closestBlockConnectionI = "";
-        float closestDistance = 0;
-        foreach(KeyValuePair<string, BlockConnection> connectedBlock in connectedBlocks)
-        {
-            float distance = Vector3.Distance(connectedBlock.Value.otherBlockLocalPosition, otherBlock.transform.localPosition);
-            if(closestBlockConnectionI == "" || distance < closestDistance)
-            {
-                closestBlockConnectionI = connectedBlock.Key;
-                closestDistance = distance;
-            }
-        }
-        if(!connectedBlocks[closestBlockConnectionI].hasOtherBlock)
-        {
-            BlockBehavior otherBlockBehavior = otherBlock.GetComponent<BlockBehavior>();
-            List<GameObject> otherBlockAvailableLeptons = otherBlockBehavior.GetAvailableLeptons();
-            int otherBlockAvailableLeptonSpace = otherBlockBehavior.GetAvailableLeptonSpace();
 
-            List<GameObject> availableLeptons = GetAvailableLeptons();
-            int availableLeptonSpace = GetAvailableLeptonSpace();
-
-            bool enoughSpace = otherBlockAvailableLeptonSpace > 0 && availableLeptonSpace > 0;
-            bool enoughCharge = otherBlockBehavior.netChargeCache > 0 && netChargeCache > 0;
-            bool enoughLeptons = otherBlockAvailableLeptons.Count > 0 && availableLeptons.Count > 0;
-            if (enoughSpace && enoughCharge && enoughLeptons) //Both blocks must contribute leptons
-            {
-                // How many electrons to give up, depends on the available space from the otherBlock and how many this block can and have to give up
-                // How many you have to give up depends on how many connected blocks you have
-                if (LastLeptonPairing())
-                {
-                    //pop all
-                    if (otherBlockAvailableLeptonSpace >= availableLeptons.Count)
-                    {
-                        List<GameObject> newOtherLeptons = otherBlockAvailableLeptons.GetRange(0, System.Math.Min(otherBlockAvailableLeptons.Count, availableLeptonSpace));
-                        AddBlock(blockConnection: connectedBlocks[closestBlockConnectionI], otherBlock: otherBlock, leptons: availableLeptons, otherLeptons: newOtherLeptons);
-                        return;
-                    }
-                }
-                else
-                {
-                    AddBlock(blockConnection: connectedBlocks[closestBlockConnectionI], otherBlock: otherBlock, leptons: availableLeptons.GetRange(0,1), otherLeptons: otherBlockAvailableLeptons.GetRange(0, 1));
-                    return;
-                }
-            }
-        }
-        otherBlock.transform.SetParent(null);
-    }
-    void AddBlock(BlockConnection blockConnection, GameObject otherBlock, List<GameObject> leptons, List<GameObject> otherLeptons)
-    {
-        Physics.IgnoreCollision(otherBlock.GetComponent<Collider>(), GetComponent<Collider>(), true);
-        blockConnection.otherBlock = otherBlock;
-        blockConnection.leptons = leptons;
-        blockConnection.otherLeptons = otherLeptons;
-        blockConnection.StartPlacing();
-        blockConnection.Refresh();
-    }
 
     bool LastLeptonPairing()
     {
@@ -637,10 +365,10 @@ public class BlockBehavior : MatterBehavior
     int GetAvailableLeptonSpace()
     {
         int availableSpace = leptonsMax - leptons.Count;
-        foreach(BlockConnection blockConnection in connectedBlocks.Values)
-        {
-            availableSpace -= blockConnection.totalLeptonCount;
-        }
+        //foreach(BlockConnection blockConnection in connectedBlocks.Values)
+        //{
+        //    availableSpace -= blockConnection.totalLeptonCount;
+        //}
         return System.Math.Max(availableSpace, 0);
     }
 
@@ -674,15 +402,6 @@ public class BlockBehavior : MatterBehavior
                     quarkPositionI++; // So that the particles will be displaced from each other, if they are not in the same groups
                 }
             }
-        }
-    }
-
-    void PlaceBlocks() //Once it has been put in place add the fixed joint
-    {
-        RefreshBlocks();
-        foreach (KeyValuePair<string, BlockConnection> connectedBlock in connectedBlocks)
-        {
-            connectedBlock.Value.Place();
         }
     }
 
@@ -736,19 +455,7 @@ public class BlockBehavior : MatterBehavior
         }
     }
 
-    void SetUpConnectedBlocks()
-    {
-        connectedBlocks = new Dictionary<string, BlockConnection>();
-        for (int i = 1; i <= 2; i++)
-        {
-            for (int ii = 0; ii < 3; ii++)
-            {
-                Vector3Int newFixedJointPosition = Vector3Int.zero;
-                newFixedJointPosition[ii] = (int) System.Math.Pow(-1, i) * (int) scalingFactor;
-                connectedBlocks.Add(newFixedJointPosition.ToString(), new BlockConnection(gameObject, newFixedJointPosition));
-            }
-        }
-    }
+
     void SetUpLeptonPositions()
     {
         allLeptonPositions = new LeptonPosition[leptonsMax];
@@ -835,13 +542,13 @@ public class BlockBehavior : MatterBehavior
             leptonNetCharge += particleBehavior.effectiveCharge;
         }
 
-        foreach(BlockConnection blockConnection in connectedBlocks.Values)
-        {
-            if(blockConnection.hasOtherBlock)
-            {
-                leptonNetCharge += blockConnection.netOtherCharge;
-            }
-        }
+        //foreach(BlockConnection blockConnection in connectedBlocks.Values)
+        //{
+        //    if(blockConnection.hasOtherBlock)
+        //    {
+        //        leptonNetCharge += blockConnection.netOtherCharge;
+        //    }
+        //}
 
         return leptonNetCharge;
     }
