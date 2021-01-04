@@ -17,4 +17,10 @@ public static class Vector3Utils
         radius = Mathf.Pow(radius, 1.0f / 3.0f);
         return radius;
     }
+    public static int Vector3ToIdx(int i, int ii, int iii)
+    {
+        string binaryRep = string.Format("{0}{1}{2}", iii, ii, i);
+        return System.Convert.ToInt32(binaryRep, 2);
+    }
+
 }

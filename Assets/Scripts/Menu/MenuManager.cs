@@ -32,7 +32,6 @@ public class MenuManager : MonoBehaviour
     GameObject ChildTabSystem;
     GameObject Lobby;
     GameObject SocialBar;
-    GameObject CurrentTab;
 
     static string PlayOnline = "play online";
     static string PlayLocal = "play local";

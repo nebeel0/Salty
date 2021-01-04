@@ -34,7 +34,7 @@ public class ClusterBehavior : MonoBehaviour
         }
     }
 
-    public List<GameObject> childBlocks
+    public List<GameObject> childBlocks //TODO remove this
     {
         get
         {
@@ -54,7 +54,7 @@ public class ClusterBehavior : MonoBehaviour
     {
         foreach (GameObject block in blocks)
         {
-            if (block.GetComponent<BlockSlotManagerBehavior>().IsOccupying())
+            if (block.GetComponent<BlockBehavior>().slotManager.IsOccupying())
             {
                 return true;
             }
@@ -65,7 +65,7 @@ public class ClusterBehavior : MonoBehaviour
     [ReadOnly] public int prevBlockCount = 0;
     public float totalMass = 0; //We're going to treat each block as having the same mass.
     public float averageDrag = 0; //We're going to treat each block as having the same mass.
-    float diagonalAugmentFactor = 1.2f;
+    float displacementFactor = 1.2f;
     float diagonal;
     Vector3 centerOfMass = Vector3.zero;
 
@@ -152,7 +152,7 @@ public class ClusterBehavior : MonoBehaviour
         }
         else
         {
-            BlockSlotManagerBehaviorQueue.Enqueue(firstBlock.GetComponent<BlockSlotManagerBehavior>());
+            BlockSlotManagerBehaviorQueue.Enqueue(firstBlock.GetComponent<BlockBehavior>().slotManager);
         }
 
         DetachBlocks();
@@ -166,13 +166,14 @@ public class ClusterBehavior : MonoBehaviour
         while (BlockSlotManagerBehaviorQueue.Count != 0)
         {
             currentBlockSlotManagerBehavior = BlockSlotManagerBehaviorQueue.Dequeue();
-            if (currentBlockSlotManagerBehavior != null && !seenBlocks.Contains(currentBlockSlotManagerBehavior.gameObject) && currentBlockSlotManagerBehavior.slots != null)
+            if (currentBlockSlotManagerBehavior != null && !seenBlocks.Contains(currentBlockSlotManagerBehavior.BlockBehavior.gameObject) && currentBlockSlotManagerBehavior.slots != null)
             {
-                currentBlockSlotManagerBehavior.gameObject.transform.SetParent(gameObject.transform);
-                seenBlocks.Add(currentBlockSlotManagerBehavior.gameObject);
-                Vector3 currentBlockPosition = currentBlockSlotManagerBehavior.gameObject.transform.position;
+                GameObject currentBlock = currentBlockSlotManagerBehavior.BlockBehavior.gameObject;
+                currentBlock.transform.SetParent(gameObject.transform);
+                seenBlocks.Add(currentBlock);
+                Vector3 currentBlockPosition = currentBlock.transform.position;
                 mass += 1;
-                drag += currentBlockSlotManagerBehavior.gameObject.GetComponent<Rigidbody>().drag;
+                //drag += currentBlock.GetComponent<Rigidbody>().drag;
                 currentCenterOfMass += currentBlockPosition;
 
                 min.x = System.Math.Min(min.x, currentBlockPosition.x);
@@ -186,13 +187,13 @@ public class ClusterBehavior : MonoBehaviour
                 {
                     if (!seenBlocks.Contains(slot.OccupantBlock) && slot.FullyConnected)
                     {
-                        BlockSlotManagerBehaviorQueue.Enqueue(slot.OccupantBlock.GetComponent<BlockSlotManagerBehavior>());
+                        BlockSlotManagerBehaviorQueue.Enqueue(slot.OccupantBlock.GetComponent<BlockBehavior>().slotManager);
                     }
                 }
             }
         }
 
-        diagonal = Vector3.Distance(min, max) * diagonalAugmentFactor;
+        diagonal = Vector3.Distance(min, max) * displacementFactor;
         currentCenterOfMass /= mass;
         blocks = seenBlocks;
         centerOfMass = currentCenterOfMass; //TODO don't do this if we want third person and 1st person

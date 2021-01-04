@@ -26,22 +26,14 @@ public class BlockSlotBehavior : MonoBehaviour
         }
     }
     public GameObject OccupantBlock;
-    public BoxCollider slotCollider
-    {
-        get { return GetComponent<BoxCollider>(); }
-    }
-    BlockSlotManagerBehavior ParentBlockSlotManager
-    {
-        get
-        {
-            return transform.parent.gameObject.GetComponent<BlockSlotManagerBehavior>();
-        }
-    }
+    public BoxCollider slotCollider;
+    public BlockSlotManagerBehavior ParentBlockSlotManager;
+
     FixedJoint BlockFixedJoint = null;
     void Start()
     {
-        BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
-        boxCollider.isTrigger = true;
+        slotCollider = gameObject.AddComponent<BoxCollider>();
+        slotCollider.isTrigger = true;
     }
     void Update()
     {
@@ -55,7 +47,7 @@ public class BlockSlotBehavior : MonoBehaviour
             slotCollider.enabled = true;
         }
     }
-    void GarbageCleanUp()
+    void GarbageCleanUp() //TODO remove
     {
         if (BlockFixedJoint != null && OccupantBlock == null)
         {
@@ -79,7 +71,7 @@ public class BlockSlotBehavior : MonoBehaviour
         {
             if (!FullyConnected && other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
             {
-                BlockSlotManagerBehavior otherSlotManager = other.gameObject.GetComponent<BlockSlotManagerBehavior>();
+                BlockSlotManagerBehavior otherSlotManager = other.gameObject.GetComponent<BlockBehavior>().slotManager;
                 bool validOtherBlock = !otherSlotManager.ParentCluster.IsOccupying() || !otherSlotManager.IsOccupying() || (otherSlotManager.IsOccupying() && otherSlotManager.InSlot(ParentBlockSlotManager));
 
                 if (!ParentBlockSlotManager.ParentCluster.IsOccupying() && !ParentBlockSlotManager.IsOccupying() && validOtherBlock && OccupantBlock == null)
@@ -115,23 +107,23 @@ public class BlockSlotBehavior : MonoBehaviour
 
     bool Snap(Collider other)
     {
-        GameObject thisBlock = ParentBlockSlotManager.gameObject;
-        GameObject otherBlock = other.transform.gameObject;
+        GameObject thisBlock = ParentBlockSlotManager.BlockBehavior.gameObject;
+        GameObject otherBlock = other.transform.gameObject; //Other collider is actually the rigidbody collider attached to the object
 
         bool samePosition = Vector3Utils.V3Equal(thisBlock.transform.InverseTransformPoint(otherBlock.transform.position), RelativeLocalPosition, 0.001f);
         bool sameVelocity = Vector3Utils.V3Equal(thisBlock.GetComponent<Rigidbody>().velocity, otherBlock.GetComponent<Rigidbody>().velocity, 0.001f);
 
         if (samePosition && sameVelocity)
         {
-            other.transform.eulerAngles = thisBlock.transform.eulerAngles;
-            other.transform.position = thisBlock.transform.TransformPoint(RelativeLocalPosition);
+            otherBlock.transform.eulerAngles = thisBlock.transform.eulerAngles;
+            otherBlock.transform.position = thisBlock.transform.TransformPoint(RelativeLocalPosition);
 
             BlockFixedJoint = thisBlock.AddComponent<FixedJoint>();
             BlockFixedJoint.enableCollision = false;
-            BlockFixedJoint.connectedBody = other.GetComponent<Rigidbody>();
+            BlockFixedJoint.connectedBody = otherBlock.GetComponent<Rigidbody>();
 
             Vector3 otherBlockRelativeLocalPosition = otherBlock.transform.InverseTransformPoint(thisBlock.transform.position);
-            BlockSlotBehavior otherBlockSlot = otherBlock.GetComponent<BlockSlotManagerBehavior>().slots[otherBlockRelativeLocalPosition.ToString()];
+            BlockSlotBehavior otherBlockSlot = otherBlock.GetComponent<BlockBehavior>().slotManager.slots[otherBlockRelativeLocalPosition.ToString()];
 
             otherBlockSlot.BlockFixedJoint = BlockFixedJoint;
             return true;

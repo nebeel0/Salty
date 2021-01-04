@@ -44,7 +44,7 @@ public class ClusterGridBehavior : MonoBehaviour
 
                     Vector3 blockPosition = new Vector3(currX, currY, currZ);
                     GameObject instatiatedBlock = Instantiate(BlockRef, transform);
-                    instatiatedBlock.GetComponent<BlockSlotManagerBehavior>().displacementFactor = displacementFactor;
+                    instatiatedBlock.GetComponent<BlockBehavior>().slotManager.displacementFactor = displacementFactor;
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;
                     instatiatedBlock.transform.localScale = blockDimension;

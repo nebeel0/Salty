@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Collections;
 using UnityEngine.InputSystem;
 
+
 public class GameMaster : MonoBehaviour
 {
     //Example You must survive till the end of the waves
@@ -12,6 +13,8 @@ public class GameMaster : MonoBehaviour
     //Example climb to the top
 
     GameRules gameRules;
+
+    static public int MessageColliderLayer = 17;
 
     ParticleBehavior particleEnv = new ParticleBehavior();
     static public GameObject playerRef;
@@ -36,6 +39,7 @@ public class GameMaster : MonoBehaviour
     void Update()
     {
     }
+
     void SetBasePhysicsRules()
     {
         foreach (KeyValuePair<string, ParticleBehavior.ParticleState> entry in particleEnv.possibleStates)
@@ -45,7 +49,9 @@ public class GameMaster : MonoBehaviour
                 Physics.IgnoreLayerCollision(layer1: particleEnv.possibleStates[entry.Key].layer, layer2: particleEnv.possibleStates[ignoredCollision].layer);
             }
         }
+        Physics.IgnoreLayerCollision(layer1: MessageColliderLayer, layer2: MessageColliderLayer);
         Physics.IgnoreLayerCollision(layer1: particleEnv.blockLayer, layer2: particleEnv.noBlockCollisionLayer);
+        Physics.IgnoreLayerCollision(layer1: particleEnv.noBlockCollisionLayer, layer2: particleEnv.noBlockCollisionLayer);
         Physics.IgnoreLayerCollision(layer1: particleEnv.noBlockCollisionLayer, layer2: particleEnv.noBlockCollisionLayer);
     }
     //Spawn Utils

@@ -38,12 +38,19 @@ public class ClusterMessageBehavior : MonoBehaviour
     {
         if(other.CompareTag("Block"))
         {
-            BlockSlotManagerBehavior otherBlockSlotManagerBehavior = other.GetComponent<BlockSlotManagerBehavior>();
-            if (!clusterBehavior.blocks.Contains(other.gameObject) && !otherBlockSlotManagerBehavior.IsOccupying())
+            if(other.transform.parent == transform)
             {
-                if(otherBlockSlotManagerBehavior.ParentCluster != null && !otherBlockSlotManagerBehavior.ParentCluster.IsOccupying() && !clusterBehavior.IsOccupying())
+                Physics.IgnoreCollision(messageSphere, other);
+            }
+            else
+            {
+                BlockSlotManagerBehavior otherBlockSlotManagerBehavior = other.GetComponent<BlockBehavior>().slotManager;
+                if (!clusterBehavior.blocks.Contains(other.gameObject) && !otherBlockSlotManagerBehavior.IsOccupying())
                 {
-                    Attract(other);
+                    if (otherBlockSlotManagerBehavior.ParentCluster != null && !otherBlockSlotManagerBehavior.ParentCluster.IsOccupying() && !clusterBehavior.IsOccupying())
+                    {
+                        Attract(other);
+                    }
                 }
             }
         }

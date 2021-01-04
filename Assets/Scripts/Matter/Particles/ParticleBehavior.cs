@@ -97,7 +97,7 @@ public class ParticleBehavior : MatterBehavior
 
 
     public bool available = true; //Used for placing in blocks, mainly for leptons, don't see a use yet for quarks
-    public BlockBehavior.LeptonPosition leptonPosition; //maybe wrong thing to do, but so much easier to track if its position is being tracked.
+    //public BlockBehavior.LeptonPosition leptonPosition; //maybe wrong thing to do, but so much easier to track if its position is being tracked.
     private bool freeFlag = true;
     public void RandomState()
     {
@@ -352,8 +352,8 @@ public class ParticleBehavior : MatterBehavior
                 else if (colParticleBehavior.isQuark && isQuark && transform.parent == null && col.transform.parent == null) //Strong force interaction, generate a new block
                 {
                     BlockBehavior newBlock = CreateBlock();
-                    newBlock.CollideParticle(this.gameObject);
-                    newBlock.CollideParticle(col.gameObject);
+                    //newBlock.CollideParticle(this.gameObject);
+                    //newBlock.CollideParticle(col.gameObject);
                     // Two fermion particle should always be able to be coupled
                     // Set relative velocity to zero, perhaps this logic should be in block behavior
                 }
@@ -481,7 +481,7 @@ public class ParticleBehavior : MatterBehavior
         rigidbody.angularDrag = 0.25f;
         rigidbody.isKinematic = false;
         gameObject.layer = layer;
-        leptonPosition = null;
+        //leptonPosition = null;
     }
     public void Occupy(GameObject block)
     {
