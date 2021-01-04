@@ -16,7 +16,6 @@ public class BlockSlotBehavior : MonoBehaviour
             return hasOccupantBlock && hasFixedJoint; //Returns true if occupant block is true, but no fixed joint, false otherwise 
         }
     }
-
     public bool IsOccupying
     {
         get
@@ -27,7 +26,10 @@ public class BlockSlotBehavior : MonoBehaviour
         }
     }
     public GameObject OccupantBlock;
-
+    public BoxCollider slotCollider
+    {
+        get { return GetComponent<BoxCollider>(); }
+    }
     BlockSlotManagerBehavior ParentBlockSlotManager
     {
         get
@@ -44,6 +46,14 @@ public class BlockSlotBehavior : MonoBehaviour
     void Update()
     {
         GarbageCleanUp();
+        if(FullyConnected && slotCollider.enabled)
+        {
+            slotCollider.enabled = false;
+        }
+        else if(!slotCollider.enabled && !FullyConnected)
+        {
+            slotCollider.enabled = true;
+        }
     }
     void GarbageCleanUp()
     {
@@ -67,9 +77,8 @@ public class BlockSlotBehavior : MonoBehaviour
     {
         try
         {
-            if (other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
+            if (!FullyConnected && other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
             {
-
                 BlockSlotManagerBehavior otherSlotManager = other.gameObject.GetComponent<BlockSlotManagerBehavior>();
                 bool validOtherBlock = !otherSlotManager.ParentCluster.IsOccupying() || !otherSlotManager.IsOccupying() || (otherSlotManager.IsOccupying() && otherSlotManager.InSlot(ParentBlockSlotManager));
 

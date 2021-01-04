@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BlockSlotManagerBehavior : MonoBehaviour
 {
+    public float displacementFactor = 1.1f;
+
     public Dictionary<string, BlockSlotBehavior> slots;
     public bool InSlot(BlockSlotManagerBehavior other) //One way Connection
     {
@@ -53,7 +55,7 @@ public class BlockSlotManagerBehavior : MonoBehaviour
             for (int ii = 0; ii < 3; ii++)
             {
                 Vector3 newSlotPosition = Vector3.zero;
-                newSlotPosition[ii] = Mathf.Pow(-1, i) * transform.localScale[ii] * 1.1f;
+                newSlotPosition[ii] = Mathf.Pow(-1, i) * transform.localScale[ii] * displacementFactor;
                 GameObject newSlot = new GameObject();
                 newSlot.name = string.Format("Box Slot - {0}", newSlotPosition.ToString());
                 newSlot.transform.parent = gameObject.transform;

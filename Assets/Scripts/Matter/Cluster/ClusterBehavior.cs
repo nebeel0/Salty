@@ -65,7 +65,7 @@ public class ClusterBehavior : MonoBehaviour
     [ReadOnly] public int prevBlockCount = 0;
     public float totalMass = 0; //We're going to treat each block as having the same mass.
     public float averageDrag = 0; //We're going to treat each block as having the same mass.
-    float displacementFactor = 1.2f;
+    float diagonalAugmentFactor = 1.2f;
     float diagonal;
     Vector3 centerOfMass = Vector3.zero;
 
@@ -192,7 +192,7 @@ public class ClusterBehavior : MonoBehaviour
             }
         }
 
-        diagonal = Vector3.Distance(min, max) * displacementFactor;
+        diagonal = Vector3.Distance(min, max) * diagonalAugmentFactor;
         currentCenterOfMass /= mass;
         blocks = seenBlocks;
         centerOfMass = currentCenterOfMass; //TODO don't do this if we want third person and 1st person
