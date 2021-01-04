@@ -7,7 +7,6 @@ using Unity.Collections;
 public class ClusterBehavior : MonoBehaviour
 {
     public HashSet<GameObject> blocks = new HashSet<GameObject>();
-
     public List<GameObject> childPlayers
     {
         get
@@ -23,7 +22,6 @@ public class ClusterBehavior : MonoBehaviour
             return players;
         }
     }
-
     public GameObject parentPlayer
     {
         get
@@ -36,18 +34,47 @@ public class ClusterBehavior : MonoBehaviour
         }
     }
 
+    public List<GameObject> childBlocks
+    {
+        get
+        {
+            List<GameObject> childBlocks = new List<GameObject>();
+            foreach (Transform child in transform)
+            {
+                if (child.CompareTag("Block"))
+                {
+                    childBlocks.Add(child.gameObject);
+                }
+            }
+            return childBlocks;
+        }
+    }
+
+    public bool IsOccupying()
+    {
+        foreach (GameObject block in blocks)
+        {
+            if (block.GetComponent<BlockSlotManagerBehavior>().IsOccupying())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     [ReadOnly] public int prevBlockCount = 0;
-    Vector3 prevCenterOfMass = Vector3.zero;
-    //TODO multiple cameras per game Object, multiple players on one block?
     public float totalMass = 0; //We're going to treat each block as having the same mass.
     public float averageDrag = 0; //We're going to treat each block as having the same mass.
     float displacementFactor = 1.2f;
     float diagonal;
     Vector3 centerOfMass = Vector3.zero;
 
-    float centerUpdateCooldownMax;
-    float centerUpdateCooldownTimer;
+    float centerUpdateCooldownTimer = 1;
+
+    SphereCollider messageCollider
+    {
+        get { return GetComponent<SphereCollider>(); }
+    }
 
     public void Merge(ClusterBehavior cluster)
     {
@@ -70,21 +97,9 @@ public class ClusterBehavior : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        centerUpdateCooldownMax = blocks.Count;
-        centerUpdateCooldownTimer = centerUpdateCooldownMax;
-    }
-
-
     void Update()
     {
-        CenterUpdateCooldownUpdate();
-        if (centerUpdateCooldownTimer <= 0)
-        {
-            UpdateCenterOfBlocks();
-            centerUpdateCooldownTimer = centerUpdateCooldownMax;
-        }
+        UpdateCenterOfBlocks();
         PositionUpdate();
     }
 
@@ -97,13 +112,6 @@ public class ClusterBehavior : MonoBehaviour
         }
     }
 
-    void CenterUpdateCooldownUpdate()
-    {
-        if (centerUpdateCooldownTimer > 0)
-        {
-            centerUpdateCooldownTimer -= Time.deltaTime;
-        }
-    }
 
     void DetachBlocks()
     {
@@ -131,8 +139,8 @@ public class ClusterBehavior : MonoBehaviour
 
     void UpdateCenterOfBlocks()
     {
-        BlockConnectionBehavior currentBlockConnectionBehavior;
-        Queue<BlockConnectionBehavior> BlockConnectionBehaviorQueue = new Queue<BlockConnectionBehavior>();
+        BlockSlotManagerBehavior currentBlockSlotManagerBehavior;
+        Queue<BlockSlotManagerBehavior> BlockSlotManagerBehaviorQueue = new Queue<BlockSlotManagerBehavior>();
         HashSet<GameObject> seenBlocks = new HashSet<GameObject>();
 
         GameObject firstBlock = GetFirstBlock();
@@ -144,7 +152,7 @@ public class ClusterBehavior : MonoBehaviour
         }
         else
         {
-            BlockConnectionBehaviorQueue.Enqueue(firstBlock.GetComponent<BlockConnectionBehavior>());
+            BlockSlotManagerBehaviorQueue.Enqueue(firstBlock.GetComponent<BlockSlotManagerBehavior>());
         }
 
         DetachBlocks();
@@ -155,30 +163,30 @@ public class ClusterBehavior : MonoBehaviour
         Vector3 min = Vector3.zero;
         Vector3 max = Vector3.zero;
 
-        while (BlockConnectionBehaviorQueue.Count != 0)
+        while (BlockSlotManagerBehaviorQueue.Count != 0)
         {
-            currentBlockConnectionBehavior = BlockConnectionBehaviorQueue.Dequeue();
-            if (currentBlockConnectionBehavior != null && !seenBlocks.Contains(currentBlockConnectionBehavior.gameObject) && currentBlockConnectionBehavior.connectedBlocks != null)
+            currentBlockSlotManagerBehavior = BlockSlotManagerBehaviorQueue.Dequeue();
+            if (currentBlockSlotManagerBehavior != null && !seenBlocks.Contains(currentBlockSlotManagerBehavior.gameObject) && currentBlockSlotManagerBehavior.slots != null)
             {
-                currentBlockConnectionBehavior.gameObject.transform.SetParent(gameObject.transform);
-                seenBlocks.Add(currentBlockConnectionBehavior.gameObject);
-                Vector3 currentRelativePosition = Vector3.zero - currentBlockConnectionBehavior.gameObject.transform.position;
+                currentBlockSlotManagerBehavior.gameObject.transform.SetParent(gameObject.transform);
+                seenBlocks.Add(currentBlockSlotManagerBehavior.gameObject);
+                Vector3 currentBlockPosition = currentBlockSlotManagerBehavior.gameObject.transform.position;
                 mass += 1;
-                drag += currentBlockConnectionBehavior.gameObject.GetComponent<Rigidbody>().drag;
-                currentCenterOfMass += currentRelativePosition;
+                drag += currentBlockSlotManagerBehavior.gameObject.GetComponent<Rigidbody>().drag;
+                currentCenterOfMass += currentBlockPosition;
 
-                min.x = System.Math.Min(min.x, currentRelativePosition.x);
-                min.y = System.Math.Min(min.y, currentRelativePosition.y);
-                min.z = System.Math.Min(min.z, currentRelativePosition.z);
+                min.x = System.Math.Min(min.x, currentBlockPosition.x);
+                min.y = System.Math.Min(min.y, currentBlockPosition.y);
+                min.z = System.Math.Min(min.z, currentBlockPosition.z);
 
-                max.x = System.Math.Max(max.x, currentRelativePosition.x);
-                max.y = System.Math.Max(max.y, currentRelativePosition.y);
-                max.z = System.Math.Max(max.z, currentRelativePosition.z);
-                foreach (BlockConnectionBehavior.BlockConnection blockConnection in currentBlockConnectionBehavior.connectedBlocks.Values)
+                max.x = System.Math.Max(max.x, currentBlockPosition.x);
+                max.y = System.Math.Max(max.y, currentBlockPosition.y);
+                max.z = System.Math.Max(max.z, currentBlockPosition.z);
+                foreach (BlockSlotBehavior slot in currentBlockSlotManagerBehavior.slots.Values)
                 {
-                    if (!seenBlocks.Contains(blockConnection.otherBlock) && blockConnection.otherBlock != null)
+                    if (!seenBlocks.Contains(slot.OccupantBlock) && slot.FullyConnected)
                     {
-                        BlockConnectionBehaviorQueue.Enqueue(blockConnection.otherBlock.GetComponent<BlockConnectionBehavior>());
+                        BlockSlotManagerBehaviorQueue.Enqueue(slot.OccupantBlock.GetComponent<BlockSlotManagerBehavior>());
                     }
                 }
             }
@@ -187,10 +195,7 @@ public class ClusterBehavior : MonoBehaviour
         diagonal = Vector3.Distance(min, max) * displacementFactor;
         currentCenterOfMass /= mass;
         blocks = seenBlocks;
-        if(blocks.Count != prevBlockCount)
-        {
-            centerOfMass = currentCenterOfMass; //TODO don't do this if we want third person and 1st person
-        }
+        centerOfMass = currentCenterOfMass; //TODO don't do this if we want third person and 1st person
         totalMass = mass;
         averageDrag = drag / blocks.Count;
         prevBlockCount = blocks.Count;
@@ -198,15 +203,17 @@ public class ClusterBehavior : MonoBehaviour
 
     void PositionUpdate()
     {
-        foreach (GameObject block in blocks)
+        if(childBlocks.Count == blocks.Count)
         {
-            block.transform.parent = null;
-        }
-        prevCenterOfMass = Vector3.Lerp(prevCenterOfMass, centerOfMass, Time.deltaTime);
-        transform.position = prevCenterOfMass;
-        foreach (GameObject block in blocks)
-        {
-            block.transform.parent = transform;
+            foreach (GameObject block in blocks)
+            {
+                block.transform.parent = null;
+            }
+            transform.position = centerOfMass;
+            foreach (GameObject block in blocks)
+            {
+                block.transform.parent = transform;
+            }
         }
     }
 

@@ -64,7 +64,7 @@ public class GhostPlayerController : Controller
         if (col.gameObject.CompareTag("Block"))
         {
             // TODO super block permission check to join
-            if(col.gameObject.GetComponent<BlockConnectionBehavior>().ParentCluster)
+            if(col.gameObject.GetComponent<BlockSlotManagerBehavior>().ParentCluster)
             {
 
             }

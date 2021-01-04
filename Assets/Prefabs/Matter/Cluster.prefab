@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8415411192010138597}
   - component: {fileID: 259323466092311923}
+  - component: {fileID: 5546962462782311938}
   m_Layer: 0
   m_Name: Cluster
   m_TagString: Cluster
@@ -43,8 +44,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14e132a9c49ffcf418c8ce8e392c4155, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blocks: []
-  isMerging: 0
   prevBlockCount: 0
   totalMass: 0
   averageDrag: 0
+--- !u!114 &5546962462782311938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6599264614019995199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 601902dc814373645bb8999e0b5cec6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

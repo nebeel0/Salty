@@ -6,6 +6,17 @@ public class BlockSlotBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
     public Vector3 RelativeLocalPosition;
+
+    public bool FullyConnected
+    {
+        get
+        {
+            bool hasOccupantBlock = OccupantBlock != null;
+            bool hasFixedJoint = BlockFixedJoint != null;
+            return hasOccupantBlock && hasFixedJoint; //Returns true if occupant block is true, but no fixed joint, false otherwise 
+        }
+    }
+
     public bool IsOccupying
     {
         get
@@ -30,12 +41,10 @@ public class BlockSlotBehavior : MonoBehaviour
         BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
         boxCollider.isTrigger = true;
     }
-
     void Update()
     {
         GarbageCleanUp();
     }
-
     void GarbageCleanUp()
     {
         if (BlockFixedJoint != null && OccupantBlock == null)
@@ -44,27 +53,47 @@ public class BlockSlotBehavior : MonoBehaviour
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
         {
             //TODO check if other block is only connecting to you.
-            BlockSlotManagerBehavior otherSlotManager = other.gameObject.GetComponent<BlockSlotManagerBehavior>();
-            bool validOtherBlock = !otherSlotManager.IsOccupying() || (otherSlotManager.IsOccupying() && otherSlotManager.InSlot(ParentBlockSlotManager));
 
-            if (!ParentBlockSlotManager.IsOccupying() && validOtherBlock && OccupantBlock == null)
-            {
-                OccupantBlock = other.gameObject;
-            }
+        }
+    }
 
-            if (OccupantBlock == other.gameObject) //Check if position doesn't equal the same and a connection hasn't been made
+
+    void OnTriggerStay(Collider other)
+    {
+        try
+        {
+            if (other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
             {
-                if (BlockFixedJoint == null && !Snap(other))
+
+                BlockSlotManagerBehavior otherSlotManager = other.gameObject.GetComponent<BlockSlotManagerBehavior>();
+                bool validOtherBlock = !otherSlotManager.ParentCluster.IsOccupying() || !otherSlotManager.IsOccupying() || (otherSlotManager.IsOccupying() && otherSlotManager.InSlot(ParentBlockSlotManager));
+
+                if (!ParentBlockSlotManager.ParentCluster.IsOccupying() && !ParentBlockSlotManager.IsOccupying() && validOtherBlock && OccupantBlock == null)
                 {
-                    Attract(other);
+                    OccupantBlock = other.gameObject;
+                }
+
+                if (!validOtherBlock && !FullyConnected)
+                {
+                    OccupantBlock = null;
+                }
+
+                if (OccupantBlock == other.gameObject) //Check if position doesn't equal the same and a connection hasn't been made
+                {
+                    if (BlockFixedJoint == null && !Snap(other))
+                    {
+                        Attract(other);
+                    }
                 }
             }
         }
+        catch { }
+
     }
 
     private void OnTriggerExit(Collider other)
@@ -100,7 +129,6 @@ public class BlockSlotBehavior : MonoBehaviour
         }
         return false;
     }
-
     void Attract(Collider other)
     {
         try
@@ -113,7 +141,6 @@ public class BlockSlotBehavior : MonoBehaviour
 
         }
     }
-
     void PositionAlignment(Collider other)
     {
         GameObject otherObject = other.gameObject;
@@ -139,7 +166,6 @@ public class BlockSlotBehavior : MonoBehaviour
         Vector3 CorrectiveRotation = RectifyAngleDifference((Correction).eulerAngles);
         ObjectToAttract.AddTorque((MainRotation - CorrectiveRotation / 2), ForceMode.Force);
     }
-
     private Vector3 RectifyAngleDifference(Vector3 angdiff)
     {
         if (angdiff.x > 180) angdiff.x -= 360;

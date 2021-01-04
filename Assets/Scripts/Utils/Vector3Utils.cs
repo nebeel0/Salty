@@ -9,4 +9,12 @@ public static class Vector3Utils
     {
         return Vector3.SqrMagnitude(a - b) < threshold;
     }
+
+    public static float GetRadiusFromVolume(float volume)
+    {
+        float radius = volume * 3.0f / 4.0f;
+        radius /= Mathf.PI;
+        radius = Mathf.Pow(radius, 1.0f / 3.0f);
+        return radius;
+    }
 }

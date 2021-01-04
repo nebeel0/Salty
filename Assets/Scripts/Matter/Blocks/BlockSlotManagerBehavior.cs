@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BlockSlotManagerBehavior : MatterBehavior
+public class BlockSlotManagerBehavior : MonoBehaviour
 {
     public Dictionary<string, BlockSlotBehavior> slots;
-
     public bool InSlot(BlockSlotManagerBehavior other) //One way Connection
     {
         foreach(BlockSlotBehavior slot in slots.Values)
@@ -17,7 +16,7 @@ public class BlockSlotManagerBehavior : MatterBehavior
         }
         return false;
     }
-
+    
     public bool IsOccupying()
     {
         foreach(BlockSlotBehavior slot in slots.Values)
@@ -29,12 +28,23 @@ public class BlockSlotManagerBehavior : MatterBehavior
         }
         return false;
     }
+    public ClusterBehavior ParentCluster
+    {
+        get
+        {
+            if (transform.parent != null && transform.parent.tag == "Cluster")
+            {
+                return transform.parent.gameObject.GetComponent<ClusterBehavior>();
+            }
+            return null;
+        }
+    }
 
+    public GameObject clusterRef;
     void Start()
     {
         SetUpSlots();
     }
-
     void SetUpSlots()
     {
         slots = new Dictionary<string, BlockSlotBehavior>();
@@ -43,7 +53,7 @@ public class BlockSlotManagerBehavior : MatterBehavior
             for (int ii = 0; ii < 3; ii++)
             {
                 Vector3 newSlotPosition = Vector3.zero;
-                newSlotPosition[ii] = Mathf.Pow(-1, i) * (int)scalingFactor * 1.1f;
+                newSlotPosition[ii] = Mathf.Pow(-1, i) * transform.localScale[ii] * 1.1f;
                 GameObject newSlot = new GameObject();
                 newSlot.name = string.Format("Box Slot - {0}", newSlotPosition.ToString());
                 newSlot.transform.parent = gameObject.transform;
@@ -55,11 +65,13 @@ public class BlockSlotManagerBehavior : MatterBehavior
             }
         }
     }
-
-
     // Update is called once per frame
     void Update()
     {
-        
+        if (ParentCluster == null)
+        {
+            GameObject cluster = Instantiate(clusterRef);
+            transform.SetParent(cluster.transform);
+        }
     }
 }
