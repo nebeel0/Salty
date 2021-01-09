@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ClusterGridBehavior : MonoBehaviour
+public class ClusterGridBehavior : GameBehavior
 {
     // Start is called before the first frame update
-
     public GameObject BlockRef;
     public Vector3 blockDimension = Vector3.one;
     public float displacementFactor = 1.1f;
@@ -44,6 +43,8 @@ public class ClusterGridBehavior : MonoBehaviour
 
                     Vector3 blockPosition = new Vector3(currX, currY, currZ);
                     GameObject instatiatedBlock = Instantiate(BlockRef, transform);
+                    instatiatedBlock.GetComponent<BlockBehavior>().gameMaster = gameMaster;
+                    instatiatedBlock.GetComponent<BlockBehavior>().BeginnerElementFlag = true;
                     instatiatedBlock.GetComponent<BlockBehavior>().slotManager.displacementFactor = displacementFactor;
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;

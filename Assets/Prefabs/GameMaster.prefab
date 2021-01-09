@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 5057495366608567634}
   - component: {fileID: 5057495366608567635}
   - component: {fileID: 5057495366608567596}
-  - component: {fileID: 5057495366608567633}
   m_Layer: 0
   m_Name: GameMaster
   m_TagString: GameMaster
@@ -42,18 +41,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 5057495366608567597}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53dc1083384bd3344a73a482533e9a75, type: 3}
+  m_Script: {fileID: 11500000, guid: 61004cbd40a35054493a83045fedd755, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seed: 10
   playerRef: {fileID: 5763612623375676646, guid: b1c431149fa897141a085da212208e57,
     type: 3}
-  superBlockRef: {fileID: 6599264614019995199, guid: fbc2387b8f977f5418a4478edca94095,
+  clusterRef: {fileID: 6599264614019995199, guid: fbc2387b8f977f5418a4478edca94095,
     type: 3}
   blockRef: {fileID: 4819842358078350356, guid: 37e523f2e600fcb448684e1434888982,
     type: 3}
-  particleRef: {fileID: 674584312230123643, guid: 4c15830bc4ae7cd478374956cbe0fa72,
+  baseParticleRef: {fileID: 184509163437044687, guid: ec2e2228dac01384d8040fe6ebd96d6f,
     type: 3}
+  particleLit: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
+  timeCounter: 0
 --- !u!82 &5057495366608567596
 AudioSource:
   m_ObjectHideFlags: 0
@@ -150,20 +150,3 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &5057495366608567633
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5057495366608567597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0083c9c6a9b3daf45afd6134f49b7914, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dimensions: {x: 100, y: 100, z: 100}
-  resolution: 10
-  cagePlaneRef: {fileID: 3093318275203899398, guid: 54032690bb5eb23488e9e6df52ec41e6,
-    type: 3}
-  planes: []

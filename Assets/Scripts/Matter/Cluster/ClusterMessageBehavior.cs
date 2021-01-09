@@ -7,18 +7,12 @@ public class ClusterMessageBehavior : MonoBehaviour
     //A sphere collider that collects messages
     //Base message is similar to gravity
 
-    ClusterBehavior clusterBehavior
-    {
-        get { return GetComponent<ClusterBehavior>(); }
-    }
-
-    SphereCollider messageSphere
-    {
-        get { return GetComponent<SphereCollider>(); }
-    }
+    ClusterBehavior clusterBehavior;
+    SphereCollider messageSphere;
 
     void Start()
     {
+        clusterBehavior = GetComponent<ClusterBehavior>();
         SetUpColliders();
     }
 
@@ -29,9 +23,9 @@ public class ClusterMessageBehavior : MonoBehaviour
 
     void SetUpColliders()
     {
-        SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
-        sphereCollider.isTrigger = true;
-        sphereCollider.radius = 2; //TODO pull information from cluster behavior
+        messageSphere = gameObject.AddComponent<SphereCollider>();
+        messageSphere.isTrigger = true;
+        messageSphere.radius = 2; //TODO pull information from cluster behavior
     }
 
     void OnTriggerStay(Collider other)
@@ -44,8 +38,8 @@ public class ClusterMessageBehavior : MonoBehaviour
             }
             else
             {
-                BlockSlotManagerBehavior otherBlockSlotManagerBehavior = other.GetComponent<BlockBehavior>().slotManager;
-                if (!clusterBehavior.blocks.Contains(other.gameObject) && !otherBlockSlotManagerBehavior.IsOccupying())
+                SlotManagerBehavior otherBlockSlotManagerBehavior = other.GetComponent<BlockBehavior>().slotManager;
+                if (!clusterBehavior.blocks.Contains(other.gameObject.GetComponent<BlockBehavior>()) && !otherBlockSlotManagerBehavior.IsOccupying())
                 {
                     if (otherBlockSlotManagerBehavior.ParentCluster != null && !otherBlockSlotManagerBehavior.ParentCluster.IsOccupying() && !clusterBehavior.IsOccupying())
                     {

@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MatterBehavior : MonoBehaviour
+public class MatterBehavior : GameBehavior
 {
     public bool playerOverride = false;
     public float collisionCooldown = 0.0f; //tracker for time remaining till cooldown is over
-    public int noBlockCollisionLayer = 16;
-    public int blockLayer = 8;
     public bool timerEnabled = true;
     public bool colliderEnabled = false;
 
@@ -25,6 +23,14 @@ public class MatterBehavior : MonoBehaviour
         get { return GetComponent<Collider>(); }
     }
 
+    protected virtual void Start()
+    {
+    }
+    public virtual void Update()
+    {
+        CollisionCooldownDrain();
+        this.colliderEnabled = collider.enabled && timerEnabled;
+    }
 
     protected void CollisionCooldownDrain()
     {
@@ -59,34 +65,5 @@ public class MatterBehavior : MonoBehaviour
     protected void EnableCollisionCooldownTimer()
     {
         timerEnabled = true;
-    }
-
-    public virtual void Start()
-    {
-    }
-
-    public virtual void Update()
-    {
-        CollisionCooldownDrain();
-        VisualUpdate();
-        RefreshState();
-        DeathCheck();
-        this.colliderEnabled = collider.enabled && timerEnabled;
-    }
-
-    protected virtual void VisualUpdate()
-    {
-    }
-    protected virtual void RefreshState()
-    {
-    }
-    protected virtual void DeathCheck()
-    {
-    }
-
-    //Vector Utils
-    public static bool V3Equal(Vector3 a, Vector3 b, float threshold=0.001f)
-    {
-        return Vector3.SqrMagnitude(a - b) < threshold;
     }
 }

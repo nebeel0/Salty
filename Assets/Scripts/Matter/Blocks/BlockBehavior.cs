@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 
-public class BlockBehavior : MonoBehaviour
+public class BlockBehavior : GameBehavior
 {
     // Overall Manager Class Instance
 
     // TODO on merge change camera position
     // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
     // TODO rotate on block place
+    public GameObject ParticleRef;
+    public int particleAnimationSpeed = 5;
 
-    //public int NetChargeCache;  // To be used similar to a cache, meaning that while its not the most accurate representation of the current state, it will reduce computations
-    //public GameObject ParticleRef;
-
-    //public BlockQuarkManagerBehavior quarkManager;
-    //public BlockLeptonManagerBehavior leptonManager;
-    public BlockSlotManagerBehavior slotManager;
+    public QuarkManagerBehavior quarkManager;
+    public ElectronManagerBehavior electronManager;
+    public SlotManagerBehavior slotManager;
     public GameObject ClusterRef;
 
     public ClusterBehavior ParentCluster
@@ -31,12 +30,23 @@ public class BlockBehavior : MonoBehaviour
         }
     }
 
-    void Start()
+    Rigidbody rigidbody;
+
+    public int ActualNetCharge //Debugging TODO remove
     {
-        //BeginnerElement(); //TODO replace with RandomElement
+        get { return GetNetCharge(); }
     }
 
+    public bool BeginnerElementFlag;
 
+    void Start()
+    {
+        rigidbody = GetComponent<Rigidbody>();
+        if (BeginnerElementFlag)
+        {
+            StartCoroutine(BeginnerElement()); //TODO replace with RandomElement
+        }
+    }
 
     void Update()
     {
@@ -45,93 +55,95 @@ public class BlockBehavior : MonoBehaviour
             GameObject cluster = Instantiate(ClusterRef);
             transform.SetParent(cluster.transform);
         }
-        //RefreshNetCharge();
-        //DeathCheck();
     }
 
-    //void DeathCheck()
-    //{
-    //    if (quarkManager.quarkGroups.Count == 0)
-    //    {
-    //        while (leptonManager.leptons.Count > 0)
-    //        {
-    //            leptonManager.RemoveLepton(0);
-    //        }
-    //        //TODO destroy all block slot connections
-    //        //foreach (BlockConnection blockConnection in connectedBlocks.Values)
-    //        //{
-    //        //    blockConnection.Death();
-    //        //}
-    //        Destroy(gameObject);  // TODO maybe a death loading animation before hand?
-    //    }
-    //}
+    public void Death()
+    {
+        //TODO callback to cluster
+        transform.DetachChildren();
+        quarkManager.Death();
+        electronManager.Death();
+        slotManager.Death();
+    }
 
-    //void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
-    //{
-    //    if (col.gameObject.CompareTag("Particle"))
-    //    {
-    //        CollideParticle(col.gameObject);
-    //    }
-    //}
+    void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
+    {
+        if (col.gameObject.CompareTag("Particle"))
+        {
+            Debug.Log("Particle Colliding");
+            CollideParticle(col.gameObject);
+        }
+    }
 
-    //public void CollideParticle(GameObject particle)
-    //{
-    //    ParticleBehavior particleBehavior = particle.GetComponent<ParticleBehavior>();
-    //    if (particleBehavior.isFermion)
-    //    {
-    //        if (!quarkManager.AddQuark(particle))
-    //        {
-    //            leptonManager.AddLepton(particle);
-    //        }
-    //    }
-    //}
+    public void CollideParticle(GameObject particle)
+    {
+        if (ParticleUtils.isFermion(particle))
+        {
+            if (ParticleUtils.isQuark(particle))
+            {
+                Debug.Log("Quark Colliding.");
+                quarkManager.AddQuark(particle.GetComponent<QuarkBehavior>());
+            }
+            else if(ParticleUtils.isElectron(particle))
+            {
+                Debug.Log("Lepton Colliding.");
+                electronManager.SetElectron(particle.GetComponent<ElectronBehavior>());
+            }
+            else
+            {
+                Debug.Log("Something went wrong.");
+            }
+        }
+    }
 
-    //// max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2
-    //void BeginnerElement()
-    //{
-    //    for (int i = 0; i < 15; i++)
-    //    {
-    //        GameObject particle = Instantiate(ParticleRef);
-    //        particle.transform.position = transform.position;
-    //        ParticleBehavior particleBehavior = particle.GetComponent<ParticleBehavior>();
-    //        if (i % 3 != 0)
-    //        {
-    //            particleBehavior.particleStateType = "quarkPos";
-    //        }
-    //        else
-    //        {
-    //            particleBehavior.particleStateType = "quarkNeg";
-    //        }
-
-    //        if ((i / 4) == 1 && i <= 4)
-    //        {
-    //            GameObject lepton = Instantiate(ParticleRef);
-    //            lepton.transform.position = transform.position;
-    //            ParticleBehavior leptonBehavior = lepton.GetComponent<ParticleBehavior>();
-    //            leptonBehavior.particleStateType = "leptonNeg";
-    //            CollideParticle(lepton);
-    //        }
-    //        CollideParticle(particle);
-    //    }
-    //}
-
-    //void RandomElement()
-    //{
-    //    int numberOfParticles = Random.Range(1, 10);
-    //    for (int i = 0; i < numberOfParticles; i++)
-    //    {
-    //        GameObject particle = Instantiate(ParticleRef);
-    //        ParticleBehavior particleBehavior = particle.GetComponent<ParticleBehavior>();
-    //        particleBehavior.RandomState();
-    //        CollideParticle(particle);
-    //    }
-    //}
-
-    //protected void RefreshNetCharge()
-    //{
-    //    //TODO cooldown, every 5 seconds,
-    //    NetChargeCache = GetNetLeptonCharge() + GetNetQuarkCharge();
-    //}
+    // max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2
+    IEnumerator BeginnerElement()
+    {
+        yield return new WaitForSeconds(0.2f); //TODO if game master not "online", via a flag, then manually turn online
+        for (int i = 0; i < 15; i++)
+        {
+            QuarkBehavior quarkBehavior;
+            if (i % 3 != 0)
+            {
+                quarkBehavior = gameMaster.CreateQuarkPos(10, 10, 1);
+            }
+            else
+            {
+                quarkBehavior = gameMaster.CreateQuarkNeg(10, 10, 1);
+            }
+            quarkBehavior.transform.parent = transform;
+            quarkBehavior.transform.localPosition = Vector3.zero;
+            quarkBehavior.Occupy(gameObject);
 
 
+            if ((i / 4) == 1 && i <= 4)
+            {
+                LeptonBehavior leptonBehavior = gameMaster.CreateElectron(10, 10, 1);
+                leptonBehavior.transform.parent = transform;
+                leptonBehavior.transform.localPosition = Vector3.zero;
+                leptonBehavior.Occupy(gameObject);
+                CollideParticle(leptonBehavior.gameObject);
+            }
+            CollideParticle(quarkBehavior.gameObject);
+        }
+        rigidbody.velocity = Vector3.zero;
+        rigidbody.angularVelocity = Vector3.zero;
+    }
+
+    void RandomElement()
+    {
+        int numberOfParticles = Random.Range(1, 10);
+        for (int i = 0; i < numberOfParticles; i++)
+        {
+            GameObject particle = Instantiate(ParticleRef);
+            ParticleBehavior particleBehavior = particle.GetComponent<ParticleBehavior>();
+            particleBehavior.particleType = ParticleUtils.GetRandomState();
+            CollideParticle(particle);
+        }
+    }
+
+    public int GetNetCharge()
+    {
+        return electronManager.GetNetCharge() + quarkManager.GetNetCharge();
+    }
 }

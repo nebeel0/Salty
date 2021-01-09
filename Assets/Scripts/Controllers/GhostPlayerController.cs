@@ -5,10 +5,7 @@ using UnityEngine.InputSystem;
 
 public class GhostPlayerController : Controller
 {
-    PlayerController playerController
-    {
-        get { return GetComponent<PlayerController>(); }
-    }
+    PlayerController playerController;
     float ghostSpeed = 10;
     // Start is called before the first frame update
 
@@ -19,6 +16,7 @@ public class GhostPlayerController : Controller
 
     public override void Start()
     {
+        playerController = GetComponent<PlayerController>();
         transform.SetParent(null);
         gameObject.tag = "Ghost";
         GetComponent<SphereCollider>().enabled = true;
@@ -64,7 +62,7 @@ public class GhostPlayerController : Controller
         if (col.gameObject.CompareTag("Block"))
         {
             // TODO super block permission check to join
-            if(col.gameObject.GetComponent<BlockSlotManagerBehavior>().ParentCluster)
+            if(col.gameObject.GetComponent<SlotManagerBehavior>().ParentCluster)
             {
 
             }

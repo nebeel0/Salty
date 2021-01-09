@@ -4,9 +4,9 @@ using UnityEngine;
 using Unity.Collections;
 
 //Aggregates blocks
-public class ClusterBehavior : MonoBehaviour
+public class ClusterBehavior : GameBehavior
 {
-    public HashSet<GameObject> blocks = new HashSet<GameObject>();
+    public HashSet<BlockBehavior> blocks = new HashSet<BlockBehavior>();
     public List<GameObject> childPlayers
     {
         get
@@ -52,9 +52,9 @@ public class ClusterBehavior : MonoBehaviour
 
     public bool IsOccupying()
     {
-        foreach (GameObject block in blocks)
+        foreach (BlockBehavior block in blocks)
         {
-            if (block.GetComponent<BlockBehavior>().slotManager.IsOccupying())
+            if (block.slotManager.IsOccupying())
             {
                 return true;
             }
@@ -69,11 +69,18 @@ public class ClusterBehavior : MonoBehaviour
     float diagonal;
     Vector3 centerOfMass = Vector3.zero;
 
-    float centerUpdateCooldownTimer = 1;
-
-    SphereCollider messageCollider
+    public void RemoveBlock(BlockBehavior block)
     {
-        get { return GetComponent<SphereCollider>(); }
+        block.transform.parent = null;
+        blocks.Remove(block);
+        if (!DeathCheck())
+        {
+            UpdateCenterOfBlocks();
+        }
+        else
+        {
+            Death();
+        }
     }
 
     public void Merge(ClusterBehavior cluster)
@@ -103,15 +110,20 @@ public class ClusterBehavior : MonoBehaviour
         PositionUpdate();
     }
 
-    void DeathCheck()
+    bool DeathCheck()
     {
         if (blocks.Count == 0)
         {
-            transform.DetachChildren();
-            Destroy(gameObject);
+            return true;
         }
+        return false;
     }
 
+    void Death()
+    {
+        transform.DetachChildren();
+        Destroy(gameObject);
+    }
 
     void DetachBlocks()
     {
@@ -139,9 +151,9 @@ public class ClusterBehavior : MonoBehaviour
 
     void UpdateCenterOfBlocks()
     {
-        BlockSlotManagerBehavior currentBlockSlotManagerBehavior;
-        Queue<BlockSlotManagerBehavior> BlockSlotManagerBehaviorQueue = new Queue<BlockSlotManagerBehavior>();
-        HashSet<GameObject> seenBlocks = new HashSet<GameObject>();
+        SlotManagerBehavior currentBlockSlotManagerBehavior;
+        Queue<SlotManagerBehavior> BlockSlotManagerBehaviorQueue = new Queue<SlotManagerBehavior>();
+        HashSet<BlockBehavior> seenBlocks = new HashSet<BlockBehavior>();
 
         GameObject firstBlock = GetFirstBlock();
         if (firstBlock == null)
@@ -166,14 +178,14 @@ public class ClusterBehavior : MonoBehaviour
         while (BlockSlotManagerBehaviorQueue.Count != 0)
         {
             currentBlockSlotManagerBehavior = BlockSlotManagerBehaviorQueue.Dequeue();
-            if (currentBlockSlotManagerBehavior != null && !seenBlocks.Contains(currentBlockSlotManagerBehavior.BlockBehavior.gameObject) && currentBlockSlotManagerBehavior.slots != null)
+            if (currentBlockSlotManagerBehavior != null && !seenBlocks.Contains(currentBlockSlotManagerBehavior.block) && currentBlockSlotManagerBehavior.slots != null)
             {
-                GameObject currentBlock = currentBlockSlotManagerBehavior.BlockBehavior.gameObject;
+                BlockBehavior currentBlock = currentBlockSlotManagerBehavior.block;
                 currentBlock.transform.SetParent(gameObject.transform);
                 seenBlocks.Add(currentBlock);
                 Vector3 currentBlockPosition = currentBlock.transform.position;
                 mass += 1;
-                //drag += currentBlock.GetComponent<Rigidbody>().drag;
+                drag += currentBlock.GetComponent<Rigidbody>().drag;
                 currentCenterOfMass += currentBlockPosition;
 
                 min.x = System.Math.Min(min.x, currentBlockPosition.x);
@@ -183,9 +195,9 @@ public class ClusterBehavior : MonoBehaviour
                 max.x = System.Math.Max(max.x, currentBlockPosition.x);
                 max.y = System.Math.Max(max.y, currentBlockPosition.y);
                 max.z = System.Math.Max(max.z, currentBlockPosition.z);
-                foreach (BlockSlotBehavior slot in currentBlockSlotManagerBehavior.slots.Values)
+                foreach (SlotBehavior slot in currentBlockSlotManagerBehavior.slots.Values)
                 {
-                    if (!seenBlocks.Contains(slot.OccupantBlock) && slot.FullyConnected)
+                    if (!seenBlocks.Contains(slot.OccupantBlock) && slot.IsOccupied())
                     {
                         BlockSlotManagerBehaviorQueue.Enqueue(slot.OccupantBlock.GetComponent<BlockBehavior>().slotManager);
                     }
@@ -206,12 +218,12 @@ public class ClusterBehavior : MonoBehaviour
     {
         if(childBlocks.Count == blocks.Count)
         {
-            foreach (GameObject block in blocks)
+            foreach (BlockBehavior block in blocks)
             {
                 block.transform.parent = null;
             }
             transform.position = centerOfMass;
-            foreach (GameObject block in blocks)
+            foreach (BlockBehavior block in blocks)
             {
                 block.transform.parent = transform;
             }
@@ -221,7 +233,7 @@ public class ClusterBehavior : MonoBehaviour
     public void DistributeForce(Vector3 forceVector, ForceMode forceMode)
     {
         Vector3 distributedForce = forceVector / blocks.Count;
-        foreach (GameObject block in blocks)
+        foreach (BlockBehavior block in blocks)
         {
             block.GetComponent<Rigidbody>().AddForce(distributedForce, forceMode);
         }
@@ -229,7 +241,7 @@ public class ClusterBehavior : MonoBehaviour
 
     public void Brake()
     {
-        foreach(GameObject block in blocks)
+        foreach(BlockBehavior block in blocks)
         {
             block.GetComponent<Rigidbody>().velocity = Vector3.zero;
             block.GetComponent<Rigidbody>().freezeRotation = true;
@@ -237,7 +249,7 @@ public class ClusterBehavior : MonoBehaviour
     }
     public void UnBrake()
     {
-        foreach (GameObject block in blocks)
+        foreach (BlockBehavior block in blocks)
         {
             block.GetComponent<Rigidbody>().freezeRotation = false;
         }
