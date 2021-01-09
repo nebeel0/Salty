@@ -4,13 +4,7 @@ using UnityEngine;
 
 public class ZBosonBehavior : BosonBehavior
 {
-    protected override void Start()
-    {
-        base.Start();
-        particleType = "zBoson";
-        gameObject.layer = ParticleUtils.zBosonLayer;
-        SetParticleColor();
-    }
+    public string particleType = ParticleUtils.zBoson;
 
     protected void TransferMomentum(ParticleBehavior particle)
     {

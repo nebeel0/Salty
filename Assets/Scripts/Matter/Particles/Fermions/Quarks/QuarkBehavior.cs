@@ -6,23 +6,21 @@ public class QuarkBehavior : FermionBehavior
 {
     public QuarkGroup quarkGroup;
 
-    protected override void Start()
-    {
-        base.Start();
-        gameObject.layer = isFree ? ParticleUtils.quarkLayer : ParticleUtils.noBlockCollisionLayer;
-    }
-
     protected override void OnCollisionEnter(Collision col)
     {
         base.OnCollisionEnter(col);
-        //Account for double collision effects for fermions
-        if (ParticleUtils.isQuark(col.gameObject)) //Strong force interaction, generate a new block
+        if (ParticleUtils.isQuarkPos(gameObject) && ParticleUtils.isQuarkNeg(gameObject) && col.collider.enabled && particleCollider.enabled) //Strong force interaction, generate a new block
         {
             //By default if quarks interact they are free
             BlockBehavior newBlock = gameMaster.CreateBlock();
             newBlock.transform.position = transform.position;
             newBlock.CollideParticle(gameObject);
             newBlock.CollideParticle(col.gameObject);
+            if (newBlock.DeathCheck())
+            {
+                Debug.LogError("This should never happen.");
+                newBlock.Death();
+            }
         }
     }
 

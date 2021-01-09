@@ -178,12 +178,14 @@ public class SlotBehavior : MonoBehaviour
     {
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
-            bool containsOtherBlockJoint = connectingElectronPositions[i].electron.connectedBlocks.ContainsKey(OccupantBlock);
-            bool containsRootBlockJoint = connectingElectronPositions[i].electron.connectedBlocks.ContainsKey(slotManager.block);
-
-            if (containsOtherBlockJoint && containsRootBlockJoint)
+            if(connectingElectronPositions[i].electron != null)
             {
-                return true;
+                bool containsOtherBlockJoint = connectingElectronPositions[i].electron.connectedBlocks.ContainsKey(OccupantBlock);
+                bool containsRootBlockJoint = connectingElectronPositions[i].electron.connectedBlocks.ContainsKey(slotManager.block);
+                if (containsOtherBlockJoint && containsRootBlockJoint)
+                {
+                    return true;
+                }
             }
         }
         return false;

@@ -13,6 +13,16 @@ public class QuarkGroup
         get { return quarks.Count == quarkGroupCapacity; }
     }
 
+    public override string ToString()
+    {
+        string quarkString = "";
+        foreach (QuarkBehavior quark in quarks)
+        {
+            quarkString = quarkString + ", " + quark.particleType;
+        }
+        return quarkString;
+    }
+
     public QuarkGroup(QuarkBehavior quark, QuarkManagerBehavior manager)
     {
         this.manager = manager;
@@ -22,11 +32,6 @@ public class QuarkGroup
     public int GetNetCharge()
     {
         int netCharge = 0;
-        if (quarks.Count != quarkGroupCapacity)
-        {
-            return netCharge;
-        }
-
         foreach (ParticleBehavior quark in quarks)
         {
             netCharge += quark.effectiveCharge;
@@ -57,7 +62,7 @@ public class QuarkGroup
     public bool Validate(QuarkBehavior quark)
     {
         int netCharge = GetNetCharge();
-        bool capacityCheck = quarks.Count + 1 <= quarkGroupCapacity;
+        bool capacityCheck = (quarks.Count + 1) <= quarkGroupCapacity;
         bool maxTwoSame = quark.effectiveCharge * netCharge < 0;
 
         int totalCharge = quark.effectiveCharge + netCharge;

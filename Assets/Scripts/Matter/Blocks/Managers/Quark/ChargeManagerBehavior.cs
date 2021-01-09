@@ -59,7 +59,7 @@ public class ChargeManagerBehavior : BlockManagerBehavior
         return particleHashSet.First();
     }
 
-    protected virtual bool DeathCheck()
+    public virtual bool DeathCheck()
     {
         Debug.LogError("Implement Death Check");
         return false;

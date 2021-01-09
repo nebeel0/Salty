@@ -8,6 +8,12 @@ public class ElectronBehavior : LeptonBehavior
     public HashSet<ElectronPosition> electronPositions = new HashSet<ElectronPosition>(); //Total of 8 blocks 
     public Dictionary<BlockBehavior, FixedJoint> connectedBlocks = new Dictionary<BlockBehavior, FixedJoint>(); //up to 24 connected blocks
 
+    public override void Start()
+    {
+        particleType = ParticleUtils.leptonNeg;
+        base.Start();
+    }
+
     public bool isLocked
     {
         get { return connectedBlocks.Count > 0; }
@@ -42,14 +48,6 @@ public class ElectronBehavior : LeptonBehavior
             Destroy(removedFixedJoint);
             block.slotManager.OccupantsUpdate();
         }
-    }
-
-    protected override void Start()
-    {
-        base.Start();
-        gameObject.layer = isFree ? ParticleUtils.leptonNegLayer : ParticleUtils.noBlockCollisionLayer;
-        particleType = "leptonNeg";
-        SetParticleColor();
     }
 
     public override void Free()

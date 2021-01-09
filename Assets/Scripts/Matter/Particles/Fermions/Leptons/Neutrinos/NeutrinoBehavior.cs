@@ -4,12 +4,9 @@ using UnityEngine;
 
 public class NeutrinoBehavior : LeptonBehavior
 {
-    // Start is called before the first frame update
-    protected override void Start()
+    public override void Start()
     {
+        particleType = ParticleUtils.leptonNeutral;
         base.Start();
-        gameObject.layer = ParticleUtils.leptonNeutralLayer;
-        particleType = "leptonNeutral";
-        SetParticleColor();
     }
 }

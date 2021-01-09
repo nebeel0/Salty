@@ -6,13 +6,8 @@ public class GameBehavior : MonoBehaviour
 {
     public GameMaster gameMaster;
 
-    void OnAwake()
+    public GameMaster GetGameMaster()
     {
-        if (gameMaster == null)
-        {
-            gameMaster = GameObject.FindGameObjectWithTag("GameMaster").GetComponent<GameMaster>();
-        }
+        return GameObject.FindGameObjectWithTag("GameMaster").GetComponent<GameMaster>();
     }
-
-
 }

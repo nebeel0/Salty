@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class UpBehavior : QuarkBehavior
 {
-    protected override void Start()
+    public override void Start()
     {
+        particleType = ParticleUtils.quarkPos;
         base.Start();
-        particleType = "quarkPos";
-        SetParticleColor();
     }
 
 }

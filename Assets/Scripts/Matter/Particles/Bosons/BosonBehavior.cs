@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class BosonBehavior : ParticleBehavior
 {
-    protected override void Start()
+    public override void Start()
     {
         base.Start();
         particleCollider.isTrigger = true;
+        gameObject.layer = layer;
     }
 
     protected override void Update()

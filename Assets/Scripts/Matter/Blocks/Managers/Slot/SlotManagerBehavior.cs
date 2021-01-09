@@ -34,9 +34,12 @@ public class SlotManagerBehavior : BlockManagerBehavior
         }
     }
 
-    void Start()
+    public void Start()
     {
-        SetUpSlots();
+        if(slots.Count == 0)
+        {
+            SetUpSlots();
+        }
     }
 
     void SetUpSlots()
@@ -70,7 +73,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
     public ElectronPosition[] GetConnectingElectronPositions(Vector3 position)
     {
         //TODO cache this as well.
-
+        block.electronManager.Start();
         ElectronPosition[] allElectronPositions = block.electronManager.electronPositions;
         Dictionary<int, List<ElectronPosition>> electronPositionsDictionary = new Dictionary<int, List<ElectronPosition>>();
 

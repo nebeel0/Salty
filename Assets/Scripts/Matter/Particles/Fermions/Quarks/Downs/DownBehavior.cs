@@ -4,10 +4,9 @@ using UnityEngine;
 
 public class DownBehavior : QuarkBehavior
 {
-    protected override void Start()
+    public override void Start()
     {
+        particleType = ParticleUtils.quarkNeg;
         base.Start();
-        particleType = "quarkNeg";
-        SetParticleColor();
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ParticleBehavior : MatterBehavior
+public class ParticleBehavior : GameBehavior
 {
     //Only Particle object can destroy itself
     //Codify instability for higher masses
@@ -10,9 +10,10 @@ public class ParticleBehavior : MatterBehavior
     //Max 6:3 Quarks or 7 Leptons
     //Eight possible charge spin combinations
 
+
+    public string particleType;
     public int antiCharge = 1;
     public int weightClass = 1;
-    public string particleType = "quarkPos"; //Have to initialize or methods will have issues
     public float energy;
 
     protected Color particleColor;
@@ -49,18 +50,19 @@ public class ParticleBehavior : MatterBehavior
     }
 
     protected SphereCollider particleCollider;
-
-
-    protected override void Start()
+    protected Rigidbody rigidbody
     {
-        base.Start();
+        get { return GetComponent<Rigidbody>(); }
+    }
+
+    public virtual void Start()
+    {
         particleCollider = GetComponent<SphereCollider>();
-        DisableCollision();
+        SetParticleColor();
     }
 
     protected virtual void Update()
     {
-        base.Update();
     }
 
     protected virtual void Death()
@@ -119,10 +121,8 @@ public class ParticleBehavior : MatterBehavior
     {
         float radius = particleCollider.radius;
         float explosionForce = energy;
-        foreach (ParticleBehavior particleBehavior in particleBehaviors)
-        {
-            particleBehavior.DisableCollision();
-        }
+        float scalingFactor = transform.localScale.x;
+
         foreach (ParticleBehavior particleBehavior in particleBehaviors)
         {
             particleBehavior.gameObject.transform.position = Vector3Utils.RandomCircle(transform.position, (radius + 0.1f) * scalingFactor);

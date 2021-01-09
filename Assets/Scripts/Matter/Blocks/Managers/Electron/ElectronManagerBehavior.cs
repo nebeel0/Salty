@@ -46,7 +46,7 @@ public class ElectronManagerBehavior : BlockManagerBehavior
     {
         for(int i=0; i < electronPositions.Length; i++)
         {
-            if(electronPositions[i].electron != null)
+            if(electronPositions[i].electron == null)
             {
                 return electronPositions[i];
             }
@@ -54,7 +54,7 @@ public class ElectronManagerBehavior : BlockManagerBehavior
         return null;
     }
 
-    void Start()
+    public void Start()
     {
         if(electronPositions == null)
         {
@@ -85,6 +85,7 @@ public class ElectronManagerBehavior : BlockManagerBehavior
                     };
                     electronPositions[electronI] = electronPosition;
                     electronPositionDictionary[currPos.ToString()] = electronPosition;
+                    electronPosition.electronManager = this;
                     electronI++;
                 }
             }
@@ -94,11 +95,18 @@ public class ElectronManagerBehavior : BlockManagerBehavior
     public void SetElectron(ElectronBehavior electron)
     {
         bool isElectron = electron.antiCharge == 1;
+        //Debug.Log(isElectron);
+        //Debug.Log(IsNetPositiveOrNeutral(electron));
+        //Debug.Log(HasSpace());
 
         if (isElectron && IsNetPositiveOrNeutral(electron) && HasSpace())
         {
             ElectronPosition openElectronPosition = GetAvailablePosition();
             openElectronPosition.SetElectron(electron);
+        }
+        else
+        {
+            electron.Free();
         }
     }
 

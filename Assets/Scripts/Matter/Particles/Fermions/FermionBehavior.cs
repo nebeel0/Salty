@@ -4,17 +4,8 @@ using UnityEngine;
 
 public class FermionBehavior : ParticleBehavior
 {
-    public bool isFree = true;
+    public int spinFactor = 1;
     public bool isChargeChanging = false;
-
-    protected override void Start()
-    {
-        base.Start();
-        if (isFree)
-        {
-            Free();
-        }
-    }
 
     protected override void Update()
     {
@@ -27,8 +18,8 @@ public class FermionBehavior : ParticleBehavior
 
     protected virtual void OnCollisionEnter(Collision col)
     {
+        //TODO account for missing collisions when in blocks
         //Account for double collision effects for fermions
-        DisableCollision();
         if (ParticleUtils.isParticle(col.gameObject))
         {
             ParticleBehavior otherParticle = col.gameObject.GetComponent<ParticleBehavior>();
@@ -41,21 +32,18 @@ public class FermionBehavior : ParticleBehavior
 
     public virtual void Free()
     {
-        isFree = true;
         transform.SetParent(null);
-        EnableCollisionCooldownTimer();
+        particleCollider.enabled = true;
         rigidbody.drag = 0.25f;
         rigidbody.angularDrag = 0.25f;
         rigidbody.isKinematic = false;
-        gameObject.layer = layer; //TODO make a better layer
+        gameObject.layer = layer;
     }
 
     public virtual void Occupy(GameObject block)
     {
-        isFree = false;
         transform.SetParent(block.transform);
-        DisableCollisionCooldownTimer();
-        DisableCollision();
+        particleCollider.enabled = false;
         rigidbody.velocity = new Vector3(0, 0, 0);
         rigidbody.drag = 1;
         rigidbody.angularDrag = 1;

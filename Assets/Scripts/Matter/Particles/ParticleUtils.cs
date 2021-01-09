@@ -29,16 +29,16 @@ public static class ParticleUtils
     }
     public static bool isPhoton(GameObject particle)
     {
-        return getParticleType(particle) == pBoson;
+        return particle.GetComponent<PhotonBehavior>() != null;
     }
     public static bool isWBoson(GameObject particle)
     {
-        return getParticleType(particle) == wBoson;
+        return particle.GetComponent<WBosonBehavior>() != null;
     }
 
     public static bool isZBoson(GameObject particle)
     {
-        return getParticleType(particle) == zBoson;
+        return particle.GetComponent<ZBosonBehavior>() != null;
     }
     public static bool isFermion(GameObject particle)
     {
@@ -46,19 +46,30 @@ public static class ParticleUtils
     }
     public static bool isQuark(GameObject particle)
     {
-        return getParticleType(particle) == quarkPos || getParticleType(particle) == quarkNeg;
+        return isQuarkPos(particle) || isQuarkNeg(particle);
     }
+
+    public static bool isQuarkPos(GameObject particle)
+    {
+        return particle.GetComponent<UpBehavior>() != null;
+    }
+
+    public static bool isQuarkNeg(GameObject particle)
+    {
+        return particle.GetComponent<DownBehavior>() != null;
+    }
+
     public static bool isLepton(GameObject particle)
     {
         return isNeutrino(particle) || isElectron(particle);
     }
     public static bool isNeutrino(GameObject particle)
     {
-        return getParticleType(particle) == leptonNeutral;
+        return particle.GetComponent<NeutrinoBehavior>() != null;
     }
     public static bool isElectron(GameObject particle)
     {
-        return getParticleType(particle) == leptonNeg;
+        return particle.GetComponent<ElectronBehavior>() != null;
     }
 
     public static string getParticleType(GameObject particle)
@@ -75,10 +86,7 @@ public static class ParticleUtils
 
     public static bool areSameType(GameObject particle1, GameObject particle2)
     {
-        string particleType1 = getParticleType(particle1);
-        string particleType2 = getParticleType(particle2);
-
-        return particleType1 == particleType2 && particle1 != null;
+        return getParticleType(particle1) == getParticleType(particle2) && getParticleType(particle1) != null;
     }
 
 
@@ -94,7 +102,6 @@ public static class ParticleUtils
     }
 
     //TODO re-enable wBoson and zBoson
-
     public static Dictionary<string, ParticleType> possibleTypes = new Dictionary<string, ParticleType>()
     {
         [quarkPos] = new ParticleType(charge: 2, spinFactor: 1, mass: 5, layer: quarkLayer, ignoredCollisions: new string[] { }),  //Quark

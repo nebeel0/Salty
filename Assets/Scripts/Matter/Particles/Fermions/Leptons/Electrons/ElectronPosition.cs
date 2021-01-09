@@ -36,7 +36,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
 
     public bool CanJump()
     {
-        return electronManager.IsFull();
+        return !electronManager.IsFull();
     }
 
     public void AttemptJump()

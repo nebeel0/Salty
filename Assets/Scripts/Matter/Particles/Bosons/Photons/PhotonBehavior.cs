@@ -4,15 +4,7 @@ using UnityEngine;
 
 public class PhotonBehavior : BosonBehavior
 {
-    //Collider should be a trigger
-    // Start is called before the first frame update
-    protected override void Start()
-    {
-        base.Start();
-        particleType = "pBoson";
-        gameObject.layer = ParticleUtils.pBosonLayer;
-        SetParticleColor();
-    }
+    public string particleType = ParticleUtils.pBoson;
 
     protected override void OnTriggerEnter(Collider other)
     {

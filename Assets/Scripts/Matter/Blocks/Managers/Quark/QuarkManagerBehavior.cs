@@ -15,8 +15,16 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
         int netCharge = 0;
         for(int i=0; i < quarkGroups.Count; i++)
         {
-            netCharge += quarkGroups[i].GetNetCharge();
+            //Debug.Log(string.Format("Quark Group Charge [{0}] - {1}", i, quarkGroups[i].GetNetCharge()));
+            //Debug.Log(string.Format("Quark Group Size [{0}] - {1}", i, quarkGroups[i].quarks.Count));
+            //Debug.Log(string.Format("Quark Group - {0}", quarkGroups[i].ToString()));
+            if(quarkGroups[i].isFull)
+            {
+                netCharge += quarkGroups[i].GetNetCharge();
+            }
         }
+        //Debug.Log("Quark Net Charge");
+        //Debug.Log(netCharge);
         return netCharge;
     }
 
@@ -26,18 +34,22 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
     }
 
     // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
-        SetUpQuarkPositions();
+        if(quarkPositions == null)
+        {
+            SetUpQuarkPositions();
+        }
     }
 
     void Update()
     {
         //TODO implement stack
+        //TODO not all the time
         PlaceQuarkGroups();
     }
 
-    protected override bool DeathCheck() //Only call on subtract operations
+    public override bool DeathCheck() //Only call on subtract operations
     {
         if(particleDictionary[2].Count == 0)
         {
@@ -105,20 +117,15 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
             }
         }
     }
-    public void AddQuark(QuarkBehavior quark)  //Race Condition
+    public void SetQuark(QuarkBehavior quark)  //Race Condition
     {
-        bool chargePostiveOrNeutral = quark.effectiveCharge + GetNetCharge() >= 0;
-        if (!chargePostiveOrNeutral)
-        {
-            return;
-        }
         for (int quarkGroupI = quarkGroups.Count - 1; quarkGroupI >= 0; quarkGroupI--)
         {
             QuarkGroup quarkGroup = quarkGroups[quarkGroupI];
             if(quarkGroup.Validate(quark))
             {
                 quarkGroup.AddParticle(quark);
-
+                return;
             }
         }
 
@@ -126,6 +133,12 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
         if (quarkGroups.Count < quarkGroupMax)
         {
             quarkGroups.Add(new QuarkGroup(quark, this));
+            return;
+        }
+        else
+        {
+            quark.Free();
+            return;
         }
     }
 
@@ -166,7 +179,7 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
             //Adds any remaining up particles, as there could be  remainder
             foreach (ParticleBehavior positiveQuark in positiveQuarks)
             {
-                AddQuark((QuarkBehavior)positiveQuark);
+                SetQuark((QuarkBehavior)positiveQuark);
             }
 
             //Frees all remaining negative particles

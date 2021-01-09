@@ -65,17 +65,15 @@ public class GameMaster : MonoBehaviour
     {
         for (int i = 0; i < seed; i++)
         {
-            GameObject block = Instantiate(blockRef);
+            BlockBehavior block = CreateBlock();
             block.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             block.transform.eulerAngles = Vector3Utils.RandomEulerAngles();
         }
 
         for (int i = 0; i < seed; i++)
         {
-            GameObject lepton = Instantiate(baseParticleRef);
-            ParticleBehavior leptonBehavior = lepton.GetComponent<ParticleBehavior>();
-            leptonBehavior.particleType = "leptonNeg";
-            lepton.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
+            ElectronBehavior electron = CreateElectron(1, 100, 1);
+            electron.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
         }
     }
 
@@ -85,6 +83,8 @@ public class GameMaster : MonoBehaviour
     {
         GameObject block = Instantiate(blockRef);
         BlockBehavior blockBehavior = block.GetComponent<BlockBehavior>();
+        blockBehavior.gameMaster = this;
+        blockBehavior.Start();
         return blockBehavior;
     }
 
@@ -95,6 +95,8 @@ public class GameMaster : MonoBehaviour
         NeutrinoBehavior neutrinoBehavior = neutrino.AddComponent<NeutrinoBehavior>();
         neutrinoBehavior.energy = energy;
         neutrinoBehavior.weightClass = weightClass;
+        neutrinoBehavior.gameMaster = this;
+        neutrinoBehavior.Start();
         return neutrinoBehavior;
     }
 
@@ -103,10 +105,11 @@ public class GameMaster : MonoBehaviour
     {
         GameObject electron = Instantiate(baseParticleRef);
         ElectronBehavior electronBehavior = electron.AddComponent<ElectronBehavior>();
-        electronBehavior.particleType = "leptonNeg";
         electronBehavior.energy = energy;
         electronBehavior.weightClass = weightClass;
         electronBehavior.antiCharge = antiCharge;
+        electronBehavior.gameMaster = this;
+        electronBehavior.Start();
         return electronBehavior;
     }
     //Quarks can be created by wBosons decaying
@@ -116,7 +119,9 @@ public class GameMaster : MonoBehaviour
         UpBehavior posQuarkBehavior = posQuark.AddComponent<UpBehavior>();
         posQuarkBehavior.energy = energy;
         posQuarkBehavior.weightClass = weightClass;
-        posQuarkBehavior.antiCharge = antiCharge; 
+        posQuarkBehavior.antiCharge = antiCharge;
+        posQuarkBehavior.gameMaster = this;
+        posQuarkBehavior.Start();
         return posQuarkBehavior;
     }
     public DownBehavior CreateQuarkNeg(int weightClass, float energy, int antiCharge)
@@ -127,6 +132,8 @@ public class GameMaster : MonoBehaviour
         negQuarkBehavior.energy = energy;
         negQuarkBehavior.weightClass = weightClass;
         negQuarkBehavior.antiCharge = antiCharge;
+        negQuarkBehavior.gameMaster = this;
+        negQuarkBehavior.Start();
         return negQuarkBehavior;
     }
     public PhotonBehavior CreatePhoton(float energy, Vector3 direction)
@@ -139,6 +146,8 @@ public class GameMaster : MonoBehaviour
         PhotonBehavior photonBehavior = photon.AddComponent<PhotonBehavior>();
         photonBehavior.energy = energy;
         photonBehavior.transform.forward = direction;
+        photonBehavior.gameMaster = this;
+        photonBehavior.Start();
         return photonBehavior;
     }
     public ZBosonBehavior CreateZBoson(int weightClass, float energy)
@@ -148,18 +157,21 @@ public class GameMaster : MonoBehaviour
         ZBosonBehavior zBosonBehavior = zBoson.AddComponent<ZBosonBehavior>();
         zBosonBehavior.energy = energy;
         zBosonBehavior.weightClass = weightClass;
+        zBosonBehavior.gameMaster = this;
+        zBosonBehavior.Start();
         return zBosonBehavior;
     }
     public WBosonBehavior CreateWBoson(int weightClass, float energy, int antiCharge)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
-
         GameObject wBoson = Instantiate(baseParticleRef);
         WBosonBehavior wBosonBehavior = wBoson.AddComponent<WBosonBehavior>();
         wBosonBehavior.energy = energy;
         wBosonBehavior.weightClass = weightClass;
         wBosonBehavior.antiCharge = antiCharge;
+        wBosonBehavior.gameMaster = this;
+        wBosonBehavior.Start();
         return wBosonBehavior;
     }
 }

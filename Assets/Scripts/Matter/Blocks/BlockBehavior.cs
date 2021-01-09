@@ -39,9 +39,13 @@ public class BlockBehavior : GameBehavior
 
     public bool BeginnerElementFlag;
 
-    void Start()
+    public void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
+        slotManager.Start();
+        electronManager.Start();
+        quarkManager.Start();
+
         if (BeginnerElementFlag)
         {
             StartCoroutine(BeginnerElement()); //TODO replace with RandomElement
@@ -70,7 +74,7 @@ public class BlockBehavior : GameBehavior
     {
         if (col.gameObject.CompareTag("Particle"))
         {
-            Debug.Log("Particle Colliding");
+            //Debug.Log("Particle Colliding");
             CollideParticle(col.gameObject);
         }
     }
@@ -81,17 +85,17 @@ public class BlockBehavior : GameBehavior
         {
             if (ParticleUtils.isQuark(particle))
             {
-                Debug.Log("Quark Colliding.");
-                quarkManager.AddQuark(particle.GetComponent<QuarkBehavior>());
+                //Debug.Log("Quark Colliding.");
+                quarkManager.SetQuark(particle.GetComponent<QuarkBehavior>());
             }
             else if(ParticleUtils.isElectron(particle))
             {
-                Debug.Log("Lepton Colliding.");
+                //Debug.Log("Lepton Colliding.");
                 electronManager.SetElectron(particle.GetComponent<ElectronBehavior>());
             }
             else
             {
-                Debug.Log("Something went wrong.");
+                Debug.LogError("Something went wrong.");
             }
         }
     }
@@ -130,20 +134,13 @@ public class BlockBehavior : GameBehavior
         rigidbody.angularVelocity = Vector3.zero;
     }
 
-    void RandomElement()
-    {
-        int numberOfParticles = Random.Range(1, 10);
-        for (int i = 0; i < numberOfParticles; i++)
-        {
-            GameObject particle = Instantiate(ParticleRef);
-            ParticleBehavior particleBehavior = particle.GetComponent<ParticleBehavior>();
-            particleBehavior.particleType = ParticleUtils.GetRandomState();
-            CollideParticle(particle);
-        }
-    }
-
     public int GetNetCharge()
     {
         return electronManager.GetNetCharge() + quarkManager.GetNetCharge();
+    }
+
+    public bool DeathCheck()
+    {
+        return quarkManager.DeathCheck();
     }
 }
