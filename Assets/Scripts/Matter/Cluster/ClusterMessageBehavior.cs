@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,44 +8,54 @@ public class ClusterMessageBehavior : MonoBehaviour
     //A sphere collider that collects messages
     //Base message is similar to gravity
 
-    ClusterBehavior clusterBehavior;
+    ClusterBehavior clusterBehavior
+    {
+        get { return GetComponent<ClusterBehavior>(); }
+    }
     SphereCollider messageSphere;
 
-    void Start()
+    public void Start()
     {
-        clusterBehavior = GetComponent<ClusterBehavior>();
         SetUpColliders();
     }
 
-    void Update()
+    public void UpdateRadius()
     {
-        messageSphere.radius = Mathf.Pow(2 * Vector3Utils.GetRadiusFromVolume(clusterBehavior.totalMass), 2);
+        if(clusterBehavior.gameMaster.GravityCheck(clusterBehavior))
+        {
+            messageSphere.enabled = true;
+            messageSphere.radius = Mathf.Pow(2 * Vector3Utils.GetRadiusFromVolume(clusterBehavior.totalMass), 2);
+        }
+        else
+        {
+            messageSphere.enabled = false;
+        }
     }
 
     void SetUpColliders()
     {
-        messageSphere = gameObject.AddComponent<SphereCollider>();
-        messageSphere.isTrigger = true;
-        messageSphere.radius = 2; //TODO pull information from cluster behavior
+        if (messageSphere == null)
+        {
+            messageSphere = gameObject.AddComponent<SphereCollider>();
+            messageSphere.isTrigger = true;
+            messageSphere.radius = 2; //TODO pull information from cluster behavior
+        }
     }
 
     void OnTriggerStay(Collider other)
     {
         if(other.CompareTag("Block"))
         {
-            if(other.transform.parent == transform)
+            BlockBehavior otherBlock = other.gameObject.GetComponent<BlockBehavior>();
+            if (otherBlock.cluster == clusterBehavior)
             {
                 Physics.IgnoreCollision(messageSphere, other);
             }
             else
             {
-                SlotManagerBehavior otherBlockSlotManagerBehavior = other.GetComponent<BlockBehavior>().slotManager;
-                if (!clusterBehavior.blocks.Contains(other.gameObject.GetComponent<BlockBehavior>()) && !otherBlockSlotManagerBehavior.IsOccupying())
+                if (!otherBlock.slotManager.IsOccupying() && !clusterBehavior.IsOccupying())
                 {
-                    if (otherBlockSlotManagerBehavior.ParentCluster != null && !otherBlockSlotManagerBehavior.ParentCluster.IsOccupying() && !clusterBehavior.IsOccupying())
-                    {
-                        Attract(other);
-                    }
+                    Attract(other);
                 }
             }
         }
@@ -68,9 +79,9 @@ public class ClusterMessageBehavior : MonoBehaviour
             otherRigidBody.AddForce(otherForce, ForceMode.Force);
             Vector3 otherObjectDirection = otherObject.transform.forward;
         }
-        catch
+        catch (Exception e)
         {
-
+            Debug.LogError(e.Message);
         }
     }
 

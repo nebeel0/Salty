@@ -70,7 +70,10 @@ public class PlayerController : Controller
     public override void Start()
     {
         gameObject.tag = "Player";
-        Destroy(GetComponent<Rigidbody>());
+        if(rigidbody != null)
+        {
+            Destroy(GetComponent<Rigidbody>());
+        }
         GetComponent<SphereCollider>().enabled = false;
         if (transform.parent.gameObject.CompareTag("Cluster"))
         {
@@ -132,7 +135,7 @@ public class PlayerController : Controller
         {
             if(!godMode)
             {
-                float displacement = Mathf.Max(4, clusterBehavior.prevBlockCount*1.5f);
+                float displacement = Mathf.Max(4, clusterBehavior.totalMass*1.5f);
                 Vector3 finalCameraPosition = primaryCameraRootPosition + Vector3.back * displacement;
                 primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, finalCameraPosition, 1);
                 transform.position = cluster.transform.position;

@@ -5,7 +5,7 @@ using System.Linq;
 
 public class ElectronBehavior : LeptonBehavior
 {
-    public HashSet<ElectronPosition> electronPositions = new HashSet<ElectronPosition>(); //Total of 8 blocks 
+    public ElectronPosition electronPosition = null; //Total of 8 blocks 
     public Dictionary<BlockBehavior, FixedJoint> connectedBlocks = new Dictionary<BlockBehavior, FixedJoint>(); //up to 24 connected blocks
 
     public override void Start()
@@ -19,25 +19,16 @@ public class ElectronBehavior : LeptonBehavior
         get { return connectedBlocks.Count > 0; }
     }
 
-    public ElectronPosition GetRootElectronPosition()
-    {
-        return electronPositions.First();
-    }
-
-    BlockBehavior GetRootBlock()
-    {
-        return GetRootElectronPosition().electronManager.block;
-    }
-
     public void ConnectBlock(BlockBehavior block)
     {
         if(!connectedBlocks.ContainsKey(block))
         {
-            connectedBlocks[block] = GetRootBlock().gameObject.AddComponent<FixedJoint>();
+            electronPosition.Jump();
+            connectedBlocks[block] = gameObject.AddComponent<FixedJoint>();
             connectedBlocks[block].enableCollision = false;
             connectedBlocks[block].connectedBody = block.GetComponent<Rigidbody>();
+            block.slotManager.OccupantsUpdate();
         }
-        block.slotManager.OccupantsUpdate();
     }
 
     public void ReleaseBlock(BlockBehavior block)
@@ -46,17 +37,14 @@ public class ElectronBehavior : LeptonBehavior
         {
             FixedJoint removedFixedJoint = connectedBlocks[block];
             Destroy(removedFixedJoint);
+            connectedBlocks.Remove(block);
             block.slotManager.OccupantsUpdate();
         }
     }
 
     public override void Free()
     {
-        foreach(ElectronPosition electronPosition in electronPositions)
-        {
-            electronPosition.ReleaseElectron();
-        }
-        electronPositions.Clear();
+        electronPosition = null;
         foreach (KeyValuePair<BlockBehavior, FixedJoint> connectedBlock in connectedBlocks)
         {
             ReleaseBlock(connectedBlock.Key);
@@ -67,7 +55,7 @@ public class ElectronBehavior : LeptonBehavior
     protected override void Update()
     {
         base.Update();
-        if(electronPositions.Count >= 1)
+        if(electronPosition != null)
         {
             Orbit();
         }
@@ -75,12 +63,16 @@ public class ElectronBehavior : LeptonBehavior
 
     void Orbit()
     {
-        ElectronPosition electronPosition = GetRootElectronPosition();
-        if(electronPosition.CanJump())
+        if(electronPosition.PositionsNotFull())
         {
             if (Vector3Utils.V3Equal(transform.localPosition, electronPosition.position))
             {
-                if(!isLocked)
+                if(electronPosition.electron != this || electronPosition.electron == null)
+                {
+                    Debug.LogError("WTF");
+                }
+
+                if(!isLocked && !electronPosition.IsEntangled)
                 {
                     electronPosition.AttemptJump();
                 }

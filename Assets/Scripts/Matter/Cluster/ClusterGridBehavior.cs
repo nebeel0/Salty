@@ -53,10 +53,4 @@ public class ClusterGridBehavior : GameBehavior
             }
         }
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

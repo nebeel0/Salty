@@ -16,19 +16,7 @@ public class BlockBehavior : GameBehavior
     public QuarkManagerBehavior quarkManager;
     public ElectronManagerBehavior electronManager;
     public SlotManagerBehavior slotManager;
-    public GameObject ClusterRef;
-
-    public ClusterBehavior ParentCluster
-    {
-        get
-        {
-            if (transform.parent != null && transform.parent.tag == "Cluster")
-            {
-                return transform.parent.gameObject.GetComponent<ClusterBehavior>();
-            }
-            return null;
-        }
-    }
+    public ClusterBehavior cluster;
 
     Rigidbody rigidbody;
 
@@ -50,14 +38,9 @@ public class BlockBehavior : GameBehavior
         {
             StartCoroutine(BeginnerElement()); //TODO replace with RandomElement
         }
-    }
-
-    void Update()
-    {
-        if (ParentCluster == null)
+        if (cluster == null) //TODO move into callback when blocks break links
         {
-            GameObject cluster = Instantiate(ClusterRef);
-            transform.SetParent(cluster.transform);
+            cluster = gameMaster.CreateCluster(new HashSet<BlockBehavior>() { this });
         }
     }
 

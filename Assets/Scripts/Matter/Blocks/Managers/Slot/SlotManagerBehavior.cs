@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Unity.Collections;
 
 public class SlotManagerBehavior : BlockManagerBehavior
 {
-    public float attractionFactor = 10;
+    public float attractionFactor = 1f;
     public float displacementFactor = 1.1f;
     public Dictionary<string, SlotBehavior> slots = new Dictionary<string, SlotBehavior>();
 
@@ -28,7 +29,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
         {
             if (block != null)
             {
-                return block.ParentCluster;
+                return block.cluster;
             }
             return null;
         }
@@ -63,6 +64,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
                     SlotBehavior newBlockSlotBehavior = newSlot.AddComponent<SlotBehavior>();
                     newBlockSlotBehavior.slotManager = this;
                     newBlockSlotBehavior.RelativeLocalPosition = newSlotPosition;
+                    Debug.Log(newSlotPosition.ToString());
                     newBlockSlotBehavior.connectingElectronPositions = GetConnectingElectronPositions(newSlotPosition);
                     slots[newSlotPosition.ToString()] = newBlockSlotBehavior;
                 }
@@ -97,6 +99,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
         {
             Debug.LogError("Scale is too small to get int based distances.");
         }
+
         return electronPositionsDictionary[closestDistance].ToArray();
     }
 

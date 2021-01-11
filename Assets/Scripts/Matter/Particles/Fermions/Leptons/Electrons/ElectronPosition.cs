@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System;
+using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 
 public class ElectronPosition : IEquatable<ElectronPosition>
@@ -9,6 +11,8 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     public Vector3 position;
     public int[] neighborIdx;
     public int id;
+    public int nextNeighbor = 0;
+
 
     public HashSet<ElectronPosition> entangledPositions = new HashSet<ElectronPosition>();
     public bool IsEntangled
@@ -34,25 +38,31 @@ public class ElectronPosition : IEquatable<ElectronPosition>
         return electron.isLocked;
     }
 
-    public bool CanJump()
+    public bool PositionsNotFull()
     {
         return !electronManager.IsFull();
     }
 
     public void AttemptJump()
     {
+        nextNeighbor += 1;
+        if (nextNeighbor >= 3)
+        {
+            nextNeighbor = 0;
+        }
+
         //Checks one by one which neighbor might be empty, and if so returns that position
-        for (int i = 0; i < 3; i++)
+        for (int i = nextNeighbor; i < 3; i++)
         {
             int neighborId = neighborIdx[i];
             ElectronPosition nextElectronPosition = electronManager.electronPositions[neighborId];
             if (nextElectronPosition.electron is null)
             {
                 nextElectronPosition.SetElectron(electron);
-                ReleaseElectron();
                 return;
             }
         }
+
     }
 
     public void Jumping()
@@ -60,12 +70,17 @@ public class ElectronPosition : IEquatable<ElectronPosition>
         electron.transform.localPosition = Vector3.Lerp(electron.transform.localPosition, position, electronManager.block.particleAnimationSpeed * Time.deltaTime);
     }
 
+    public void Jump()
+    {
+        electron.transform.localPosition = position;
+    }
+
     //Add and Remove Utils
     public void Entangle(ElectronPosition otherElectronPosition)
     {
         if(!entangledPositions.Contains(otherElectronPosition))
         {
-            if (otherElectronPosition.electron != null && otherElectronPosition.electron != null)
+            if (otherElectronPosition.electron != null && electron != null && otherElectronPosition.electron != electron)
             {
                 Debug.LogError("Electron positions can't both be entangled if they both have electrons.");
             }
@@ -94,20 +109,26 @@ public class ElectronPosition : IEquatable<ElectronPosition>
 
             if (electron != null)
             {
-                otherElectronPosition.ReleaseElectron(); //First come first serve, since it was untangled, it won't release it for the current position
+                SetElectron(electron); //First come first serve, since it was untangled, it won't release it for the current position
             }
         }
     }
 
-    public void SetElectron(ElectronBehavior electron)
+    public void SetElectron(ElectronBehavior electron) //Automatically releases old position
     {
-        if(!electron.electronPositions.Contains(this))
+        this.electron = electron;
+        ElectronPosition oldPosition = electron.electronPosition;
+        if (oldPosition != this && !entangledPositions.Contains(oldPosition))
         {
+            electron.electronPosition = this;
             electron.Occupy(electronManager.gameObject);
-            electron.electronPositions.Add(this);
-            this.electron = electron;
 
-            foreach(ElectronPosition entangledPosition in entangledPositions)
+            if(oldPosition != null)
+            {
+                oldPosition.ReleaseElectron();
+            }
+
+            foreach (ElectronPosition entangledPosition in entangledPositions)
             {
                 entangledPosition.SetElectron(electron);
             }
@@ -118,21 +139,9 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     {
         if (electron != null)
         {
-            electron.electronPositions.Remove(this);
-            if (electron.transform.parent == electronManager.transform)
+            if (electron.electronPosition == this)
             {
-                if (electron.electronPositions.Count > 0)
-                {
-                    electron.transform.parent = electron.GetRootElectronPosition().electronManager.transform;
-                }
-                else
-                {
-                    electron.Free();
-                }
-            }
-            foreach (ElectronPosition entangledPosition in entangledPositions)
-            {
-                entangledPosition.ReleaseElectron();
+                electron.Free();
             }
             electron = null;
         }
@@ -144,6 +153,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     {
         if (electron != null)
         {
+            Jump();
             electron.ConnectBlock(block);
         }
     }

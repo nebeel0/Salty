@@ -13,8 +13,13 @@ public class SlotBehavior : MonoBehaviour
     public SlotManagerBehavior slotManager;
 
     SlotBehavior otherSlot;
-
     LineRenderer lineRenderer;
+
+    bool OccupantCheck(Collider other)
+    {
+        return OccupantBlock != null && OccupantBlock.gameObject == other.gameObject;
+    }
+
     void Start()
     {
         slotCollider = gameObject.AddComponent<BoxCollider>();
@@ -49,13 +54,12 @@ public class SlotBehavior : MonoBehaviour
         otherSlot.otherSlot = this;
         otherSlot.OccupantBlock = slotManager.block;
         Entangle(otherSlot);
-        //TODO Lock all electrons to prevent interference
     }
     void Entangle(SlotBehavior otherSlot)
     {
         for(int i = 0; i < connectingElectronPositions.Length; i++)
         {
-            Vector3 relativePosition = otherSlot.slotManager.block.transform.InverseTransformPoint(connectingElectronPositions[i].position);
+            Vector3 relativePosition = GetRelativeElectronPosition(connectingElectronPositions[i]);
             ElectronPosition otherElectronPosition = otherSlot.slotManager.block.electronManager.electronPositionDictionary[relativePosition.ToString()];
             connectingElectronPositions[i].Entangle(otherElectronPosition);
         }
@@ -75,7 +79,7 @@ public class SlotBehavior : MonoBehaviour
     {
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
-            Vector3 relativePosition = otherSlot.slotManager.block.transform.InverseTransformPoint(connectingElectronPositions[i].position);
+            Vector3 relativePosition = GetRelativeElectronPosition(connectingElectronPositions[i]);
             ElectronPosition otherElectronPosition = otherSlot.slotManager.block.electronManager.electronPositionDictionary[relativePosition.ToString()];
             connectingElectronPositions[i].Untangle(otherElectronPosition);
         }
@@ -83,60 +87,43 @@ public class SlotBehavior : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        try
+        if (!IsOccupied() && other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
         {
-            if (!IsOccupied() && other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
+            if (!HasOccupantBlock())
             {
                 SlotBehavior otherSlot = GetOtherSlot(other.gameObject);
+                bool validOtherBlock = !otherSlot.slotManager.ParentCluster.IsOccupying() && !HasOccupantBlock();
+                bool validThisBlock = !slotManager.ParentCluster.IsOccupying() && !HasOccupantBlock();
 
-                bool validElectrons; //electron check; check for interfering electrons, and check if there are any available electron for attracting
-                if(GetConnectingElectrons().Count == 0 && otherSlot.GetConnectingElectrons().Count == 0)
-                {
-                    validElectrons = otherSlot.slotManager.block.electronManager.GetUnconnectedElectron() != null || slotManager.block.electronManager.GetUnconnectedElectron() != null;
-                }
-                else
-                {
-                    validElectrons = !HasInterferingElectrons(otherSlot);
-                }
-
-                bool validOtherBlock = !otherSlot.slotManager.ParentCluster.IsOccupying() && otherSlot.OccupantBlock == null && validElectrons;
-                bool validThisBlock = !slotManager.ParentCluster.IsOccupying() && OccupantBlock == null;
-
-                if (validThisBlock && validOtherBlock)
+                if (validThisBlock && validOtherBlock && ValidElectrons(otherSlot))
                 {
                     StartOccupying(otherSlot);
                 }
-
-                if (!validOtherBlock && OccupantBlock == other)
+                else
+                {
+                    //TODO repulse if not attract
+                }
+            }
+            else if (OccupantCheck(other)) //Check if position doesn't equal the same and a connection hasn't been made
+            {
+                if (!ValidElectrons(otherSlot))
                 {
                     StopOccupying();
                 }
-
-                if (OccupantBlock == other.gameObject) //Check if position doesn't equal the same and a connection hasn't been made
+                else if (!IsFixed() && !Snap(other))
                 {
-                    if (!IsFixed() && !Snap(other))
-                    {
-                        Attract(other.gameObject);
-                    }
+                    Vector3Utils.Attract(rootObject: slotManager.block.gameObject, objectToAttract: other.gameObject, desiredTransform: transform, attractionFactor: slotManager.attractionFactor);
                 }
             }
-            //TODO repulse if not attract
         }
-        catch { }
-
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Block") && OccupantBlock == other)
+        if (other.CompareTag("Block") && OccupantCheck(other))
         {
             StopOccupying();
         }
-    }
-
-    void Attract(GameObject otherObject)
-    {
-        Vector3Utils.Attract(rootObject: slotManager.block.gameObject, objectToAttract: otherObject, desiredTransform: transform, attractionFactor: slotManager.attractionFactor) ;
     }
 
     bool Snap(Collider other)
@@ -146,17 +133,20 @@ public class SlotBehavior : MonoBehaviour
 
         bool samePosition = Vector3Utils.V3Equal(thisBlock.transform.InverseTransformPoint(otherBlock.transform.position), RelativeLocalPosition, 0.001f);
         bool sameVelocity = Vector3Utils.V3Equal(thisBlock.GetComponent<Rigidbody>().velocity, otherBlock.GetComponent<Rigidbody>().velocity, 0.001f);
+        bool sameDirection = Vector3Utils.V3Equal(thisBlock.GetComponent<Rigidbody>().transform.forward, otherBlock.GetComponent<Rigidbody>().transform.forward, 0.001f);
 
-        if (samePosition && sameVelocity)
+        if (samePosition && sameVelocity && sameDirection)
         {
             otherBlock.transform.eulerAngles = thisBlock.transform.eulerAngles;
             otherBlock.transform.position = thisBlock.transform.TransformPoint(RelativeLocalPosition);
-
-            if (GetConnectingElectrons().Count == 0)
+            if (GetConnectingElectrons().Count == 0 && otherSlot.GetConnectingElectrons().Count == 0)
             {
                 ElectronBehavior unconnectedElectron = slotManager.block.electronManager.GetUnconnectedElectron();
                 unconnectedElectron = unconnectedElectron == null ? otherSlot.slotManager.block.electronManager.GetUnconnectedElectron() : unconnectedElectron;
-                connectingElectronPositions[0].SetElectron(unconnectedElectron);
+                if(unconnectedElectron != null)
+                {
+                    connectingElectronPositions[0].SetElectron(unconnectedElectron);
+                }
             }
 
             List<ElectronPosition> existingElectronPositions = GetConnectingElectrons();
@@ -167,6 +157,7 @@ public class SlotBehavior : MonoBehaviour
             }
             otherSlot.OccupantUpdate();
             OccupantUpdate();
+            slotManager.ParentCluster.AddBlock(OccupantBlock);
             return true;
         }
         return false;
@@ -204,6 +195,26 @@ public class SlotBehavior : MonoBehaviour
     }
 
     //Electron Utils
+
+    Vector3 GetRelativeElectronPosition(ElectronPosition electronPosition)
+    {
+        return electronPosition.position - RelativeLocalPosition;
+    }
+
+    public bool ValidElectrons(SlotBehavior otherSlot)
+    {
+        bool validElectrons; //electron check; check for interfering electrons, and check if there are any available electron for attracting
+        if (GetConnectingElectrons().Count == 0 && otherSlot.GetConnectingElectrons().Count == 0)
+        {
+            validElectrons = otherSlot.slotManager.block.electronManager.GetUnconnectedElectron() != null || slotManager.block.electronManager.GetUnconnectedElectron() != null;
+        }
+        else
+        {
+            validElectrons = !HasInterferingElectrons(otherSlot);
+        }
+        return validElectrons;
+    }
+
     public void ReleaseAllElectrons()
     {
         for(int i=0; i < connectingElectronPositions.Length; i++)
@@ -227,29 +238,26 @@ public class SlotBehavior : MonoBehaviour
 
     public bool HasInterferingElectrons(SlotBehavior otherBlockSlot)
     {
+        bool hasInterferingElectrons = false;
         List<ElectronPosition> existingElectronPositions = GetConnectingElectrons();
         for (int i = 0; i < existingElectronPositions.Count; i++)
         {
-            Vector3 relativePosition = otherBlockSlot.slotManager.block.transform.InverseTransformPoint(existingElectronPositions[i].position);
+            Vector3 relativePosition = GetRelativeElectronPosition(existingElectronPositions[i]);
             ElectronPosition otherElectronPosition = otherBlockSlot.slotManager.block.electronManager.electronPositionDictionary[relativePosition.ToString()];
-            if(otherElectronPosition.electron != existingElectronPositions[i].electron)
+            if(otherElectronPosition.electron != null && existingElectronPositions[i].electron != null && existingElectronPositions[i].electron != otherElectronPosition.electron)
             {
-                return false;
+                hasInterferingElectrons = true;
             }
         }
-        return false;
+        return hasInterferingElectrons;
     }
 
     public SlotBehavior GetOtherSlot(GameObject other)
     {
         BlockBehavior otherBlockBehavior = other.GetComponent<BlockBehavior>();
-        Vector3 otherBlockCurrentPosition = other.transform.position;
-        other.transform.position = slotManager.block.transform.TransformPoint(RelativeLocalPosition);
+        Vector3 otherBlockRelativeLocalPosition = -1 * RelativeLocalPosition;
 
-        Vector3 otherBlockRelativeLocalPosition = other.transform.InverseTransformPoint(slotManager.block.transform.position);
         SlotBehavior otherBlockSlot = otherBlockBehavior.slotManager.slots[otherBlockRelativeLocalPosition.ToString()];
-
-        other.transform.position = otherBlockCurrentPosition;
         return otherBlockSlot;
     }
 
@@ -267,19 +275,36 @@ public class SlotBehavior : MonoBehaviour
 
     void LineUpdate()
     {
-        if (OccupantBlock != null)
+        if (HasOccupantBlock())
         {
-            lineRenderer.enabled = true;
-            Vector3[] points = new Vector3[2];
-            points[0] = slotManager.block.transform.position;
-            points[1] = OccupantBlock.transform.position;
-            lineRenderer.positionCount = points.Length;
-            lineRenderer.SetPositions(points);
+            //lineRenderer.enabled = true;
+            //ElectronLineUpdate();
         }
         else
         {
             lineRenderer.enabled = false;
         }
     }
+
+    void AttractLineUpdate()
+    {
+        Vector3[] points = new Vector3[2];
+        points[0] = slotManager.block.transform.position;
+        points[1] = OccupantBlock.transform.position;
+        lineRenderer.positionCount = points.Length;
+        lineRenderer.SetPositions(points);
+    }
+
+    void ElectronLineUpdate()
+    {
+        Vector3[] points = new Vector3[4];
+        for(int i=0; i < points.Length; i++)
+        {
+            points[i] = slotManager.block.transform.TransformPoint(connectingElectronPositions[i].position);
+        }
+        lineRenderer.positionCount = points.Length;
+        lineRenderer.SetPositions(points);
+    }
+
 
 }

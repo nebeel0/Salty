@@ -9,6 +9,12 @@ public static class Vector3Utils
 
     //TODO implement all platonic solids https://en.wikipedia.org/wiki/Platonic_solid
 
+    public static Vector3 RelativeFromOther(Vector3 rootLocalPosition, Transform root, Transform other)
+    {
+        Vector3 worldPosition = root.TransformPoint(rootLocalPosition);
+        return other.InverseTransformPoint(worldPosition);
+    }
+
     public static bool V3Equal(Vector3 a, Vector3 b, float threshold = 0.001f)
     {
         return Vector3.SqrMagnitude(a - b) < threshold;
@@ -60,12 +66,12 @@ public static class Vector3Utils
         return pos;
     }
 
-    public static Vector3 PositionAlignment(GameObject otherObject, Transform transform, float attractionFactor)
+    public static Vector3 PositionAlignment(GameObject otherObject, Transform transform)
     {
         Vector3 otherForce = transform.position - otherObject.transform.position;
 
-        float forceScalar = Vector3.Distance(transform.position, otherObject.transform.position);
-        otherForce = attractionFactor * forceScalar * otherForce.normalized;
+        //float forceScalar = Vector3.Distance(transform.position, otherObject.transform.position);
+        //otherForce = Mathf.Sqrt(forceScalar) * otherForce.normalized;
         return otherForce;
     }
     public static Vector3 RotationalAlignment(GameObject otherObject, Transform transform)
@@ -80,7 +86,11 @@ public static class Vector3Utils
 
         Vector3 MainRotation = RectifyAngleDifference((AngleDifference).eulerAngles);
         Vector3 CorrectiveRotation = RectifyAngleDifference((Correction).eulerAngles);
-        return (MainRotation - CorrectiveRotation / 2);
+
+        Vector3 torqueVector = (MainRotation - CorrectiveRotation / 2);
+        //float torqueScalar = Vector3.Magnitude(torqueVector);
+        //torqueVector = torqueVector.normalized * Mathf.Sqrt(torqueScalar);
+        return torqueVector;
     }
     public static Vector3 RectifyAngleDifference(Vector3 angdiff)
     {
@@ -92,24 +102,16 @@ public static class Vector3Utils
 
     public static void Attract(GameObject rootObject, GameObject objectToAttract, Transform desiredTransform, float attractionFactor)
     {
-        try
-        {
-            Vector3 force = PositionAlignment(objectToAttract, desiredTransform, attractionFactor);
-            Vector3 torque = RotationalAlignment(objectToAttract, desiredTransform);
+        Vector3 force = PositionAlignment(objectToAttract, desiredTransform) * attractionFactor;
+        Vector3 torque = RotationalAlignment(objectToAttract, desiredTransform);
 
-            Rigidbody otherRigidBody = objectToAttract.GetComponent<Rigidbody>();
-            otherRigidBody.AddForce(force, ForceMode.Force);
-            otherRigidBody.AddTorque(torque, ForceMode.Force);
+        Rigidbody otherRigidBody = objectToAttract.GetComponent<Rigidbody>();
+        otherRigidBody.AddForce(force, ForceMode.Force);
+        otherRigidBody.AddTorque(torque, ForceMode.Force);
 
-            Rigidbody rootRigidBody = rootObject.GetComponent<Rigidbody>();
-            rootRigidBody.AddForce(force * -1, ForceMode.Force);
-            rootRigidBody.AddTorque(torque * -1, ForceMode.Force);
-        }
-        catch
-        {
-
-        }
-
+        Rigidbody rootRigidBody = rootObject.GetComponent<Rigidbody>();
+        rootRigidBody.AddForce(force * -1, ForceMode.Force);
+        rootRigidBody.AddTorque(torque * -1, ForceMode.Force);
     }
 
 

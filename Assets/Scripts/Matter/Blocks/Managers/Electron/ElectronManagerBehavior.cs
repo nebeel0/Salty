@@ -7,8 +7,35 @@ public class ElectronManagerBehavior : BlockManagerBehavior
     public Dictionary<string, ElectronPosition> electronPositionDictionary = new Dictionary<string, ElectronPosition>();
     public ElectronPosition[] electronPositions; //Used for determining neighbors
     public int electronsMax = 8;  //TODO programmatically figure out max number of electrons, which we can figure out from number of vertexes in shape
-                                // Start is called before the first frame update
-    
+                                  // Start is called before the first frame update
+
+    LineRenderer lineRenderer;
+    void SetUpLineRenderer()
+    {
+        lineRenderer = gameObject.AddComponent<LineRenderer>();
+        lineRenderer.endWidth = 0.03f;
+        lineRenderer.startWidth = 0.03f;
+        lineRenderer.startColor = Color.grey;
+        lineRenderer.endColor = Color.grey;
+        lineRenderer.material = gameMaster.particleLit;
+        lineRenderer.enabled = false;
+    }
+
+    void LineUpdate()
+    {
+        lineRenderer.enabled = true;
+        List<Vector3> points = new List<Vector3>();
+        for(int i = 0; i < electronPositions.Length; i++)
+        {
+            if(electronPositions[i].IsEntangled)
+            {
+                points.Add(block.transform.TransformPoint(electronPositions[i].position));
+            }
+        }
+        lineRenderer.positionCount = points.Count;
+        lineRenderer.SetPositions(points.ToArray());
+    }
+
     public bool IsNetPositiveOrNeutral(ElectronBehavior electron)
     {
         return electron.effectiveCharge + block.GetNetCharge() >= 0;
@@ -60,33 +87,39 @@ public class ElectronManagerBehavior : BlockManagerBehavior
         {
             SetUpElectronPositions();
         }
+        if(lineRenderer == null)
+        {
+            SetUpLineRenderer();
+        }
     }
+
+    void Update()
+    {
+        LineUpdate();
+    }
+
     void SetUpElectronPositions()
     {
         //TODO cache
         electronPositions = new ElectronPosition[electronsMax];
-        // TODO update positions to be outside of block
-        int electronI = 0;
         for (int i = 0; i < 2; i++)
         {
-            float currX = Mathf.Pow(-1, i) * 0.5f * transform.localScale.x;
+            float currX = Mathf.Pow(-1, i) * 0.5f * transform.localScale.x * block.slotManager.displacementFactor;
             for (int ii = 0; ii < 2; ii++)
             {
-                float currY = Mathf.Pow(-1, ii) * 0.5f * transform.localScale.y;
+                float currY = Mathf.Pow(-1, ii) * 0.5f * transform.localScale.y * block.slotManager.displacementFactor;
                 for (int iii = 0; iii < 2; iii++)
                 {
-                    float currZ = Mathf.Pow(-1, iii) * 0.5f * transform.localScale.z;
+                    float currZ = Mathf.Pow(-1, iii) * 0.5f * transform.localScale.z * block.slotManager.displacementFactor;
                     Vector3 currPos = new Vector3(currX, currY, currZ);
                     ElectronPosition electronPosition = new ElectronPosition
                     {
                         position = currPos,
                         neighborIdx = new int[] { Vector3Utils.Vector3ToIdx(1 - i, ii, iii), Vector3Utils.Vector3ToIdx(i, 1 - ii, iii), Vector3Utils.Vector3ToIdx(i, ii, 1 - iii) },
-                        id = electronI
                     };
-                    electronPositions[electronI] = electronPosition;
+                    electronPositions[Vector3Utils.Vector3ToIdx(i,ii,iii)] = electronPosition;
                     electronPositionDictionary[currPos.ToString()] = electronPosition;
                     electronPosition.electronManager = this;
-                    electronI++;
                 }
             }
         }

@@ -20,7 +20,6 @@ public class GameMaster : MonoBehaviour
 
     static public int MessageColliderLayer = 17;
 
-    ParticleBehavior particleEnv = new ParticleBehavior();
     public GameObject playerRef;
     public GameObject clusterRef;
     public GameObject blockRef;
@@ -60,6 +59,27 @@ public class GameMaster : MonoBehaviour
         Physics.IgnoreLayerCollision(layer1: ParticleUtils.noBlockCollisionLayer, layer2: ParticleUtils.noBlockCollisionLayer);
         Physics.IgnoreLayerCollision(layer1: ParticleUtils.noBlockCollisionLayer, layer2: ParticleUtils.noBlockCollisionLayer);
     }
+
+    //Mass Rules Check
+    public HashSet<ClusterBehavior> SystemClusters = new HashSet<ClusterBehavior>();
+
+    public float TotalSystemMass()
+    {
+        float totalSystemMass = 0;
+        foreach(ClusterBehavior cluster in SystemClusters)
+        {
+            totalSystemMass += cluster.totalMass;
+        }
+        return totalSystemMass;
+    }
+
+    public bool GravityCheck(ClusterBehavior cluster)
+    {
+        return true;
+        return cluster.totalMass >= 0.25f * TotalSystemMass() && cluster.totalMass > 10; //TODO fix arbitrary number
+    }
+
+
     //Spawn Utils
     void SpawnParticles(int seed, Vector3 bounds)
     {
@@ -86,6 +106,20 @@ public class GameMaster : MonoBehaviour
         blockBehavior.gameMaster = this;
         blockBehavior.Start();
         return blockBehavior;
+    }
+
+    public ClusterBehavior CreateCluster(HashSet<BlockBehavior> blocks)
+    //Created when collions occur between same types. Quarks, Leptons.
+    //Created when mass is too high
+    {
+        GameObject cluster = Instantiate(clusterRef);
+        ClusterBehavior clusterBehavior = cluster.GetComponent<ClusterBehavior>();
+        clusterBehavior.gameMaster = this;
+        clusterBehavior.blocks = blocks;
+        cluster.GetComponent<ClusterMessageBehavior>().Start();
+        clusterBehavior.UpdateCenter();
+        SystemClusters.Add(clusterBehavior);
+        return clusterBehavior;
     }
 
     public NeutrinoBehavior CreateNeutrino(float energy, int weightClass)
