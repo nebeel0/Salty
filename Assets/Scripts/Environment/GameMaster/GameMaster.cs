@@ -20,6 +20,7 @@ public class GameMaster : MonoBehaviour
 
     static public int MessageColliderLayer = 17;
 
+    public GameObject cageRef;
     public GameObject playerRef;
     public GameObject clusterRef;
     public GameObject blockRef;
@@ -28,16 +29,16 @@ public class GameMaster : MonoBehaviour
 
     [ReadOnly]
     public float timeCounter = 0;
+    public int seed;
+    public Vector3 bounds;
 
-    private void OnEnable()
-    {
-        Start();
-    }
-
+    public CageBehavior cage;
 
     void Start()
     {
         //Add Cage Ref
+        //cage = CreateCage();
+        SpawnParticles(seed, bounds);
         SetBasePhysicsRules();
     }
 
@@ -75,8 +76,7 @@ public class GameMaster : MonoBehaviour
 
     public bool GravityCheck(ClusterBehavior cluster)
     {
-        return true;
-        return cluster.totalMass >= 0.25f * TotalSystemMass() && cluster.totalMass > 10; //TODO fix arbitrary number
+        return cluster.totalMass >= 0.25f * TotalSystemMass() && cluster.totalMass >= 16; //TODO fix arbitrary number, squares?
     }
 
 
@@ -86,6 +86,7 @@ public class GameMaster : MonoBehaviour
         for (int i = 0; i < seed; i++)
         {
             BlockBehavior block = CreateBlock();
+            block.BeginnerElementFlag = true;
             block.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             block.transform.eulerAngles = Vector3Utils.RandomEulerAngles();
         }
@@ -95,6 +96,17 @@ public class GameMaster : MonoBehaviour
             ElectronBehavior electron = CreateElectron(1, 100, 1);
             electron.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
         }
+    }
+
+    public CageBehavior CreateCage()
+    //Created when collions occur between same types. Quarks, Leptons.
+    //Created when mass is too high
+    {
+        GameObject cageObject = Instantiate(cageRef);
+        CageBehavior cageBehavior = cageObject.GetComponent<CageBehavior>();
+        cageBehavior.gameMaster = this;
+        cageBehavior.dimensions = bounds;
+        return cageBehavior;
     }
 
     public BlockBehavior CreateBlock()

@@ -13,7 +13,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     public int id;
     public int nextNeighbor = 0;
 
-
+    public Dictionary<FixedJoint, SlotBehavior> connectedJoints = new Dictionary<FixedJoint, SlotBehavior>();
     public HashSet<ElectronPosition> entangledPositions = new HashSet<ElectronPosition>();
     public bool IsEntangled
     {
@@ -25,18 +25,14 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     }
     public override int GetHashCode()
     {
-        return ToString().GetHashCode();
+        return ToString().GetHashCode() + electronManager.GetHashCode();
     }
     public override string ToString()
     {
         return position.ToString();
     }
 
-    //Jumping Utils
-    public bool IsLocked()
-    {
-        return electron.isLocked;
-    }
+    //Jumping Util
 
     public bool PositionsNotFull()
     {
@@ -51,16 +47,34 @@ public class ElectronPosition : IEquatable<ElectronPosition>
             nextNeighbor = 0;
         }
 
-        //Checks one by one which neighbor might be empty, and if so returns that position
+        ElectronPosition emptyNeighbor = null;
         for (int i = nextNeighbor; i < 3; i++)
         {
             int neighborId = neighborIdx[i];
             ElectronPosition nextElectronPosition = electronManager.electronPositions[neighborId];
             if (nextElectronPosition.electron is null)
             {
-                nextElectronPosition.SetElectron(electron);
-                return;
+                if(emptyNeighbor == null)
+                {
+                    emptyNeighbor = nextElectronPosition;
+                }
+                if (nextElectronPosition.IsEntangled)
+                {
+                    //nextElectronPosition.SetElectron(electron);
+                    nextElectronPosition.electron = electron;
+                    electron.electronPosition = nextElectronPosition;
+                    electron = null;
+                    return;
+                }
             }
+        }
+
+        if (emptyNeighbor != null && electron != null)
+        {
+            emptyNeighbor.electron = electron;
+            electron.electronPosition = emptyNeighbor;
+            electron = null;
+            //emptyNeighbor.SetElectron(electron);
         }
 
     }
@@ -78,21 +92,23 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     //Add and Remove Utils
     public void Entangle(ElectronPosition otherElectronPosition)
     {
-        if(!entangledPositions.Contains(otherElectronPosition))
+        bool notEntangled = !entangledPositions.Contains(otherElectronPosition);
+        bool notThis = otherElectronPosition != this;
+
+        if (notEntangled && notThis)
         {
-            if (otherElectronPosition.electron != null && electron != null && otherElectronPosition.electron != electron)
-            {
-                Debug.LogError("Electron positions can't both be entangled if they both have electrons.");
-            }
-
             entangledPositions.Add(otherElectronPosition);
-            otherElectronPosition.entangledPositions.Add(this);
+            otherElectronPosition.Entangle(this);
 
-            if (electron != null)
+            ElectronPosition[] entangledPositionCopy = new ElectronPosition[entangledPositions.Count];
+            entangledPositions.CopyTo(entangledPositionCopy);
+
+            for(int i =0; i < entangledPositionCopy.Length; i++)
             {
-                otherElectronPosition.SetElectron(electron);
+                entangledPositionCopy[i].Entangle(otherElectronPosition);
             }
-            else if (otherElectronPosition.electron != null)
+
+            if(electron != otherElectronPosition.electron && otherElectronPosition.electron != null)
             {
                 SetElectron(otherElectronPosition.electron);
             }
@@ -102,10 +118,18 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     public void Untangle(ElectronPosition otherElectronPosition)
     {
         //Caution take into account situations where blocks can disconnect but still be connected spatially via other connections
-        if(entangledPositions.Contains(otherElectronPosition))
+        if(entangledPositions.Contains(otherElectronPosition) && otherElectronPosition != this)
         {
             entangledPositions.Remove(otherElectronPosition);
-            otherElectronPosition.entangledPositions.Remove(this);
+            otherElectronPosition.Untangle(this);
+
+            ElectronPosition[] entangledPositionCopy = new ElectronPosition[entangledPositions.Count];
+            entangledPositions.CopyTo(entangledPositionCopy);
+
+            for (int i = 0; i < entangledPositionCopy.Length; i++)
+            {
+                entangledPositionCopy[i].Untangle(otherElectronPosition);
+            }
 
             if (electron != null)
             {
@@ -114,23 +138,31 @@ public class ElectronPosition : IEquatable<ElectronPosition>
         }
     }
 
-    public void SetElectron(ElectronBehavior electron) //Automatically releases old position
+    public void SetElectron(ElectronBehavior electron) //Automatically releases old position //Real broken
     {
-        this.electron = electron;
-        ElectronPosition oldPosition = electron.electronPosition;
-        if (oldPosition != this && !entangledPositions.Contains(oldPosition))
+        if(this.electron != null && this.electron != electron)
         {
-            electron.electronPosition = this;
-            electron.Occupy(electronManager.gameObject);
+            Debug.LogError("NOONONONONO");
+        }
 
-            if(oldPosition != null)
+        if(this.electron == null || electron.electronPosition != this)
+        {
+            this.electron = electron;
+            ElectronPosition oldPosition = electron.electronPosition;
+            if (!entangledPositions.Contains(oldPosition) || oldPosition == null)
             {
-                oldPosition.ReleaseElectron();
-            }
+                electron.electronPosition = this;
+                electron.Occupy(electronManager.gameObject);
 
-            foreach (ElectronPosition entangledPosition in entangledPositions)
-            {
-                entangledPosition.SetElectron(electron);
+                if (oldPosition != null)
+                {
+                    oldPosition.ReleaseElectron();
+                }
+
+                foreach (ElectronPosition entangledPosition in entangledPositions)
+                {
+                    entangledPosition.SetElectron(electron);
+                }
             }
         }
     }
@@ -139,22 +171,60 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     {
         if (electron != null)
         {
-            if (electron.electronPosition == this)
-            {
-                electron.Free();
-            }
+            ElectronBehavior removedElectron = electron;
             electron = null;
+            if (removedElectron.electronPosition == this)
+            {
+                removedElectron.Free();
+                if (entangledPositions.Contains(removedElectron.electronPosition))
+                {
+                    Debug.LogError("Shouldn't be releasing electron.");
+                }
+                RemoveAllJoints();
+                foreach (ElectronPosition entangledPosition in entangledPositions)
+                {
+                    entangledPosition.ReleaseElectron();
+                }
+            }
         }
     }
 
-    //Block Utils
+    //Slot Utils
 
-    public void ConnectBlock(BlockBehavior block)
+    public void AddJoint(FixedJoint fixedJoint, SlotBehavior slot)
     {
-        if (electron != null)
+        if(!connectedJoints.ContainsKey(fixedJoint))
         {
-            Jump();
-            electron.ConnectBlock(block);
+            connectedJoints[fixedJoint] = slot;
+            foreach(ElectronPosition entangledPosition in entangledPositions)
+            {
+                entangledPosition.AddJoint(fixedJoint, slot);
+            }
+        }
+    }
+
+    public void RemoveJoint(FixedJoint fixedJoint)
+    {
+        if (connectedJoints.ContainsKey(fixedJoint))
+        {
+            SlotBehavior slot = connectedJoints[fixedJoint];
+            connectedJoints.Remove(fixedJoint);
+            if (slot.GetOccupiedElectronPositions().Count == 1)
+            {
+                slot.ReleaseBlock();
+            }
+            foreach (ElectronPosition entangledPosition in entangledPositions)
+            {
+                entangledPosition.RemoveJoint(fixedJoint);
+            }
+        }
+    }
+
+    public void RemoveAllJoints()
+    {
+        while(connectedJoints.Count > 0)
+        {
+            RemoveJoint(connectedJoints.First().Key);
         }
     }
 

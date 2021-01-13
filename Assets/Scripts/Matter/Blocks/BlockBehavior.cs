@@ -17,6 +17,10 @@ public class BlockBehavior : GameBehavior
     public ElectronManagerBehavior electronManager;
     public SlotManagerBehavior slotManager;
     public ClusterBehavior cluster;
+    public BoxCollider collider
+    {
+        get { return GetComponent<BoxCollider>(); }
+    }
 
     Rigidbody rigidbody;
 

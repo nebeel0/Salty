@@ -99,7 +99,6 @@ public class Controller : MonoBehaviour
     }
     protected virtual void Update()
     {
-        ResetOrientationUpdate();
         RotationUpdate();
     }
     protected virtual void RotationUpdate()
@@ -128,36 +127,12 @@ public class Controller : MonoBehaviour
     {
         if(enabled)
         {
-            resetOrientation = true;
+            m_TargetCameraState.LerpTowardsNeutral(1);
+            m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, 1);
+            m_InterpolatingCameraState.UpdateTransform(target);
         }
     }
-    protected void ResetOrientationUpdate()
-    {
-        //TODO maybe just rotate camera and not body
-        //TODO initial a lock on perspective and rotate quickly to 0,0,0
-        //TODO fade Rotate
-        if (resetOrientation)
-        {
-            m_TargetCameraState.SetFromTransform(target);
-            m_InterpolatingCameraState.SetFromTransform(target);
-            if (m_InterpolatingCameraState.pitch > 0.1 || m_InterpolatingCameraState.roll > 0.1 || m_InterpolatingCameraState.pitch < -0.1 || m_InterpolatingCameraState.roll < -0.1)
-            {
-                m_TargetCameraState.LerpTowardsNeutral(Time.deltaTime);
-                m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, rotationLerpPct);
-                m_InterpolatingCameraState.UpdateTransform(target);
-            }
-            else if (m_InterpolatingCameraState.pitch >= 0.1 || m_InterpolatingCameraState.roll >= 0.1 || m_InterpolatingCameraState.pitch <= -0.1 || m_InterpolatingCameraState.roll <= -0.1)
-            {
-                m_TargetCameraState.LerpTowardsNeutral(1);
-                m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, 1);
-                m_InterpolatingCameraState.UpdateTransform(target);
-            }
-            else
-            {
-                resetOrientation = false;
-            }
-        }
-    }
+
     protected virtual void OnHold()
     {
         holdFlag = !holdFlag; //Sets to hold

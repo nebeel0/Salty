@@ -23,7 +23,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
         }
         return false;
     }
-    public ClusterBehavior ParentCluster
+    public ClusterBehavior cluster
     {
         get
         {
@@ -64,7 +64,6 @@ public class SlotManagerBehavior : BlockManagerBehavior
                     SlotBehavior newBlockSlotBehavior = newSlot.AddComponent<SlotBehavior>();
                     newBlockSlotBehavior.slotManager = this;
                     newBlockSlotBehavior.RelativeLocalPosition = newSlotPosition;
-                    Debug.Log(newSlotPosition.ToString());
                     newBlockSlotBehavior.connectingElectronPositions = GetConnectingElectronPositions(newSlotPosition);
                     slots[newSlotPosition.ToString()] = newBlockSlotBehavior;
                 }
@@ -115,7 +114,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
     {
         foreach (SlotBehavior slot in slots.Values)
         {
-            slot.ReleaseAllElectrons();
+            slot.ReleaseBlock();
         }
         Destroy(this);
     }

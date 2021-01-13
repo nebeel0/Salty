@@ -12,7 +12,7 @@ public class ClusterMessageBehavior : MonoBehaviour
     {
         get { return GetComponent<ClusterBehavior>(); }
     }
-    SphereCollider messageSphere;
+    public SphereCollider messageSphere;
 
     public void Start()
     {
@@ -47,16 +47,9 @@ public class ClusterMessageBehavior : MonoBehaviour
         if(other.CompareTag("Block"))
         {
             BlockBehavior otherBlock = other.gameObject.GetComponent<BlockBehavior>();
-            if (otherBlock.cluster == clusterBehavior)
+            if (!otherBlock.cluster.IsOccupying() && !clusterBehavior.IsOccupying() && otherBlock.cluster != clusterBehavior)
             {
-                Physics.IgnoreCollision(messageSphere, other);
-            }
-            else
-            {
-                if (!otherBlock.slotManager.IsOccupying() && !clusterBehavior.IsOccupying())
-                {
-                    Attract(other);
-                }
+                Attract(other);
             }
         }
     }
@@ -77,7 +70,6 @@ public class ClusterMessageBehavior : MonoBehaviour
             otherForce = forceScalar * otherForce.normalized;
 
             otherRigidBody.AddForce(otherForce, ForceMode.Force);
-            Vector3 otherObjectDirection = otherObject.transform.forward;
         }
         catch (Exception e)
         {

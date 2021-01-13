@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CageBehavior : MonoBehaviour
+public class CageBehavior : GameBehavior
 {
     //TODO support non box shaped cages
     public Vector3 dimensions = new Vector3(500, 500, 500);

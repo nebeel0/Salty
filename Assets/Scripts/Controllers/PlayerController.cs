@@ -5,11 +5,7 @@ using UnityEngine;
 
 public class PlayerController : Controller
 {
-    GameObject cluster;
-    protected ClusterBehavior clusterBehavior
-    {
-        get { return cluster.GetComponent<ClusterBehavior>(); }
-    }
+    public ClusterBehavior cluster;
 
     protected bool visualToggle = true;
     protected bool lockOn = false;
@@ -75,41 +71,31 @@ public class PlayerController : Controller
             Destroy(GetComponent<Rigidbody>());
         }
         GetComponent<SphereCollider>().enabled = false;
-        if (transform.parent.gameObject.CompareTag("Cluster"))
-        {
-            cluster = transform.parent.gameObject;
-        }
-        if (cluster != null)
-        {
-            base.Start();
-            OnFirstPerson();
-            transform.localPosition = Vector3.zero;
-            transform.localEulerAngles = Vector3.zero;
+        base.Start();
+        OnFirstPerson();
+        transform.parent = cluster.transform;
+        transform.localPosition = Vector3.zero;
+        transform.localEulerAngles = Vector3.zero;
 
-            lineRenderer = GetComponent<LineRenderer>();
-            lineRenderer.enabled = false;
-            lineRenderer.positionCount = 0;
-            foreach (ActionQueueTypes aq in (ActionQueueTypes[])System.Enum.GetValues(typeof(ActionQueueTypes)))
-            {
-                actionQueues[aq] = new Queue<ActionParams>();
-            }
+        lineRenderer = GetComponent<LineRenderer>();
+        lineRenderer.enabled = false;
+        lineRenderer.positionCount = 0;
+        foreach (ActionQueueTypes aq in (ActionQueueTypes[])System.Enum.GetValues(typeof(ActionQueueTypes)))
+        {
+            actionQueues[aq] = new Queue<ActionParams>();
         }
     }
 
     protected override void Update()
     {
         DeathCheck();
-        if(cluster != null)
+        base.Update();
+        CameraUpdate();
+        if(!godMode)
         {
-            base.Update();
-            ResetOrientationUpdate();
-            CameraUpdate();
-            if(!godMode)
-            {
-                ActionQueueUpdate();
-            }
-            VisualUpdate();
+            ActionQueueUpdate();
         }
+        VisualUpdate();
     }
 
 
@@ -135,7 +121,7 @@ public class PlayerController : Controller
         {
             if(!godMode)
             {
-                float displacement = Mathf.Max(4, clusterBehavior.totalMass*1.5f);
+                float displacement = Mathf.Max(4, cluster.diagonal*1.5f);
                 Vector3 finalCameraPosition = primaryCameraRootPosition + Vector3.back * displacement;
                 primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, finalCameraPosition, 1);
                 transform.position = cluster.transform.position;
@@ -161,7 +147,7 @@ public class PlayerController : Controller
 
         if (actionQueue == ActionQueueTypes.Default)
         {
-            clusterBehavior.DistributeForce(direction * scalar, ForceMode.Impulse);
+            cluster.DistributeForce(direction * scalar, ForceMode.Impulse);
         }
     }
 
@@ -303,7 +289,7 @@ public class PlayerController : Controller
             godMode = !godMode;
             if (godMode)
             {
-                clusterBehavior.Brake();
+                cluster.Brake();
                 target = transform;
                 transform.parent = null;
                 primaryCamera.transform.parent = null;
@@ -313,18 +299,16 @@ public class PlayerController : Controller
             }
             else
             {
-                clusterBehavior.UnBrake();
+                cluster.UnBrake();
                 target = transform;
                 ResetParenting();
             }
         }
     }
 
-    void ResetParenting()
+    public void ResetParenting()
     {
-        cluster.transform.parent = null;
-        transform.parent = null;
-        primaryCamera.transform.parent = null;
+        cluster.transform.parent = cluster.trackingBlock.transform;
 
         transform.position = cluster.transform.position;
         transform.SetParent(cluster.transform);
@@ -383,11 +367,11 @@ public class PlayerController : Controller
     }
     protected Vector3 EstimateLaunchDestination(ActionParams actionParams, Vector3 initPosition)
     {
-        float initVelocity = actionParams.scalar / clusterBehavior.totalMass;
+        float initVelocity = actionParams.scalar / cluster.totalMass;
         while (initVelocity > 0.01) // TODO stop when block slows down, if successive positions
         {
             initPosition += actionParams.direction * Time.fixedDeltaTime * initVelocity;
-            initVelocity = initVelocity * (1 - Time.fixedDeltaTime * clusterBehavior.averageDrag);
+            initVelocity = initVelocity * (1 - Time.fixedDeltaTime * cluster.averageDrag);
         }
         return initPosition;
     }

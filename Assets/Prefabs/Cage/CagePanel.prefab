@@ -66,7 +66,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2097317858958645567}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43b79ada3a7663a44be6fcad69771caa, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ec21ba6268204b4cb80b9925bf48bef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   allOn: 0
@@ -74,8 +74,10 @@ MonoBehaviour:
   coolDownTime: 0
   loadingTimeMax: 0
   fadeOutPeriodMax: 0
-  randomChance: 10
-  resolution: 10
+  randomChance: 0
+  fadeInPeriodMax: 10
+  fadeInPeriodMin: 10
+  resolution: 0
 --- !u!23 &5665425903946019825
 MeshRenderer:
   m_ObjectHideFlags: 0

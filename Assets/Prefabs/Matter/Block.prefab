@@ -134,8 +134,7 @@ MonoBehaviour:
   quarkManager: {fileID: 9127637164676717139}
   electronManager: {fileID: 1296837904613337655}
   slotManager: {fileID: 7494104011008557882}
-  ClusterRef: {fileID: 6599264614019995199, guid: fbc2387b8f977f5418a4478edca94095,
-    type: 3}
+  cluster: {fileID: 0}
   BeginnerElementFlag: 0
 --- !u!114 &1930148272952556960
 MonoBehaviour:
@@ -197,7 +196,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4306b9249b259594d92e33ba5b7861d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attractionFactor: 5
+  attractionFactor: 10
   displacementFactor: 1.1
 --- !u!1 &7526534644969014389
 GameObject:

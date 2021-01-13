@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,33 +9,6 @@ public class ElectronManagerBehavior : BlockManagerBehavior
     public ElectronPosition[] electronPositions; //Used for determining neighbors
     public int electronsMax = 8;  //TODO programmatically figure out max number of electrons, which we can figure out from number of vertexes in shape
                                   // Start is called before the first frame update
-
-    LineRenderer lineRenderer;
-    void SetUpLineRenderer()
-    {
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.endWidth = 0.03f;
-        lineRenderer.startWidth = 0.03f;
-        lineRenderer.startColor = Color.grey;
-        lineRenderer.endColor = Color.grey;
-        lineRenderer.material = gameMaster.particleLit;
-        lineRenderer.enabled = false;
-    }
-
-    void LineUpdate()
-    {
-        lineRenderer.enabled = true;
-        List<Vector3> points = new List<Vector3>();
-        for(int i = 0; i < electronPositions.Length; i++)
-        {
-            if(electronPositions[i].IsEntangled)
-            {
-                points.Add(block.transform.TransformPoint(electronPositions[i].position));
-            }
-        }
-        lineRenderer.positionCount = points.Count;
-        lineRenderer.SetPositions(points.ToArray());
-    }
 
     public bool IsNetPositiveOrNeutral(ElectronBehavior electron)
     {
@@ -87,16 +61,10 @@ public class ElectronManagerBehavior : BlockManagerBehavior
         {
             SetUpElectronPositions();
         }
-        if(lineRenderer == null)
-        {
-            SetUpLineRenderer();
-        }
+
     }
 
-    void Update()
-    {
-        LineUpdate();
-    }
+
 
     void SetUpElectronPositions()
     {
@@ -128,9 +96,6 @@ public class ElectronManagerBehavior : BlockManagerBehavior
     public void SetElectron(ElectronBehavior electron)
     {
         bool isElectron = electron.antiCharge == 1;
-        //Debug.Log(isElectron);
-        //Debug.Log(IsNetPositiveOrNeutral(electron));
-        //Debug.Log(HasSpace());
 
         if (isElectron && IsNetPositiveOrNeutral(electron) && HasSpace())
         {
@@ -152,7 +117,7 @@ public class ElectronManagerBehavior : BlockManagerBehavior
     {
         for(int i=0; i< electronPositions.Length; i++)
         {
-            if(electronPositions[i].electron != null && !electronPositions[i].electron.isLocked)
+            if(electronPositions[i].electron != null && !electronPositions[i].electron.IsEntangled())
             {
                 return electronPositions[i].electron;
             }

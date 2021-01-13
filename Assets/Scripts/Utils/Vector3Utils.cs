@@ -100,7 +100,7 @@ public static class Vector3Utils
         return angdiff;
     }
 
-    public static void Attract(GameObject rootObject, GameObject objectToAttract, Transform desiredTransform, float attractionFactor)
+    public static void Align(GameObject rootObject, GameObject objectToAttract, Transform desiredTransform, float attractionFactor)
     {
         Vector3 force = PositionAlignment(objectToAttract, desiredTransform) * attractionFactor;
         Vector3 torque = RotationalAlignment(objectToAttract, desiredTransform);
@@ -113,6 +113,4 @@ public static class Vector3Utils
         rootRigidBody.AddForce(force * -1, ForceMode.Force);
         rootRigidBody.AddTorque(torque * -1, ForceMode.Force);
     }
-
-
 }
