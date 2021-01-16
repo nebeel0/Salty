@@ -10,6 +10,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
     public float displacementFactor = 1.1f;
     public Dictionary<string, SlotBehavior> slots = new Dictionary<string, SlotBehavior>();
 
+
     int numFaceVertices = 4; //TODO store in Vector3Utils and determine faceVertices from type of shape.
 
     public bool IsOccupying()
@@ -56,7 +57,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
                     Vector3 newSlotPosition = Vector3.zero;
                     newSlotPosition[ii] = Mathf.Pow(-1, i) * transform.localScale[ii] * displacementFactor;
                     GameObject newSlot = new GameObject();
-                    newSlot.layer = GameMaster.MessageColliderLayer; //message colliders
+                    newSlot.layer = PhysicsManager.messageColliderLayer; //message colliders
                     newSlot.name = string.Format("Box Slot - {0}", newSlotPosition.ToString());
                     newSlot.transform.parent = gameObject.transform;
                     newSlot.transform.localPosition = newSlotPosition;

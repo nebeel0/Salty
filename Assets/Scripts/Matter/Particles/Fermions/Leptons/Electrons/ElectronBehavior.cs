@@ -13,7 +13,7 @@ public class ElectronBehavior : LeptonBehavior
         lineRenderer.startWidth = 0.03f;
         lineRenderer.startColor = Color.grey;
         lineRenderer.endColor = Color.grey;
-        lineRenderer.material = gameMaster.particleLit;
+        lineRenderer.material = gameMaster.spawnManager.particleLit;
         lineRenderer.enabled = false;
     }
 

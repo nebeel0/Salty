@@ -85,6 +85,11 @@ public class Controller : MonoBehaviour
     protected bool resetOrientation = false;
     protected bool gamePause = false;
 
+    protected Rigidbody rigidbody
+    {
+        get { return GetComponent<Rigidbody>(); }
+    }
+
     public virtual void Start()
     {
         foreach(Transform child in transform)

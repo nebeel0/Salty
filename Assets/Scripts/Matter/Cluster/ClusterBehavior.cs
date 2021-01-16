@@ -40,6 +40,7 @@ public class ClusterBehavior : GameBehavior
         }
     }
     public BlockBehavior trackingBlock;
+    Vector3 offset;
     public bool IsOccupying()
     {
         foreach (BlockBehavior block in blocks)
@@ -54,7 +55,6 @@ public class ClusterBehavior : GameBehavior
 
     public float totalMass; //We're going to treat each block as having the same mass.
     public float averageDrag; //We're going to treat each block as having the same mass.
-    float displacementFactor = 1.2f;
     public float diagonal;
     Vector3 min = Vector3.zero;
     Vector3 max = Vector3.zero;
@@ -102,7 +102,7 @@ public class ClusterBehavior : GameBehavior
                 childCluster.parentPlayer.ResetParenting();
             }
 
-            parentCluster.UpdateOffset();
+            parentCluster.UpdateCenter();
 
             parentCluster.UpdateMax(childCluster.max);
             parentCluster.UpdateMin(childCluster.min);
@@ -118,7 +118,7 @@ public class ClusterBehavior : GameBehavior
         blocks.Remove(block);
         if (!DeathCheck())
         {
-            UpdateCenter();
+            BFSRefresh();
         }
         else
         {
@@ -138,13 +138,13 @@ public class ClusterBehavior : GameBehavior
     void Death()
     {
         transform.DetachChildren();
-        gameMaster.SystemClusters.Remove(this);
-        Debug.Log("Remaining Clusters: " + gameMaster.SystemClusters.Count().ToString());
+        gameMaster.spawnManager.SystemClusters.Remove(this);
+        Debug.Log("Remaining Clusters: " + gameMaster.spawnManager.SystemClusters.Count().ToString());
         Destroy(gameObject);
     }
 
 
-    public void UpdateCenter()
+    public void BFSRefresh()
     {
         BlockBehavior currentBlock;
         Queue<BlockBehavior> BlockQueue = new Queue<BlockBehavior>();
@@ -192,13 +192,13 @@ public class ClusterBehavior : GameBehavior
         }
         if(removedBlocks.Count > 0)
         {
-            gameMaster.CreateCluster(removedBlocks);
+            gameMaster.spawnManager.CreateCluster(removedBlocks);
         }
         blocks = seenBlocks;
         averageDrag = averageDrag / blocks.Count;
         centerOfMass /= totalMass;
         UpdateDiagonal();
-        UpdateOffset();
+        UpdateCenter();
     }
     
     void UpdateMin(Vector3 point)
@@ -218,11 +218,11 @@ public class ClusterBehavior : GameBehavior
 
     void UpdateDiagonal()
     {
-        diagonal = Vector3.Distance(min, max) * displacementFactor;
+        diagonal = Vector3.Distance(min, max);
         clusterMessageBehavior.UpdateRadius();
     }
 
-    void UpdateOffset()
+    void UpdateCenter()
     {
         float closestDistance = -1;
         foreach (BlockBehavior currentBlock in blocks)
@@ -238,15 +238,22 @@ public class ClusterBehavior : GameBehavior
                 currentBlock.name = "Block";
             }
         }
-        transform.parent = trackingBlock.transform;
         trackingBlock.name = "Tracking Block";
-        transform.localPosition = centerOfMass - trackingBlock.transform.position;
+        offset = centerOfMass - trackingBlock.transform.position;
+        UpdatePosition();
+    }
+
+    public void UpdatePosition()
+    {
+        transform.parent = trackingBlock.transform;
+        transform.localPosition = offset;
+        transform.localEulerAngles = Vector3.zero;
     }
 
     public void DistributeForce(Vector3 forceVector, ForceMode forceMode)
     {
-        //Vector3 distributedForce = forceVector / blocks.Count;
-        Vector3 distributedForce = forceVector;
+        Vector3 distributedForce = forceVector / blocks.Count;
+        //Vector3 distributedForce = forceVector;
         foreach (BlockBehavior block in blocks)
         {
             block.GetComponent<Rigidbody>().AddForce(distributedForce, forceMode);

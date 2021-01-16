@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3968840213269502757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3968840213269502747}
+  - component: {fileID: 3968840213269502756}
+  m_Layer: 0
+  m_Name: Spawn Manager
+  m_TagString: GameMaster
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3968840213269502747
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3968840213269502757}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.500001, y: 8, z: -25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3968840213269502756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3968840213269502757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 530cdf2e7a360c54a9a6a87400e1be1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameMaster: {fileID: 0}
+  cageRef: {fileID: 6885399982985865001, guid: 98350fa109818e849aaa8f7bde51eeaa, type: 3}
+  playerRef: {fileID: 5763612623375676646, guid: b1c431149fa897141a085da212208e57,
+    type: 3}
+  clusterRef: {fileID: 6599264614019995199, guid: fbc2387b8f977f5418a4478edca94095,
+    type: 3}
+  blockRef: {fileID: 4819842358078350356, guid: 37e523f2e600fcb448684e1434888982,
+    type: 3}
+  baseParticleRef: {fileID: 184509163437044687, guid: ec2e2228dac01384d8040fe6ebd96d6f,
+    type: 3}
+  particleLit: {fileID: 10301, guid: 0000000000000000f000000000000000, type: 0}
+  bounds: {x: 0, y: 0, z: 0}

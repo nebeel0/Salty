@@ -44,7 +44,7 @@ public class BlockBehavior : GameBehavior
         }
         if (cluster == null) //TODO move into callback when blocks break links
         {
-            cluster = gameMaster.CreateCluster(new HashSet<BlockBehavior>() { this });
+            cluster = gameMaster.spawnManager.CreateCluster(new HashSet<BlockBehavior>() { this });
         }
     }
 
@@ -96,11 +96,11 @@ public class BlockBehavior : GameBehavior
             QuarkBehavior quarkBehavior;
             if (i % 3 != 0)
             {
-                quarkBehavior = gameMaster.CreateQuarkPos(10, 10, 1);
+                quarkBehavior = gameMaster.spawnManager.CreateQuarkPos(10, 10, 1);
             }
             else
             {
-                quarkBehavior = gameMaster.CreateQuarkNeg(10, 10, 1);
+                quarkBehavior = gameMaster.spawnManager.CreateQuarkNeg(10, 10, 1);
             }
             quarkBehavior.transform.parent = transform;
             quarkBehavior.transform.localPosition = Vector3.zero;
@@ -109,7 +109,7 @@ public class BlockBehavior : GameBehavior
 
             if ((i / 4) == 1 && i <= 4)
             {
-                LeptonBehavior leptonBehavior = gameMaster.CreateElectron(10, 10, 1);
+                LeptonBehavior leptonBehavior = gameMaster.spawnManager.CreateElectron(10, 10, 1);
                 leptonBehavior.transform.parent = transform;
                 leptonBehavior.transform.localPosition = Vector3.zero;
                 leptonBehavior.Occupy(gameObject);

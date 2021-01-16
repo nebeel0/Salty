@@ -60,10 +60,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
                 }
                 if (nextElectronPosition.IsEntangled)
                 {
-                    //nextElectronPosition.SetElectron(electron);
-                    nextElectronPosition.electron = electron;
-                    electron.electronPosition = nextElectronPosition;
-                    electron = null;
+                    nextElectronPosition.SetElectron(electron);
                     return;
                 }
             }
@@ -71,10 +68,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
 
         if (emptyNeighbor != null && electron != null)
         {
-            emptyNeighbor.electron = electron;
-            electron.electronPosition = emptyNeighbor;
-            electron = null;
-            //emptyNeighbor.SetElectron(electron);
+            emptyNeighbor.SetElectron(electron);
         }
 
     }
@@ -98,19 +92,30 @@ public class ElectronPosition : IEquatable<ElectronPosition>
         if (notEntangled && notThis)
         {
             entangledPositions.Add(otherElectronPosition);
+            entangledPositions.UnionWith(otherElectronPosition.entangledPositions);
             otherElectronPosition.Entangle(this);
+
+            if (electron == null && otherElectronPosition.electron != null)
+            {
+                SetElectron(otherElectronPosition.electron);
+            }
+            else if (electron != null)
+            {
+                otherElectronPosition.SetElectron(electron);
+            }
 
             ElectronPosition[] entangledPositionCopy = new ElectronPosition[entangledPositions.Count];
             entangledPositions.CopyTo(entangledPositionCopy);
 
-            for(int i =0; i < entangledPositionCopy.Length; i++)
+            for (int i =0; i < entangledPositionCopy.Length; i++)
             {
-                entangledPositionCopy[i].Entangle(otherElectronPosition);
-            }
-
-            if(electron != otherElectronPosition.electron && otherElectronPosition.electron != null)
-            {
-                SetElectron(otherElectronPosition.electron);
+                entangledPositionCopy[i].entangledPositions.Add(otherElectronPosition);
+                otherElectronPosition.entangledPositions.Add(this);
+                otherElectronPosition.entangledPositions.UnionWith(otherElectronPosition.entangledPositions);
+                if (entangledPositionCopy[i].electron == null && otherElectronPosition.electron != null)
+                {
+                    entangledPositionCopy[i].SetElectron(otherElectronPosition.electron);
+                }
             }
         }
     }
@@ -128,6 +133,9 @@ public class ElectronPosition : IEquatable<ElectronPosition>
 
             for (int i = 0; i < entangledPositionCopy.Length; i++)
             {
+                entangledPositionCopy[i].entangledPositions.Remove(otherElectronPosition);
+                otherElectronPosition.Untangle(entangledPositionCopy[i]);
+
                 entangledPositionCopy[i].Untangle(otherElectronPosition);
             }
 
@@ -142,27 +150,28 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     {
         if(this.electron != null && this.electron != electron)
         {
-            Debug.LogError("NOONONONONO");
+            Debug.LogError("Cannot add electron to an electron position with an electron");
         }
 
-        if(this.electron == null || electron.electronPosition != this)
+        if(this.electron == null)
         {
             this.electron = electron;
             ElectronPosition oldPosition = electron.electronPosition;
-            if (!entangledPositions.Contains(oldPosition) || oldPosition == null)
+            electron.electronPosition = this;
+            if(oldPosition == null || oldPosition.electronManager != electronManager)
             {
-                electron.electronPosition = this;
                 electron.Occupy(electronManager.gameObject);
-
-                if (oldPosition != null)
+            }
+            else
+            {
+                if(!entangledPositions.Contains(oldPosition))
                 {
                     oldPosition.ReleaseElectron();
                 }
-
-                foreach (ElectronPosition entangledPosition in entangledPositions)
-                {
-                    entangledPosition.SetElectron(electron);
-                }
+            }
+            foreach (ElectronPosition entangledPosition in entangledPositions)
+            {
+                entangledPosition.electron = electron;
             }
         }
     }
@@ -190,7 +199,6 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     }
 
     //Slot Utils
-
     public void AddJoint(FixedJoint fixedJoint, SlotBehavior slot)
     {
         if(!connectedJoints.ContainsKey(fixedJoint))

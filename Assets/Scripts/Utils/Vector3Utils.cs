@@ -113,4 +113,24 @@ public static class Vector3Utils
         rootRigidBody.AddForce(force * -1, ForceMode.Force);
         rootRigidBody.AddTorque(torque * -1, ForceMode.Force);
     }
+
+    public static void RotationalAlign(GameObject gameObject, Transform desiredTransform)
+    {
+        Vector3 torque = RotationalAlignment(gameObject, desiredTransform);
+
+        Rigidbody otherRigidBody = gameObject.GetComponent<Rigidbody>();
+        otherRigidBody.AddTorque(torque, ForceMode.Force);
+    }
+
+
+    public static void LerpEulerAngles(Vector3 newAngles, Transform objectToLerp, float percentage)
+    {
+        percentage *= Time.deltaTime;
+        Vector3 originalAngles = objectToLerp.eulerAngles;
+        for(int i = 0; i < 3; i ++)
+        {
+            originalAngles[i] = Mathf.LerpAngle(originalAngles[i], newAngles[i], percentage);
+        }
+        objectToLerp.eulerAngles = originalAngles;
+    }
 }

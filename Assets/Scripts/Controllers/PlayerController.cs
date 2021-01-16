@@ -73,9 +73,7 @@ public class PlayerController : Controller
         GetComponent<SphereCollider>().enabled = false;
         base.Start();
         OnFirstPerson();
-        transform.parent = cluster.transform;
-        transform.localPosition = Vector3.zero;
-        transform.localEulerAngles = Vector3.zero;
+        ResetParenting();
 
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.enabled = false;
@@ -90,7 +88,6 @@ public class PlayerController : Controller
     {
         DeathCheck();
         base.Update();
-        CameraUpdate();
         if(!godMode)
         {
             ActionQueueUpdate();
@@ -98,34 +95,11 @@ public class PlayerController : Controller
         VisualUpdate();
     }
 
-
     protected void DeathCheck()
     {
         if(cluster == null)
         {
             Destroy(gameObject);
-        }
-    }
-
-    protected void CameraUpdate()
-    {
-        if (firstPerson) //TODO some sort of animation effect to show the distinction
-        {
-            primaryCamera.transform.localPosition = primaryCameraRootPosition; //Vector3.zero should be Camera root position
-
-            m_TargetCameraState.SetFromEulerAngles(transform.localEulerAngles);
-            m_TargetCameraState.LerpTowardsZero(1);
-            m_TargetCameraState.UpdateLocalTransform(transform);
-        }
-        else
-        {
-            if(!godMode)
-            {
-                float displacement = Mathf.Max(4, cluster.diagonal*1.5f);
-                Vector3 finalCameraPosition = primaryCameraRootPosition + Vector3.back * displacement;
-                primaryCamera.transform.localPosition = Vector3.Lerp(primaryCamera.transform.localPosition, finalCameraPosition, 1);
-                transform.position = cluster.transform.position;
-            }
         }
     }
 
@@ -154,11 +128,7 @@ public class PlayerController : Controller
     protected override void OnHold() // Press and Release
     {
         holdFlag = !holdFlag; //Sets to hold
-        if (!enabled)
-        {
-            return;
-        }
-        if (godMode)
+        if (!enabled || godMode)
         {
             return;
         }
@@ -166,10 +136,12 @@ public class PlayerController : Controller
         if (holdFlag)
         {
             SetUpLineRenderer();
+            HoldParenting();
         }
         else if (!holdFlag && holdScalar > 0)
         {
-            Vector3 direction = transform.forward; //direction is just where the player is looking
+            ResetParenting();
+            Vector3 direction = cluster.transform.forward; //direction is where the block is facing
             float scalar = holdScalar;
             holdScalar = 0; //Reset
 
@@ -187,13 +159,17 @@ public class PlayerController : Controller
         }
     }
 
-
     protected override void HoldUpdate()
     {
         if (holdFlag)
         {
             holdScalar += 1 + holdScalar * (float).25 * Time.deltaTime;
             DrawCurrentPath();
+            Vector3 newAngles = primaryCamera.transform.eulerAngles;
+            Vector3Utils.LerpEulerAngles(newAngles: newAngles, objectToLerp: cluster.transform, percentage: 10);
+
+            ResetParenting();
+            HoldParenting();
         }
     }
 
@@ -209,17 +185,16 @@ public class PlayerController : Controller
 
     void OnAddMode()
     {
-        if (!enabled)
+        if (enabled)
         {
-            return;
-        }
-        if (actionQueueMode == ActionQueueModeTypes.Add)
-        {
-            actionQueueMode = ActionQueueModeTypes.Default;
-        }
-        else
-        {
-            actionQueueMode = ActionQueueModeTypes.Add;
+            if (actionQueueMode == ActionQueueModeTypes.Add)
+            {
+                actionQueueMode = ActionQueueModeTypes.Default;
+            }
+            else
+            {
+                actionQueueMode = ActionQueueModeTypes.Add;
+            }
         }
     }
 
@@ -245,25 +220,38 @@ public class PlayerController : Controller
 
     void OnFirstPerson()
     {
-        if (!enabled)
+        if (!enabled || godMode)
         {
             return;
         }
         firstPerson = true;
         thirdPerson = false;
-        target = cluster.transform;
         ResetParenting();
     }
 
     void OnThirdPerson()
     {
-        if (!enabled)
+        if (!enabled || godMode)
         {
             return;
         }
         thirdPerson = true;
         firstPerson = false;
-        target = transform;
+        ResetParenting();
+    }
+
+    public void UpdateCameraOffset() //TODO subscribe to Add block, and recalcute camera offset
+    {
+        transform.position = cluster.transform.position;
+        if(firstPerson)
+        {
+            primaryCamera.transform.localPosition = primaryCameraRootPosition;
+        }
+        else
+        {
+            float displacement = Mathf.Max(cluster.diagonal * 4, 4);
+            primaryCamera.transform.localPosition = primaryCameraRootPosition + Vector3.back * displacement;
+        }
     }
 
     void OnPerspectiveAlign()  //Rotates the block
@@ -280,39 +268,64 @@ public class PlayerController : Controller
 
     void OnGodMode() //Moves the block
     {
-        if (!enabled)
+        godMode = !godMode;
+        if (!enabled || holdFlag)
         {
             return;
         }
         if (thirdPerson)
         {
-            godMode = !godMode;
             if (godMode)
             {
                 cluster.Brake();
-                target = transform;
-                transform.parent = null;
-                primaryCamera.transform.parent = null;
-                transform.position = primaryCamera.transform.position;
-                primaryCamera.transform.parent = transform;
-                cluster.transform.SetParent(transform);
+                GodParenting();
             }
             else
             {
                 cluster.UnBrake();
-                target = transform;
                 ResetParenting();
             }
         }
     }
 
+    void HoldParenting()
+    {
+        transform.parent = null;
+        cluster.transform.parent = transform;
+        foreach (BlockBehavior block in cluster.blocks)
+        {
+            block.transform.SetParent(cluster.transform);
+        }
+        target = transform;
+    }
+
+
+    //blocks -> cluster -> transform -> camera
+    void GodParenting()
+    {
+        HoldParenting();
+        primaryCamera.transform.parent = null;
+        transform.parent = primaryCamera.transform;
+        target = primaryCamera.transform;
+    }
+
+    //camera -> transform -> tracking block
     public void ResetParenting()
     {
-        cluster.transform.parent = cluster.trackingBlock.transform;
+        foreach (BlockBehavior block in cluster.blocks)
+        {
+            block.transform.SetParent(null);
+        }
+        primaryCamera.transform.parent = null;
+        transform.parent = null;
+        cluster.transform.parent = null;
 
-        transform.position = cluster.transform.position;
-        transform.SetParent(cluster.transform);
-        primaryCamera.transform.SetParent(transform);
+
+        cluster.UpdatePosition();
+        primaryCamera.transform.parent = transform;
+        transform.parent = cluster.transform;
+        target = transform;
+        UpdateCameraOffset();
     }
 
     void OnDrawPath() // TODO slingshot effect, instead of drawing line, pull camera back
@@ -324,7 +337,7 @@ public class PlayerController : Controller
         SetUpLineRenderer();
         if (actionQueues[actionQueue].Count != lineRenderer.positionCount - 1 && actionQueues[actionQueue].Count > 0)
         {
-            Vector3 positionTracker = cluster.transform.position; //tracker for default action queue
+            Vector3 positionTracker = cluster.trackingBlock.transform.position; //tracker for default action queue
             List<Vector3> points = new List<Vector3>();
             points.Add(positionTracker);
             IEnumerator<ActionParams> enumerator = GetActionQueueEnumerator();
@@ -351,11 +364,11 @@ public class PlayerController : Controller
     protected void DrawCurrentPath()
     {
         Vector3[] points = new Vector3[2];
-        points[0] = cluster.transform.position;
+        points[0] = cluster.trackingBlock.transform.position;
         if (actionQueue == ActionQueueTypes.Default)
         {
-            ActionParams actionParams = new ActionParams(transform.forward, holdScalar, false);
-            points[1] = EstimateLaunchDestination(actionParams, cluster.transform.position);
+            ActionParams actionParams = new ActionParams(cluster.transform.forward, holdScalar, false);
+            points[1] = EstimateLaunchDestination(actionParams, points[0]);
         }
 
         lineRenderer.positionCount = points.Length;

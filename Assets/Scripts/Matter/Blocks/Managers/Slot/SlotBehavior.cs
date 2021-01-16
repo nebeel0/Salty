@@ -54,10 +54,11 @@ public class SlotBehavior : MonoBehaviour
             OccupantBlock = otherSlot.slotManager.block;
             this.otherSlot = otherSlot;
             Entangle(otherSlot);
-            otherSlot.StartOccupying(this);
+
+            otherSlot.OccupantBlock = slotManager.block;
+            otherSlot.otherSlot = this;
         }
     }
-
 
     void StopOccupying()
     {
@@ -69,14 +70,18 @@ public class SlotBehavior : MonoBehaviour
             fixedJoint = null;
             otherSlot = null;
             OccupantUpdate();
-            removedSlot.StopOccupying();
+
+            removedSlot.OccupantBlock = null;
+            removedSlot.fixedJoint = null;
+            removedSlot.otherSlot = null;
+            removedSlot.OccupantUpdate();
         }
     }
 
 
     void OnTriggerStay(Collider other)
     {
-        if (!IsOccupied() && other.gameObject.CompareTag("Block")) //Check if position doesn't equal the same and a connection hasn't been made
+        if (!IsOccupied() && other.gameObject.CompareTag("Block") && slotManager.gameMaster.gameRules.SlotMessageCheck(this)) //Check if position doesn't equal the same and a connection hasn't been made
         {
             if (!HasOccupantBlock())
             {
@@ -294,7 +299,7 @@ public class SlotBehavior : MonoBehaviour
         lineRenderer.startWidth = 0.03f;
         lineRenderer.startColor = Color.grey;
         lineRenderer.endColor = Color.grey;
-        lineRenderer.material = slotManager.gameMaster.particleLit;
+        lineRenderer.material = slotManager.gameMaster.spawnManager.particleLit;
         lineRenderer.enabled = false;
     }
 

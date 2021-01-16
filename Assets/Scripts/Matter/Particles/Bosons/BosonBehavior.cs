@@ -39,20 +39,20 @@ public class BosonBehavior : ParticleBehavior
     //    {
     //        if (MassDecayChance(this))
     //        {
-    //            particleBehaviors.Add(gameMaster.CreateElectron(mass: mass, energy: energy / 2, antiCharge * -1));
+    //            particleBehaviors.Add(gameMaster.spawnManager.CreateElectron(mass: mass, energy: energy / 2, antiCharge * -1));
     //            if (mass > ((float)mass / 2) && mass > 100)
     //            {
-    //                particleBehaviors.Add(gameMaster.CreateQuarkNeg(mass: mass / 2, energy: energy / 2, antiCharge));
-    //                particleBehaviors.Add(gameMaster.CreateQuarkPos(mass: mass / 2, energy: energy / 2, antiCharge));
+    //                particleBehaviors.Add(gameMaster.spawnManager.CreateQuarkNeg(mass: mass / 2, energy: energy / 2, antiCharge));
+    //                particleBehaviors.Add(gameMaster.spawnManager.CreateQuarkPos(mass: mass / 2, energy: energy / 2, antiCharge));
     //            }
     //            else
     //            {
-    //                particleBehaviors.Add(gameMaster.CreateNeutrino(mass: 1, energy: energy / 2));
+    //                particleBehaviors.Add(gameMaster.spawnManager.CreateNeutrino(mass: 1, energy: energy / 2));
     //            }
     //        }
     //        else
     //        {
-    //            particleBehaviors.Add(gameMaster.CreateElectron(mass: mass, energy: energy, antiCharge * -1));
+    //            particleBehaviors.Add(gameMaster.spawnManager.CreateElectron(mass: mass, energy: energy, antiCharge * -1));
     //        }
     //    }
     //    else if (charge == 0) //zBoson
@@ -61,9 +61,9 @@ public class BosonBehavior : ParticleBehavior
     //        {
     //            for (int i = 0; i < 2; i++)
     //            {
-    //                particleBehaviors.Add(gameMaster.CreateNeutrino(mass: 1, energy: energy / 2));
+    //                particleBehaviors.Add(gameMaster.spawnManager.CreateNeutrino(mass: 1, energy: energy / 2));
     //            }
-    //            gameMaster.CreatePhoton(energy: mass * 100); //Photons have their own movement system.
+    //            gameMaster.spawnManager.CreatePhoton(energy: mass * 100); //Photons have their own movement system.
     //        }
     //    }
     //    else
