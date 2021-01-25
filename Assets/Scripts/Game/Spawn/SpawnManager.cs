@@ -1,9 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SpawnManager : MonoBehaviour
 {
+    public PlayMenuManager playMenuManager;
+
     public GameMaster gameMaster;
 
     public GameObject cageRef;
@@ -13,12 +16,85 @@ public class SpawnManager : MonoBehaviour
     public GameObject baseParticleRef;
     public Material particleLit;
 
-    public Vector3 bounds;
-
+    public HashSet<GameObject> spawnedObjects = new HashSet<GameObject>();
+    public HashSet<CageBehavior> SystemCage = new HashSet<CageBehavior>();
+    public HashSet<BlockBehavior> SystemBlocks = new HashSet<BlockBehavior>();
+    public HashSet<ParticleBehavior> SystemParticles = new HashSet<ParticleBehavior>();
     public HashSet<ClusterBehavior> SystemClusters = new HashSet<ClusterBehavior>();
+    public HashSet<PlayerController> players = new HashSet<PlayerController>();
+
+    public PlayerInputManager playerInputManager
+    {
+        get { return GetComponent<PlayerInputManager>(); }
+    }
+
+    public void ClearPlayers()
+    {
+        foreach(PlayerController player in players)
+        {
+            if(player != null)
+            {
+                Destroy(player.gameObject);
+            }
+        }
+        players.Clear();
+    }
+
+    public void DestroyEverything()
+    {
+        foreach(PlayerController player in players)
+        {
+            player.transform.parent = null;
+            player.Reset();
+        }
+        //foreach (GameObject sceneElement in GameObject.FindObjectsOfType<GameObject>())
+        //{
+        //    if (sceneElement.transform.parent == null && sceneElement != gameMaster.gameObject && sceneElement.GetComponent<PlayerInput>() == null)
+        //    {
+        //        Destroy(sceneElement);
+        //    }
+        //}
+        foreach (GameObject spawnedObject in spawnedObjects)
+        {
+            Destroy(spawnedObject);
+        }
+
+    }
+
+    public void EquipDefaultPlayer(PlayerController player)
+    {
+        player.Reset();
+        BlockBehavior defaultBlock = CreateBlock();
+        defaultBlock.BeginnerElementFlag = true;
+        defaultBlock.Start();
+        player.GetComponent<GhostPlayerController>().SetCluster(defaultBlock.cluster); 
+    }
+
+    //Player Join/Left Utils
+    public void OnPlayerJoined(PlayerInput playerInput)
+    {
+        PlayerController player = playerInput.gameObject.GetComponent<PlayerController>();
+
+        Controller[] controllers = player.GetComponents<Controller>();
+        for(int i = 0; i < controllers.Length; i++)
+        {
+            controllers[i].gameMaster = gameMaster;
+        }
+        players.Add(player);
+        playMenuManager.AddPlayer(player);
+        //TODO Maybe coupling together with PlayMenuManager is not the best choice, but will have to do for now.
+    }
+
+    public void OnPlayerLeft(PlayerInput playerInput)
+    {
+        //PlayerController player = playerInput.gameObject.GetComponent<PlayerController>();
+        //players.Remove(player);
+        //playMenuManager.RemovePlayer(player);
+        //TODO Maybe coupling together with PlayMenuManager is not the best choice, but will have to do for now.
+    }
 
     //Spawn Utils
-    void SpawnParticles(int seed, Vector3 bounds)
+    public void SpawnBlocks(int seed, Vector3 bounds)
     {
         for (int i = 0; i < seed; i++)
         {
@@ -27,15 +103,19 @@ public class SpawnManager : MonoBehaviour
             block.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             block.transform.eulerAngles = Vector3Utils.RandomEulerAngles();
         }
+    }
 
+
+    public void SpawnParticles(int seed, Vector3 bounds)
+    {
         for (int i = 0; i < seed; i++)
         {
-            ElectronBehavior electron = CreateElectron(1, 100, 1);
+            ElectronBehavior electron = CreateElectron();
             electron.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
         }
     }
 
-    public CageBehavior CreateCage()
+    public CageBehavior CreateCage(Vector3 bounds)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
@@ -43,6 +123,7 @@ public class SpawnManager : MonoBehaviour
         CageBehavior cageBehavior = cageObject.GetComponent<CageBehavior>();
         cageBehavior.gameMaster = gameMaster;
         cageBehavior.dimensions = bounds;
+        spawnedObjects.Add(cageObject);
         return cageBehavior;
     }
 
@@ -54,6 +135,7 @@ public class SpawnManager : MonoBehaviour
         BlockBehavior blockBehavior = block.GetComponent<BlockBehavior>();
         blockBehavior.gameMaster = gameMaster;
         blockBehavior.Start();
+        spawnedObjects.Add(block);
         return blockBehavior;
     }
 
@@ -68,6 +150,7 @@ public class SpawnManager : MonoBehaviour
         cluster.GetComponent<ClusterMessageBehavior>().Start();
         clusterBehavior.BFSRefresh();
         SystemClusters.Add(clusterBehavior);
+        spawnedObjects.Add(cluster);
         return clusterBehavior;
     }
 
@@ -80,10 +163,11 @@ public class SpawnManager : MonoBehaviour
         neutrinoBehavior.weightClass = weightClass;
         neutrinoBehavior.gameMaster = gameMaster;
         neutrinoBehavior.Start();
+        spawnedObjects.Add(neutrino);
         return neutrinoBehavior;
     }
 
-    public ElectronBehavior CreateElectron(int weightClass, float energy, int antiCharge)
+    public ElectronBehavior CreateElectron(int weightClass=1, float energy=100, int antiCharge=1)
     //Leptons can be created by wBosons decaying
     {
         GameObject electron = Instantiate(baseParticleRef);
@@ -93,6 +177,7 @@ public class SpawnManager : MonoBehaviour
         electronBehavior.antiCharge = antiCharge;
         electronBehavior.gameMaster = gameMaster;
         electronBehavior.Start();
+        spawnedObjects.Add(electron);
         return electronBehavior;
     }
     //Quarks can be created by wBosons decaying
@@ -105,6 +190,7 @@ public class SpawnManager : MonoBehaviour
         posQuarkBehavior.antiCharge = antiCharge;
         posQuarkBehavior.gameMaster = gameMaster;
         posQuarkBehavior.Start();
+        spawnedObjects.Add(posQuark);
         return posQuarkBehavior;
     }
     public DownBehavior CreateQuarkNeg(int weightClass, float energy, int antiCharge)
@@ -117,6 +203,7 @@ public class SpawnManager : MonoBehaviour
         negQuarkBehavior.antiCharge = antiCharge;
         negQuarkBehavior.gameMaster = gameMaster;
         negQuarkBehavior.Start();
+        spawnedObjects.Add(negQuark);
         return negQuarkBehavior;
     }
     public PhotonBehavior CreatePhoton(float energy, Vector3 direction)
@@ -131,6 +218,7 @@ public class SpawnManager : MonoBehaviour
         photonBehavior.transform.forward = direction;
         photonBehavior.gameMaster = gameMaster;
         photonBehavior.Start();
+        spawnedObjects.Add(photon);
         return photonBehavior;
     }
     public ZBosonBehavior CreateZBoson(int weightClass, float energy)
@@ -142,6 +230,7 @@ public class SpawnManager : MonoBehaviour
         zBosonBehavior.weightClass = weightClass;
         zBosonBehavior.gameMaster = gameMaster;
         zBosonBehavior.Start();
+        spawnedObjects.Add(zBoson);
         return zBosonBehavior;
     }
     public WBosonBehavior CreateWBoson(int weightClass, float energy, int antiCharge)
@@ -155,6 +244,7 @@ public class SpawnManager : MonoBehaviour
         wBosonBehavior.antiCharge = antiCharge;
         wBosonBehavior.gameMaster = gameMaster;
         wBosonBehavior.Start();
+        spawnedObjects.Add(wBoson);
         return wBosonBehavior;
     }
 }

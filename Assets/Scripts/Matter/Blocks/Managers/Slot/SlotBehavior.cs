@@ -81,7 +81,7 @@ public class SlotBehavior : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        if (!IsOccupied() && other.gameObject.CompareTag("Block") && slotManager.gameMaster.gameRules.SlotMessageCheck(this)) //Check if position doesn't equal the same and a connection hasn't been made
+        if (!IsOccupied() && other.gameObject.CompareTag("Block") && slotManager.gameMaster.currentGameRules.SlotMessageCheck(this)) //Check if position doesn't equal the same and a connection hasn't been made
         {
             if (!HasOccupantBlock())
             {

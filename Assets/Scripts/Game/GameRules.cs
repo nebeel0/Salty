@@ -10,20 +10,27 @@ public abstract class GameRules : MonoBehaviour
     // Base rules are that if one player controls everything, game over.
     // Otherwise its state based
     public GameMaster gameMaster;
-    public List<PlayerController> players;
 
     // Examples of states, if all particles are in a collider, or a game object collects a certain number of particles
     public abstract void Start();
 
     public abstract void Update();
 
-    public abstract void OnPlayerJoined(PlayerInput playerInput);
+    public abstract void PlayersSetup();
 
-    public abstract void OnPlayerLeft(PlayerInput playerInput);
+    public abstract void LevelSetup();
+
+    public abstract string GetGameDescription();
 
     public abstract bool TransitionCondition();
 
     public abstract bool EndCondition();
+
+
+    public void GoToEndMenu()
+    {
+
+    }
 
     public virtual bool SlotMessageCheck(SlotBehavior slot)
     {

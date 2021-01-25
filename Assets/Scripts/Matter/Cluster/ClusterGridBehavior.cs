@@ -8,15 +8,31 @@ public class ClusterGridBehavior : GameBehavior
     public GameObject BlockRef;
     public Vector3 blockDimension = Vector3.one;
     public float displacementFactor = 1.1f;
+    public bool createGridFlag;
 
-    void Start()
+
+    public override void Start()
+    {
+        base.Start();
+    }
+
+    public void Update()
+    {
+        if(createGridFlag)
+        {
+            CreateGrid();
+        }
+    }
+
+
+    public void CreateGrid()
     {
         displacementFactor = Mathf.Max(displacementFactor, 1.1f); //cannot be less than 1.1
 
         Vector3 dimensions = transform.localScale;
         Vector3 numBlocks = new Vector3();
 
-        for(int i=0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
         {
             float neededSpace = blockDimension[i] * displacementFactor;
             numBlocks[i] = (int)(dimensions[i] / neededSpace);
@@ -52,5 +68,6 @@ public class ClusterGridBehavior : GameBehavior
                 }
             }
         }
+        Destroy(gameObject);
     }
 }

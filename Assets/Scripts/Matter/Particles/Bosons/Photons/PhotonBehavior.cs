@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class PhotonBehavior : BosonBehavior
 {
-    public string particleType = ParticleUtils.pBoson;
+    public override void Start()
+    {
+        particleType = ParticleUtils.pBoson;
+        base.Start();
+    }
 
     protected override void OnTriggerEnter(Collider other)
     {

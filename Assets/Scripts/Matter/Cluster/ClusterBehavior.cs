@@ -13,32 +13,7 @@ public class ClusterBehavior : GameBehavior
     }
 
     public HashSet<BlockBehavior> blocks = new HashSet<BlockBehavior>();
-    public List<PlayerController> childPlayers
-    {
-        get
-        {
-            List<PlayerController> players = new List<PlayerController>();
-            foreach (Transform child in transform)
-            {
-                if (child.CompareTag("Player"))
-                {
-                    players.Add(child.gameObject.GetComponent<PlayerController>());
-                }
-            }
-            return players;
-        }
-    }
-    public PlayerController parentPlayer
-    {
-        get
-        {
-            if (transform.parent != null && transform.parent.CompareTag("Player"))
-            {
-                return transform.parent.gameObject.GetComponent<PlayerController>();
-            }
-            return null;
-        }
-    }
+    public HashSet<PlayerController> players = new HashSet<PlayerController>();
     public BlockBehavior trackingBlock;
     Vector3 offset;
     public bool IsOccupying()
@@ -60,6 +35,22 @@ public class ClusterBehavior : GameBehavior
     Vector3 max = Vector3.zero;
 
     Vector3 centerOfMass;
+
+    public void SetSize(float scaleFactor)
+    {
+        foreach(BlockBehavior block in blocks)
+        {
+            block.transform.localScale = transform.localScale * scaleFactor;
+        }
+    }
+
+    public void SetColor(Color color)
+    {
+        foreach (BlockBehavior block in blocks)
+        {
+            block.SetColor(color);
+        }
+    }
 
     public void AddBlock(BlockBehavior block)
     {
@@ -90,16 +81,10 @@ public class ClusterBehavior : GameBehavior
                 Physics.IgnoreCollision(childBlock.collider, childCluster.clusterMessageBehavior.messageSphere, false);
                 Physics.IgnoreCollision(childBlock.collider, parentCluster.clusterMessageBehavior.messageSphere);
             }
-            foreach (PlayerController player in childCluster.childPlayers)
+            foreach (PlayerController player in childCluster.players)
             {
                 player.cluster = parentCluster;
                 player.ResetParenting();
-            }
-
-            if (childCluster.parentPlayer != null)
-            {
-                childCluster.parentPlayer.cluster = parentCluster;
-                childCluster.parentPlayer.ResetParenting();
             }
 
             parentCluster.UpdateCenter();

@@ -125,20 +125,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc0d672a10de734439215fb7358af0f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerOverride: 0
-  collisionCooldown: 0
-  noBlockCollisionLayer: 16
-  blockLayer: 8
-  timerEnabled: 1
-  colliderEnabled: 0
-  particleRef: {fileID: 674584312230123643}
-  blockRef: {fileID: 4819842358078350356, guid: 37e523f2e600fcb448684e1434888982,
-    type: 3}
+  gameMaster: {fileID: 0}
+  particleType: 
   antiCharge: 1
-  particleStateType: quarkPos
+  weightClass: 1
   energy: 0
-  mass: 0
-  available: 1
 --- !u!114 &674584312230123641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,7 +146,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: d87c0ba0bc98a49439a5cea53f9f8357, type: 2}
+  sharedProfile: {fileID: 11400000, guid: 7b968a3b2c058244385f463b70c8bff7, type: 2}
 --- !u!96 &3203153327022824692
 TrailRenderer:
   serializedVersion: 2

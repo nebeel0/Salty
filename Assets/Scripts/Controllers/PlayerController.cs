@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerController : Controller
 {
     public ClusterBehavior cluster;
+    public CharacterBehavior character;
 
     protected bool visualToggle = true;
     protected bool lockOn = false;
@@ -26,7 +27,6 @@ public class PlayerController : Controller
         }
     }
 
-    //TODO collision frequency
     protected enum ActionQueueTypes
     {
         Default, //Launch Forward, or movement action
@@ -41,26 +41,21 @@ public class PlayerController : Controller
         Add,
     }
     protected ActionQueueModeTypes actionQueueMode = ActionQueueModeTypes.Default;
-    protected class ActionParams
-    {
-        public Vector3 direction;
-        public float scalar;
-        public bool lockOnFlag;
-        public float createdTime; //https://docs.unity3d.com/ScriptReference/Time-time.html
-
-        public ActionParams(Vector3 direction, float scalar, bool lockOnFlag)
-        {
-            this.direction = direction;
-            this.scalar = scalar;
-            this.lockOnFlag = lockOnFlag;
-            createdTime = Time.time; // TODO If we're simulating everything we'll need to do an advanced simulation that takes into account lost mass, since if we export a particle, and then travel, it'll be a different path, just copy the current state, and actually run everything?
-        }
-    }
     protected Dictionary<ActionQueueTypes, Queue<ActionParams>> actionQueues = new Dictionary<ActionQueueTypes, Queue<ActionParams>>();  //Maybe include time stamp so we can also execute them all in the order they were created
+
 
     void OnEnable()
     {
         Start();
+    }
+
+    public void Reset()
+    {
+        if(cluster != null)
+        {
+            cluster.players.Remove(this);
+        }
+        cluster = null;
     }
 
     public override void Start()

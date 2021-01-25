@@ -21,7 +21,7 @@ public class ClusterMessageBehavior : MonoBehaviour
 
     public void UpdateRadius()
     {
-        if(clusterBehavior.gameMaster.gameRules.ClusterMessageCheck(clusterBehavior))
+        if(clusterBehavior.gameMaster.currentGameRules != null && clusterBehavior.gameMaster.currentGameRules.ClusterMessageCheck(clusterBehavior))
         {
             messageSphere.enabled = true;
             messageSphere.radius = Mathf.Pow(2 * Vector3Utils.GetRadiusFromVolume(clusterBehavior.totalMass), 2);

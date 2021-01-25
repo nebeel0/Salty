@@ -9,8 +9,6 @@ public class ParticleBehavior : GameBehavior
 
     //Max 6:3 Quarks or 7 Leptons
     //Eight possible charge spin combinations
-
-
     public string particleType;
     public int antiCharge = 1;
     public int weightClass = 1;

@@ -61,12 +61,20 @@ public class GhostPlayerController : Controller
         Debug.Log("Colliding for ghost");
         if (col.gameObject.CompareTag("Block"))
         {
-            // TODO super block permission check to join
             ClusterBehavior cluster = col.gameObject.GetComponent<BlockBehavior>().cluster;
-            playerController.cluster = cluster;
-            playerController.enabled = true;
-            enabled = false;
+            if(cluster.players.Count > 0) // TODO cluster permission check to join
+            {
+                SetCluster(cluster);
+            }
         }
+    }
+
+    public void SetCluster(ClusterBehavior cluster)
+    {
+        cluster.players.Add(playerController);
+        playerController.cluster = cluster;
+        playerController.enabled = true;
+        enabled = false;
     }
 
 }

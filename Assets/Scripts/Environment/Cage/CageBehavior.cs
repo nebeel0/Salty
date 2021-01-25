@@ -5,9 +5,10 @@ using UnityEngine;
 public class CageBehavior : GameBehavior
 {
     //TODO support non box shaped cages
-    public Vector3 dimensions = new Vector3(500, 500, 500);
+    public Vector3 dimensions;
     public int resolution=10;  //default resolution of a plane is 10x10
     public GameObject cagePlaneRef;
+    public GameObject outerLimitRef;
     public int randomChance;
     public int coolDownTime = 120;
     public float fadeOutPeriodMax = 10;
@@ -21,7 +22,7 @@ public class CageBehavior : GameBehavior
     {
         get { return transform.localScale.x; } //Should be square-esque TODO shift so rectangles can exist
     }
-    void Start()
+    public override void Start()
     {
         if(resolution < 10)
         {
@@ -43,6 +44,8 @@ public class CageBehavior : GameBehavior
 
     GameObject GeneratePlane(int dim_1, int dim_2, bool opposite)
     {
+
+        GenerateLimitPlane(dim_1, dim_2, opposite);
         int planeType = 3 - dim_1 - dim_2;
         GameObject plane = Instantiate(cagePlaneRef, transform);
         CagePlaneBehavior planeBehavior= plane.GetComponent<CagePlaneBehavior>();
@@ -64,12 +67,13 @@ public class CageBehavior : GameBehavior
             case 0:
                 plane.transform.RotateAround(transform.position, Vector3.right, 90);
                 plane.transform.RotateAround(transform.position, Vector3.up, 90);
+                plane.transform.RotateAround(transform.position, Vector3.right, 90);
                 break;
             case 1:
                 break;
         }
 
-        float displaceDistance = dimensions[planeType] / 2;
+        float displaceDistance = dimensions[planeType];
         Vector3 rotatedAxis = Vector3.zero;
         Vector3 displacement = Vector3.zero;
         rotatedAxis[dim_1] = 1;
@@ -81,9 +85,45 @@ public class CageBehavior : GameBehavior
         }
         plane.transform.RotateAround(transform.position, rotatedAxis, 180);
         plane.transform.localPosition += displacement*scalingFactor;
+        plane.transform.localScale *= 2 * scalingFactor;
         return plane;
     }
 
+    GameObject GenerateLimitPlane(int dim_1, int dim_2, bool opposite)
+    {
+        int planeType = 3 - dim_1 - dim_2;
+        GameObject plane = Instantiate(outerLimitRef, transform);
+        plane.transform.localScale = new Vector3(dimensions[dim_1]/10, 1, dimensions[dim_2]/10);
+
+        switch (planeType)
+        {
+            case 2:
+                plane.transform.RotateAround(transform.position, Vector3.right, 90);
+                break;
+            case 0:
+                plane.transform.RotateAround(transform.position, Vector3.right, 90);
+                plane.transform.RotateAround(transform.position, Vector3.up, 90);
+                plane.transform.RotateAround(transform.position, Vector3.right, 90);
+                break;
+            case 1:
+                break;
+        }
+
+        float displaceDistance = dimensions[planeType] * 1.01f;
+        Vector3 rotatedAxis = Vector3.zero;
+        Vector3 displacement = Vector3.zero;
+        rotatedAxis[dim_1] = 1;
+        displacement[planeType] = displaceDistance;
+        if (opposite)
+        {
+            plane.transform.RotateAround(transform.position, rotatedAxis, 180);
+            displacement *= -1;
+        }
+        plane.transform.RotateAround(transform.position, rotatedAxis, 180);
+        plane.transform.localPosition += displacement * scalingFactor;
+        plane.transform.localScale *= 2 * scalingFactor;
+        return plane;
+    }
 
     int RoundToResolution(float param)
     {

@@ -4,5 +4,10 @@ using UnityEngine;
 
 public class WBosonBehavior : BosonBehavior
 {
-    public string particleType = ParticleUtils.wBoson;
+    public override void Start()
+    {
+        particleType = ParticleUtils.wBoson;
+        base.Start();
+    }
+
 }

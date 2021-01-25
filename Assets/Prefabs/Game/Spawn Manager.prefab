@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3968840213269502747}
   - component: {fileID: 3968840213269502756}
+  - component: {fileID: 3664490545395513111}
   m_Layer: 0
   m_Name: Spawn Manager
   m_TagString: GameMaster
@@ -43,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 530cdf2e7a360c54a9a6a87400e1be1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playMenuManager: {fileID: 0}
   gameMaster: {fileID: 0}
   cageRef: {fileID: 6885399982985865001, guid: 98350fa109818e849aaa8f7bde51eeaa, type: 3}
   playerRef: {fileID: 5763612623375676646, guid: b1c431149fa897141a085da212208e57,
@@ -54,4 +56,47 @@ MonoBehaviour:
   baseParticleRef: {fileID: 184509163437044687, guid: ec2e2228dac01384d8040fe6ebd96d6f,
     type: 3}
   particleLit: {fileID: 10301, guid: 0000000000000000f000000000000000, type: 0}
-  bounds: {x: 0, y: 0, z: 0}
+--- !u!114 &3664490545395513111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3968840213269502757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621567455fd1c4ceb811cc8a00b6a1a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_NotificationBehavior: 0
+  m_MaxPlayerCount: -1
+  m_AllowJoining: 0
+  m_JoinBehavior: 0
+  m_PlayerJoinedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_PlayerLeftEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_JoinAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Join
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 7a4a0df9-13d7-486b-8636-30732662ba57
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+    m_Reference: {fileID: 0}
+  m_PlayerPrefab: {fileID: 5763612623375676646, guid: b1c431149fa897141a085da212208e57,
+    type: 3}
+  m_SplitScreen: 1
+  m_MaintainAspectRatioInSplitScreen: 0
+  m_FixedNumberOfSplitScreens: -1
+  m_SplitScreenRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1

@@ -10,6 +10,8 @@ public class BlockBehavior : GameBehavior
     // TODO on merge change camera position
     // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
     // TODO rotate on block place
+    public static Color defaultColor = new Color(0.4f,0.4f,0.4f,0.06f);
+
     public GameObject ParticleRef;
     public int particleAnimationSpeed = 5;
 
@@ -31,7 +33,13 @@ public class BlockBehavior : GameBehavior
 
     public bool BeginnerElementFlag;
 
-    public void Start()
+
+    public void SetColor(Color color)
+    {
+        GetComponent<Renderer>().material.color = color;
+    }
+
+    public override void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
         slotManager.Start();
@@ -41,6 +49,7 @@ public class BlockBehavior : GameBehavior
         if (BeginnerElementFlag)
         {
             StartCoroutine(BeginnerElement()); //TODO replace with RandomElement
+            BeginnerElementFlag = false;
         }
         if (cluster == null) //TODO move into callback when blocks break links
         {

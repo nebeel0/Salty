@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Controller : MonoBehaviour
+public class Controller : GameBehavior
 {
     protected Transform target;
     public class RotationState
@@ -90,7 +90,7 @@ public class Controller : MonoBehaviour
         get { return GetComponent<Rigidbody>(); }
     }
 
-    public virtual void Start()
+    public override void Start()
     {
         foreach(Transform child in transform)
         {
@@ -160,17 +160,9 @@ public class Controller : MonoBehaviour
     protected void OnGamePause()
     {
         //TODO implement menu functions
-        if(enabled)
+        if(enabled && gameMaster.currentGameRules != null)
         {
-            gamePause = !gamePause;
-            if (gamePause)
-            {
-                Time.timeScale = 0;
-            }
-            else
-            {
-                Time.timeScale = 1;
-            }
+            gameMaster.menuManager.TogglePauseMenu();
         }
     }
 }
