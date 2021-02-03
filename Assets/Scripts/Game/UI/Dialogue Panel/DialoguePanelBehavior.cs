@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
-public class DialogueBehavior : MonoBehaviour
+public class DialoguePanelBehavior : MonoBehaviour
 {
     public TMP_Text dialogueText;
     public AudioClip typeSound1;

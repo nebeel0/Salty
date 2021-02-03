@@ -12,7 +12,7 @@ public class MenuManager : CustomMultiPanelBehavior
     public GameObject endMenuRef;
 
     public GameObject pauseGroup;
-    public DialogueManager dialogueManager;
+    public DialoguePanelManager dialogueManager;
     //TODO use WorldSpaceGUITransform to get overall size of object, 
     //create a mock to take up space, load it under its subpanel, for Start Menu so that title won't overlap
 

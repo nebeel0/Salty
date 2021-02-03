@@ -22,6 +22,7 @@ public class SpawnManager : MonoBehaviour
     public HashSet<ParticleBehavior> SystemParticles = new HashSet<ParticleBehavior>();
     public HashSet<ClusterBehavior> SystemClusters = new HashSet<ClusterBehavior>();
     public HashSet<PlayerController> players = new HashSet<PlayerController>();
+    public HashSet<PlayerController> aiPlayers = new HashSet<PlayerController>();
 
     public PlayerInputManager playerInputManager
     {
@@ -40,34 +41,33 @@ public class SpawnManager : MonoBehaviour
         players.Clear();
     }
 
+    public void DestroyAI(PlayerController aiPlayer)
+    {
+        aiPlayers.Remove(aiPlayer);
+        spawnedObjects.Remove(aiPlayer.gameObject);
+        Destroy(aiPlayer.gameObject);
+    }
+
     public void DestroyEverything()
     {
         foreach(PlayerController player in players)
         {
             player.transform.parent = null;
-            player.Reset();
+            player.OnGhostMode();
         }
-        //foreach (GameObject sceneElement in GameObject.FindObjectsOfType<GameObject>())
-        //{
-        //    if (sceneElement.transform.parent == null && sceneElement != gameMaster.gameObject && sceneElement.GetComponent<PlayerInput>() == null)
-        //    {
-        //        Destroy(sceneElement);
-        //    }
-        //}
         foreach (GameObject spawnedObject in spawnedObjects)
         {
             Destroy(spawnedObject);
         }
-
     }
 
     public void EquipDefaultPlayer(PlayerController player)
     {
-        player.Reset();
+        player.OnGhostMode();
         BlockBehavior defaultBlock = CreateBlock();
         defaultBlock.BeginnerElementFlag = true;
         defaultBlock.Start();
-        player.GetComponent<GhostPlayerController>().SetCluster(defaultBlock.cluster); 
+        defaultBlock.cluster.DetachDriver(player);
     }
 
     //Player Join/Left Utils
@@ -81,7 +81,10 @@ public class SpawnManager : MonoBehaviour
             controllers[i].gameMaster = gameMaster;
         }
         players.Add(player);
-        playMenuManager.AddPlayer(player);
+        if(playMenuManager != null)
+        {
+            playMenuManager.AddPlayer(player);
+        }
         //TODO Maybe coupling together with PlayMenuManager is not the best choice, but will have to do for now.
     }
 
@@ -113,6 +116,24 @@ public class SpawnManager : MonoBehaviour
             ElectronBehavior electron = CreateElectron();
             electron.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
         }
+    }
+
+    public PlayerController CreateAIPlayer()
+    //Created when collions occur between same types. Quarks, Leptons.
+    //Created when mass is too high
+    {
+        GameObject aiPlayer = Instantiate(playerRef);
+        PlayerController aiPlayerController = aiPlayer.GetComponent<PlayerController>();
+        aiPlayerController.gameMaster = gameMaster;
+
+        Destroy(aiPlayer.GetComponent<PlayerInput>());
+        aiPlayer.AddComponent<AIController>();
+        aiPlayer.GetComponent<AIController>().Start();
+
+        aiPlayers.Add(aiPlayerController);
+        spawnedObjects.Add(aiPlayer);
+        aiPlayerController.primaryCamera.gameObject.SetActive(false);
+        return aiPlayerController;
     }
 
     public CageBehavior CreateCage(Vector3 bounds)
@@ -147,8 +168,8 @@ public class SpawnManager : MonoBehaviour
         ClusterBehavior clusterBehavior = cluster.GetComponent<ClusterBehavior>();
         clusterBehavior.gameMaster = gameMaster;
         clusterBehavior.blocks = blocks;
-        cluster.GetComponent<ClusterMessageBehavior>().Start();
         clusterBehavior.BFSRefresh();
+        clusterBehavior.DetachDriver(CreateAIPlayer());
         SystemClusters.Add(clusterBehavior);
         spawnedObjects.Add(cluster);
         return clusterBehavior;

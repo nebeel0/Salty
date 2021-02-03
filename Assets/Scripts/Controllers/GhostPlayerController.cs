@@ -5,22 +5,29 @@ using UnityEngine.InputSystem;
 
 public class GhostPlayerController : Controller
 {
-    PlayerController playerController;
-    float ghostSpeed = 10;
+    PlayerController Player
+    {
+        get { return GetComponent<PlayerController>(); }
+    }
+
+    readonly float GhostSpeed = 10;
     // Start is called before the first frame update
 
     void OnEnable()
     {
+        Player.enabled = false;
         Start();
     }
 
     public override void Start()
     {
-        playerController = GetComponent<PlayerController>();
         transform.SetParent(null);
         gameObject.tag = "Ghost";
         GetComponent<SphereCollider>().enabled = true;
-        gameObject.AddComponent<Rigidbody>();
+        if(GetComponent<Rigidbody>() == null)
+        {
+            gameObject.AddComponent<Rigidbody>();
+        }
         GetComponent<Rigidbody>().isKinematic = true;
         GetComponent<Rigidbody>().useGravity = false;
         primaryCameraRootPosition = new Vector3(0, 0, 0);
@@ -33,28 +40,18 @@ public class GhostPlayerController : Controller
     {
         base.Update();
         GhostPositionUpdate();
-        DeathCheck();
     }
 
     protected void GhostPositionUpdate()
     {
         if(holdFlag)
         {
-            Vector3 newPosition = transform.position + transform.forward * ghostSpeed;
+            Vector3 newPosition = transform.position + transform.forward * GhostSpeed;
             transform.position = Vector3.Lerp(transform.position, newPosition, Time.deltaTime); //holdscalar is already created with time.delta
         }
         GetComponent<Rigidbody>().velocity = Vector3.zero;
         GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
     }
-
-    void DeathCheck()
-    {
-        if(transform.childCount <= 0)
-        {
-            Destroy(gameObject);
-        }
-    }
-
 
     void OnCollisionEnter(Collision col)
     {
@@ -62,19 +59,11 @@ public class GhostPlayerController : Controller
         if (col.gameObject.CompareTag("Block"))
         {
             ClusterBehavior cluster = col.gameObject.GetComponent<BlockBehavior>().cluster;
-            if(cluster.players.Count > 0) // TODO cluster permission check to join
+            if(cluster.driver.IsAI)
             {
-                SetCluster(cluster);
+                cluster.DetachDriver(newDriver: Player);
             }
         }
-    }
-
-    public void SetCluster(ClusterBehavior cluster)
-    {
-        cluster.players.Add(playerController);
-        playerController.cluster = cluster;
-        playerController.enabled = true;
-        enabled = false;
     }
 
 }

@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-public class DialogueResponseBehavior : CustomMenuBehavior
+public class DialoguePanelResponseBehavior : CustomMenuBehavior
 {
-    public DialogueManager dialogueManager;
+    public DialoguePanelManager dialogueManager;
     public CustomButtonBehavior[] options;
     public CustomButtonBehavior customOptionButton;
 
@@ -48,7 +48,6 @@ public class DialogueResponseBehavior : CustomMenuBehavior
         SetToLoadInPanel(defaultOptionsPanel);
         customOptionPanel.SetActive(false);
     }
-
 
     public override void PressButton(GameObject button)
     {

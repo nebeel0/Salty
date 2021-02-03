@@ -12,37 +12,24 @@ public class CharacterBehavior : GameBehavior
     public string primaryAlias;
     public HashSet<string> aliases;
     public Queue<DialogueAction> thoughts = new Queue<DialogueAction>();
-    public bool initiateDialogue;
-
+    public CharacterDialogueManager CharacterDialogueManager
+    {
+        get { return GetComponent<CharacterDialogueManager>(); }
+    }
+    public CharacterTriggerManager CharacterAutomationManager
+    {
+        get { return GetComponent<CharacterTriggerManager>(); }
+    }
+    public ClusterBehavior Cluster
+    {
+        get { return Player.cluster; }
+    }
+    public PlayerController Player
+    {
+        get { return GetComponent<PlayerController>(); }
+    }
     public override void Start()
     {
         base.Start();
-        thoughts.Enqueue(new DialogueAction("hello world", new List<string>() { "no", "yes" }));
-    }
-
-    private void Update()
-    {
-        if(initiateDialogue)
-        {
-            initiateDialogue = false;
-            InitiateDialogue();
-        }
-    }
-
-    public void Respond(string response)
-    {
-        bool responseEqual = response.Equals("yes");
-        if (responseEqual)
-        {
-            thoughts.Enqueue(new DialogueAction("hello world", new List<string>() { "no", "yes" }));
-        }
-        //TODO replace with some cool AI
-    }
-
-    public void InitiateDialogue()
-    {
-        gameMaster.menuManager.dialogueManager.SetSpeaker(this);
-    }
-
-
+    } 
 }

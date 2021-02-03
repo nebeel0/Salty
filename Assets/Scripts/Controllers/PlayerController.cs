@@ -5,8 +5,20 @@ using UnityEngine;
 
 public class PlayerController : Controller
 {
+    public GhostPlayerController Ghost
+    {
+        get { return GetComponent<GhostPlayerController>(); }
+    }
     public ClusterBehavior cluster;
-    public CharacterBehavior character;
+    public CharacterBehavior Character
+    {
+        get { return GetComponent<CharacterBehavior>(); }
+    }
+    
+    public bool IsAI
+    {
+        get { return GetComponent<AIController>() != null; }
+    }
 
     protected bool visualToggle = true;
     protected bool lockOn = false;
@@ -46,16 +58,8 @@ public class PlayerController : Controller
 
     void OnEnable()
     {
+        Ghost.enabled = false;
         Start();
-    }
-
-    public void Reset()
-    {
-        if(cluster != null)
-        {
-            cluster.players.Remove(this);
-        }
-        cluster = null;
     }
 
     public override void Start()
@@ -81,21 +85,12 @@ public class PlayerController : Controller
 
     protected override void Update()
     {
-        DeathCheck();
         base.Update();
         if(!godMode)
         {
             ActionQueueUpdate();
         }
         VisualUpdate();
-    }
-
-    protected void DeathCheck()
-    {
-        if(cluster == null)
-        {
-            Destroy(gameObject);
-        }
     }
 
     protected void ActionQueueUpdate()
@@ -168,14 +163,20 @@ public class PlayerController : Controller
         }
     }
 
-    void OnGhostMode()
+    public void OnGhostMode()
     {
         if (!enabled)
         {
             return;
         }
-        GetComponent<GhostPlayerController>().enabled = true;
-        enabled = false;
+        if(cluster != null)
+        {
+            cluster.DetachDriver();
+        }
+        else
+        {
+            Ghost.enabled = true;
+        }
     }
 
     void OnAddMode()

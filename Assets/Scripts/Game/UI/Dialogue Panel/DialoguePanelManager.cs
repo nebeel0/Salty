@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class DialogueManager : CustomMenuBehavior
+public class DialoguePanelManager : CustomMenuBehavior
 {
     //Manages loading title sequences, and character introductions
-    public DialogueBehavior titleIntroPanel;
-    public DialogueBehavior characterIntroPanel;
+    public DialoguePanelBehavior titleIntroPanel;
+    public DialoguePanelBehavior characterIntroPanel;
 
     public GameObject dialoguePanel;
-    public SpeakerBehavior speakerPanel;
-    public DialogueBehavior dialogueTextPanel;
-    public DialogueResponseBehavior dialogueResponsePanel;
+    public DialoguePanelSpeakerBehavior speakerPanel;
+    public DialoguePanelBehavior dialogueTextPanel;
+    public DialoguePanelResponseBehavior dialogueResponsePanel;
 
-    public CharacterBehavior currentSpeaker;
+    public CharacterDialogueManager currentSpeaker;
     public DialogueAction currentDialogueAction;
 
     public override void Start()
@@ -43,12 +43,12 @@ public class DialogueManager : CustomMenuBehavior
         ContinueDialogue();
     }
 
-    public void SetSpeaker(CharacterBehavior character)
+    public void SetSpeaker(CharacterDialogueManager speaker)
     {
-        if(character.thoughts.Count > 0)
+        if(speaker.Character.thoughts.Count > 0)
         {
-            currentSpeaker = character;
-            speakerPanel.SetCharacter(currentSpeaker);
+            currentSpeaker = speaker;
+            speakerPanel.SetCharacter(speaker.Character);
             if (!dialoguePanel.activeSelf)
             {
                 SetToLoadInPanel(dialoguePanel);
@@ -61,9 +61,9 @@ public class DialogueManager : CustomMenuBehavior
     public void ContinueDialogue()
     {
         //TODO implement a queue of messages, or a response system, if no responses, close the dialogue box.
-        if(currentSpeaker.thoughts.Count > 0)
+        if(currentSpeaker.Character.thoughts.Count > 0)
         {
-            currentDialogueAction = currentSpeaker.thoughts.Dequeue();
+            currentDialogueAction = currentSpeaker.Character.thoughts.Dequeue();
             dialogueTextPanel.TypeMessage(message: currentDialogueAction.dialogue);
             dialogueResponsePanel.SetOptions(currentDialogueAction.responses);
         }

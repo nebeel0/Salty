@@ -71,11 +71,11 @@ public class Controller : GameBehavior
     }
     public bool invertY = false;
 
-    protected PlayerInput playerInput;
+    public PlayerInput playerInput;
 
-    protected Camera primaryCamera;
+    public Camera primaryCamera;
     public float primaryCameraDisplacement = 0;
-    protected Vector3 primaryCameraRootPosition = new Vector3(0, 0.5f, 0); //TODO static element?
+    public Vector3 primaryCameraRootPosition = new Vector3(0, 0.5f, 0); //TODO static element?
 
     protected RotationState m_TargetCameraState = new RotationState();
     protected RotationState m_InterpolatingCameraState = new RotationState();
@@ -92,15 +92,7 @@ public class Controller : GameBehavior
 
     public override void Start()
     {
-        foreach(Transform child in transform)
-        {
-            if(child.gameObject.tag == "Player Camera")
-            {
-                primaryCamera = child.GetComponent<Camera>();
-            }
-        }
         primaryCamera.transform.localPosition = primaryCameraRootPosition;
-        playerInput = gameObject.GetComponent<PlayerInput>();
     }
     protected virtual void Update()
     {
@@ -160,7 +152,7 @@ public class Controller : GameBehavior
     protected void OnGamePause()
     {
         //TODO implement menu functions
-        if(enabled && gameMaster.currentGameRules != null)
+        if(enabled && gameMaster.CurrentGameRules != null)
         {
             gameMaster.menuManager.TogglePauseMenu();
         }

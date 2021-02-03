@@ -10,7 +10,6 @@ public class ClusterGridBehavior : GameBehavior
     public float displacementFactor = 1.1f;
     public bool createGridFlag;
 
-
     public override void Start()
     {
         base.Start();

@@ -6,7 +6,6 @@ public class GameBehavior : MonoBehaviour
 {
     public GameMaster gameMaster;
 
-
     public virtual void Start()
     {
         if(gameMaster == null)

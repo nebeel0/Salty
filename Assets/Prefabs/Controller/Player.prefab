@@ -15,6 +15,9 @@ GameObject:
   - component: {fileID: 8570985667867619600}
   - component: {fileID: 4068120909504960637}
   - component: {fileID: 5166121965498520156}
+  - component: {fileID: 2843379374478908114}
+  - component: {fileID: 1480351849043432888}
+  - component: {fileID: 7939704810949619983}
   m_Layer: 8
   m_Name: Player
   m_TagString: Ghost
@@ -146,8 +149,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9008b7e4151e62044acec564490ae86f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameMaster: {fileID: 0}
   invertY: 0
+  playerInput: {fileID: 5763612623375676641}
+  primaryCamera: {fileID: 5273338874624156905}
   primaryCameraDisplacement: 0
+  primaryCameraRootPosition: {x: 0, y: 0.5, z: 0}
   cluster: {fileID: 0}
 --- !u!114 &5763612623375676641
 MonoBehaviour:
@@ -296,8 +303,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f59ec2912cbd1f4429a4c47dd4c03897, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameMaster: {fileID: 0}
   invertY: 0
+  playerInput: {fileID: 5763612623375676641}
+  primaryCamera: {fileID: 5273338874624156905}
   primaryCameraDisplacement: 0
+  primaryCameraRootPosition: {x: 0, y: 0.5, z: 0}
 --- !u!135 &4068120909504960637
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -327,6 +338,45 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2843379374478908114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5763612623375676646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fff3c2e43c93fe4428c2e9a0121196e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameMaster: {fileID: 0}
+  primaryAlias: 
+--- !u!114 &1480351849043432888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5763612623375676646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af305a1cf04ea274ab70adc0f4cf362f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initiateDialogue: 0
+--- !u!114 &7939704810949619983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5763612623375676646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad38b5357ca9f418d0c935380c91e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &8234218838743356456
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -334,6 +384,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 5763612623375676632}
     m_Modifications:
+    - target: {fileID: 4281651850821480640, guid: f0e379cfc91b7d04497f61bef7c7fa74,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4281651850821480641, guid: f0e379cfc91b7d04497f61bef7c7fa74,
         type: 3}
       propertyPath: near clip plane

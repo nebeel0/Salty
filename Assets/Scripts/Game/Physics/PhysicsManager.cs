@@ -40,6 +40,10 @@ public class PhysicsManager : MonoBehaviour
         return totalSystemMass;
     }
 
+    public bool GravityCheck(ClusterBehavior cluster)
+    {
+        return cluster.totalMass >= 0.25f * TotalSystemMass() && cluster.totalMass >= 16;
+    }
 
 
 }

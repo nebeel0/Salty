@@ -22,7 +22,7 @@ public class GameMaster : MonoBehaviour
         transform.localScale = Vector3.one;
     }
 
-    public GameRules currentGameRules
+    public GameRules CurrentGameRules
     {
         get { return GetComponent<GameRules>(); }
     }
@@ -43,13 +43,13 @@ public class GameMaster : MonoBehaviour
 
     public void SetRules(Type gameRules)
     {
-        if(currentGameRules != null)
+        if(CurrentGameRules != null)
         {
-            Destroy(currentGameRules);
+            Destroy(CurrentGameRules);
         }
         spawnManager.players.Remove(null);
         gameObject.AddComponent(gameRules);
-        currentGameRules.gameMaster = this;
+        CurrentGameRules.gameMaster = this;
         if(menuManager.mainCamera.gameObject.activeSelf)
         {
             menuManager.mainCamera.gameObject.SetActive(false);
@@ -59,14 +59,23 @@ public class GameMaster : MonoBehaviour
     public void ClearGame()
     {
         spawnManager.DestroyEverything();
-        Destroy(currentGameRules);
+        Destroy(CurrentGameRules);
     }
 
     public void ResetGame()
     {
-        Type currentRules = currentGameRules.GetType();
+        Type currentRules = CurrentGameRules.GetType();
         ClearGame();
         SetRules(currentRules);
     }
 
+    public bool SlotMessageCheck(SlotBehavior slot)
+    {
+        return CurrentGameRules == null || CurrentGameRules.SlotMessageCheck(slot);
+    }
+
+    public bool ClusterMessageCheck(ClusterBehavior cluster)
+    {
+        return CurrentGameRules == null || CurrentGameRules.ClusterMessageCheck(cluster);
+    }
 }

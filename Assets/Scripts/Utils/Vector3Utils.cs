@@ -133,4 +133,20 @@ public static class Vector3Utils
         }
         objectToLerp.eulerAngles = originalAngles;
     }
+
+    public static void Attract(Collider other, Transform transform)
+    {
+        //Equal and opposite reactions
+        GameObject otherObject = other.gameObject;
+        Rigidbody otherRigidBody = otherObject.GetComponent<Rigidbody>();
+        Vector3 otherForce = transform.position - otherObject.transform.position;
+
+        float forceScalar = Vector3.Distance(transform.position, otherObject.transform.position);
+        forceScalar = 10 * (1 / Mathf.Pow(forceScalar + 0.1f, 2));
+
+        forceScalar = Mathf.Clamp(forceScalar, 0, 10);
+        otherForce = forceScalar * otherForce.normalized;
+
+        otherRigidBody.AddForce(otherForce, ForceMode.Force);
+    }
 }

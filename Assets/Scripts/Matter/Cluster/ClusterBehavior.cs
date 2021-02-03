@@ -7,13 +7,22 @@ using Unity.Collections;
 //Aggregates blocks
 public class ClusterBehavior : GameBehavior
 {
-    ClusterMessageBehavior clusterMessageBehavior
+    public SphereCollider MessageSphere;
+    public void UpdateMessageSphereRadius()
     {
-        get { return GetComponent<ClusterMessageBehavior>(); }
+        if (gameMaster.ClusterMessageCheck(this))
+        {
+            MessageSphere.enabled = true;
+            MessageSphere.radius = Mathf.Pow(2 * Vector3Utils.GetRadiusFromVolume(totalMass), 2);
+        }
+        else
+        {
+            MessageSphere.enabled = false;
+        }
     }
 
     public HashSet<BlockBehavior> blocks = new HashSet<BlockBehavior>();
-    public HashSet<PlayerController> players = new HashSet<PlayerController>();
+    public PlayerController driver;
     public BlockBehavior trackingBlock;
     Vector3 offset;
     public bool IsOccupying()
@@ -31,24 +40,21 @@ public class ClusterBehavior : GameBehavior
     public float totalMass; //We're going to treat each block as having the same mass.
     public float averageDrag; //We're going to treat each block as having the same mass.
     public float diagonal;
-    Vector3 min = Vector3.zero;
-    Vector3 max = Vector3.zero;
 
-    Vector3 centerOfMass;
-
-    public void SetSize(float scaleFactor)
+    public void DetachDriver(PlayerController newDriver=null)
     {
-        foreach(BlockBehavior block in blocks)
+        if(newDriver != driver)
         {
-            block.transform.localScale = transform.localScale * scaleFactor;
-        }
-    }
+            if(driver != null)
+            {
+                driver.cluster = null;
+                driver.Ghost.enabled = true;
+            }
 
-    public void SetColor(Color color)
-    {
-        foreach (BlockBehavior block in blocks)
-        {
-            block.SetColor(color);
+            driver = newDriver == null ? gameMaster.spawnManager.CreateAIPlayer() : newDriver;
+            driver.cluster = this;
+            driver.enabled = true;
+            UpdateMessageSphereRadius();
         }
     }
 
@@ -59,42 +65,49 @@ public class ClusterBehavior : GameBehavior
             ClusterBehavior parentCluster = block.cluster.totalMass > totalMass ? block.cluster : this;
             ClusterBehavior childCluster = block.cluster.totalMass <= totalMass ? block.cluster : this;
 
+            //bool parentIsAI = parentCluster.driver.GetComponent<AIController>() != null;
+            //bool childIsAI = childCluster.driver.GetComponent<AIController>() != null;
+            //bool oneRealDriverCheck = (parentIsAI && !childIsAI) || (childIsAI && !parentIsAI);
+
+            //PlayerController primaryPlayer; //Identify Real Player
+            //PlayerController discardedPlayer;
+
+            //if (oneRealDriverCheck)
+            //{
+            //    primaryPlayer = parentIsAI ? childCluster.driver : parentCluster.driver; //Identify Real Player
+            //    discardedPlayer = parentIsAI ? parentCluster.driver : childCluster.driver;
+            //} 
+            //else //In cases where the particants are both AI, or both players, the larger ones absorbs the other
+            //{
+            //    primaryPlayer = parentCluster.driver;
+            //    discardedPlayer = childCluster.driver;
+            //}
+            //primaryPlayer.cluster = null;
+            //discardedPlayer.cluster = null;
+            //parentCluster.DetachDriver(primaryPlayer);
+            //discardedPlayer.OnGhostMode();
+
+
             parentCluster.trackingBlock.name = "Block";
             childCluster.trackingBlock.name = "Block";
-
-            parentCluster.averageDrag = parentCluster.averageDrag * parentCluster.totalMass + childCluster.averageDrag * childCluster.totalMass;
-            parentCluster.averageDrag /= (parentCluster.totalMass + childCluster.totalMass);
-
-            parentCluster.centerOfMass = (parentCluster.transform.position * parentCluster.totalMass) + (childCluster.transform.position * childCluster.totalMass);
-            parentCluster.centerOfMass /= (parentCluster.totalMass + childCluster.totalMass);
-
-            parentCluster.totalMass = childCluster.totalMass + parentCluster.totalMass;
 
             foreach (BlockBehavior childBlock in childCluster.blocks)
             {
                 childBlock.cluster = parentCluster;
-                if(parentCluster.trackingBlock != childBlock)
+                if (parentCluster.trackingBlock != childBlock)
                 {
                     childBlock.name = "Block";
                 }
                 parentCluster.blocks.Add(childBlock);
-                Physics.IgnoreCollision(childBlock.collider, childCluster.clusterMessageBehavior.messageSphere, false);
-                Physics.IgnoreCollision(childBlock.collider, parentCluster.clusterMessageBehavior.messageSphere);
-            }
-            foreach (PlayerController player in childCluster.players)
-            {
-                player.cluster = parentCluster;
-                player.ResetParenting();
+                Physics.IgnoreCollision(childBlock.collider, childCluster.MessageSphere, false);
+                Physics.IgnoreCollision(childBlock.collider, parentCluster.MessageSphere);
             }
 
-            parentCluster.UpdateCenter();
-
-            parentCluster.UpdateMax(childCluster.max);
-            parentCluster.UpdateMin(childCluster.min);
-            parentCluster.UpdateDiagonal();
-
+            parentCluster.BFSRefresh();
             childCluster.blocks.Clear();
             childCluster.Death();
+            parentCluster.driver.ResetParenting();
+            parentCluster.UpdateMessageSphereRadius();
         }
     }
 
@@ -128,7 +141,6 @@ public class ClusterBehavior : GameBehavior
         Destroy(gameObject);
     }
 
-
     public void BFSRefresh()
     {
         BlockBehavior currentBlock;
@@ -137,7 +149,7 @@ public class ClusterBehavior : GameBehavior
 
         averageDrag = 0;
         totalMass = 0;
-        centerOfMass = Vector3.zero;
+        Vector3 currentCenter = Vector3.zero;
 
         BlockQueue.Enqueue(blocks.First());
         while (BlockQueue.Count != 0)
@@ -147,14 +159,11 @@ public class ClusterBehavior : GameBehavior
             {
                 currentBlock.cluster = this;
                 seenBlocks.Add(currentBlock);
-                Physics.IgnoreCollision(currentBlock.collider, clusterMessageBehavior.messageSphere);
+                Physics.IgnoreCollision(currentBlock.collider, MessageSphere);
                 Vector3 currentBlockPosition = currentBlock.transform.position;
                 totalMass += 1;
                 averageDrag += currentBlock.GetComponent<Rigidbody>().drag;
-                centerOfMass += currentBlockPosition;
-
-                UpdateMin(currentBlockPosition);
-                UpdateMax(currentBlockPosition);
+                currentCenter += currentBlockPosition;
 
                 foreach (SlotBehavior slot in currentBlock.slotManager.slots.Values)
                 {
@@ -172,7 +181,7 @@ public class ClusterBehavior : GameBehavior
             if(!seenBlocks.Contains(originalBlock))
             {
                 removedBlocks.Add(originalBlock);
-                Physics.IgnoreCollision(originalBlock.collider, clusterMessageBehavior.messageSphere, false);
+                Physics.IgnoreCollision(originalBlock.collider, MessageSphere, false);
             }
         }
         if(removedBlocks.Count > 0)
@@ -181,38 +190,40 @@ public class ClusterBehavior : GameBehavior
         }
         blocks = seenBlocks;
         averageDrag = averageDrag / blocks.Count;
-        centerOfMass /= totalMass;
-        UpdateDiagonal();
-        UpdateCenter();
-    }
-    
-    void UpdateMin(Vector3 point)
-    {
-        min.x = System.Math.Min(min.x, point.x);
-        min.y = System.Math.Min(min.y, point.y);
-        min.z = System.Math.Min(min.z, point.z);
-
+        currentCenter /= totalMass;
+        UpdateCenter(currentCenter);
     }
 
-    void UpdateMax(Vector3 point)
+    Vector3 GetFurthestBlock(Vector3 root)
     {
-        max.x = System.Math.Max(max.x, point.x);
-        max.y = System.Math.Max(max.y, point.y);
-        max.z = System.Math.Max(max.z, point.z);
+        Vector3 max = blocks.First().transform.position;
+        float distance = Vector3.Distance(root, max);
+        foreach (BlockBehavior block in blocks)
+        {
+            Vector3 currentPosition = block.transform.position;
+            float currDistance = Vector3.Distance(root, currentPosition);
+            if (currDistance > distance)
+            {
+                max = currentPosition;
+                distance = currDistance;
+            }
+        }
+        return max;
     }
 
     void UpdateDiagonal()
     {
-        diagonal = Vector3.Distance(min, max);
-        clusterMessageBehavior.UpdateRadius();
+        Vector3 furthestFromMiddle = GetFurthestBlock(trackingBlock.transform.position);
+        Vector3 furthestFromFurthest = GetFurthestBlock(furthestFromMiddle);
+        diagonal = Vector3.Distance(furthestFromFurthest, furthestFromMiddle) + 1;
     }
 
-    void UpdateCenter()
+    void UpdateCenter(Vector3 currentCenter)
     {
         float closestDistance = -1;
         foreach (BlockBehavior currentBlock in blocks)
         {
-            float currDistance = Vector3.Distance(centerOfMass, currentBlock.transform.position);
+            float currDistance = Vector3.Distance(currentCenter, currentBlock.transform.position);
             if (currDistance < closestDistance || closestDistance == -1)
             {
                 closestDistance = currDistance;
@@ -224,8 +235,9 @@ public class ClusterBehavior : GameBehavior
             }
         }
         trackingBlock.name = "Tracking Block";
-        offset = centerOfMass - trackingBlock.transform.position;
+        offset = trackingBlock.transform.InverseTransformPoint(currentCenter);
         UpdatePosition();
+        UpdateDiagonal();
     }
 
     public void UpdatePosition()
@@ -233,6 +245,25 @@ public class ClusterBehavior : GameBehavior
         transform.parent = trackingBlock.transform;
         transform.localPosition = offset;
         transform.localEulerAngles = Vector3.zero;
+    }
+
+    //Possible Actions
+    //TODO fire particle
+    //TODO fire energy
+    public void SetSize(float scaleFactor)
+    {
+        foreach (BlockBehavior block in blocks)
+        {
+            block.transform.localScale = transform.localScale * scaleFactor;
+        }
+    }
+
+    public void SetColor(Color color)
+    {
+        foreach (BlockBehavior block in blocks)
+        {
+            block.SetColor(color);
+        }
     }
 
     public void DistributeForce(Vector3 forceVector, ForceMode forceMode)
@@ -244,7 +275,6 @@ public class ClusterBehavior : GameBehavior
             block.GetComponent<Rigidbody>().AddForce(distributedForce, forceMode);
         }
     }
-
     public void Brake()
     {
         foreach(BlockBehavior block in blocks)
@@ -260,4 +290,15 @@ public class ClusterBehavior : GameBehavior
             block.GetComponent<Rigidbody>().freezeRotation = false;
         }
     }
+
+    //Character Routing Actions
+
+    void OnTriggerStay(Collider other)
+    {
+        //if(driver != null)
+        //{
+        //    driver.Character.CharacterAutomationManager.ClusterMessageTrigger(other);
+        //}
+    }
+
 }
