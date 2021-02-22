@@ -49,6 +49,7 @@ MonoBehaviour:
   cageRef: {fileID: 6885399982985865001, guid: 98350fa109818e849aaa8f7bde51eeaa, type: 3}
   playerRef: {fileID: 5763612623375676646, guid: b1c431149fa897141a085da212208e57,
     type: 3}
+  aiRef: {fileID: 3260019067003237477, guid: 8559ad0f2e07ce44eab9ca8058fe7b42, type: 3}
   clusterRef: {fileID: 6599264614019995199, guid: fbc2387b8f977f5418a4478edca94095,
     type: 3}
   blockRef: {fileID: 4819842358078350356, guid: 37e523f2e600fcb448684e1434888982,

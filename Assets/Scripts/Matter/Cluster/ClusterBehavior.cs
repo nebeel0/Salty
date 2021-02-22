@@ -47,12 +47,12 @@ public class ClusterBehavior : GameBehavior
         {
             if(driver != null)
             {
-                driver.cluster = null;
+                driver.Cluster = null;
                 driver.Ghost.enabled = true;
             }
 
             driver = newDriver == null ? gameMaster.spawnManager.CreateAIPlayer() : newDriver;
-            driver.cluster = this;
+            driver.Cluster = this;
             driver.enabled = true;
             UpdateMessageSphereRadius();
         }
@@ -64,29 +64,6 @@ public class ClusterBehavior : GameBehavior
         {
             ClusterBehavior parentCluster = block.cluster.totalMass > totalMass ? block.cluster : this;
             ClusterBehavior childCluster = block.cluster.totalMass <= totalMass ? block.cluster : this;
-
-            //bool parentIsAI = parentCluster.driver.GetComponent<AIController>() != null;
-            //bool childIsAI = childCluster.driver.GetComponent<AIController>() != null;
-            //bool oneRealDriverCheck = (parentIsAI && !childIsAI) || (childIsAI && !parentIsAI);
-
-            //PlayerController primaryPlayer; //Identify Real Player
-            //PlayerController discardedPlayer;
-
-            //if (oneRealDriverCheck)
-            //{
-            //    primaryPlayer = parentIsAI ? childCluster.driver : parentCluster.driver; //Identify Real Player
-            //    discardedPlayer = parentIsAI ? parentCluster.driver : childCluster.driver;
-            //} 
-            //else //In cases where the particants are both AI, or both players, the larger ones absorbs the other
-            //{
-            //    primaryPlayer = parentCluster.driver;
-            //    discardedPlayer = childCluster.driver;
-            //}
-            //primaryPlayer.cluster = null;
-            //discardedPlayer.cluster = null;
-            //parentCluster.DetachDriver(primaryPlayer);
-            //discardedPlayer.OnGhostMode();
-
 
             parentCluster.trackingBlock.name = "Block";
             childCluster.trackingBlock.name = "Block";
@@ -106,11 +83,10 @@ public class ClusterBehavior : GameBehavior
             parentCluster.BFSRefresh();
             childCluster.blocks.Clear();
             childCluster.Death();
-            parentCluster.driver.ResetParenting();
+            //parentCluster.driver.ResetParenting();
             parentCluster.UpdateMessageSphereRadius();
         }
     }
-
     public void RemoveBlock(BlockBehavior block)
     {
         blocks.Remove(block);
@@ -123,7 +99,6 @@ public class ClusterBehavior : GameBehavior
             Death();
         }
     }
-
     bool DeathCheck()
     {
         if (blocks.Count == 0)
@@ -132,7 +107,6 @@ public class ClusterBehavior : GameBehavior
         }
         return false;
     }
-
     void Death()
     {
         transform.DetachChildren();
@@ -140,7 +114,6 @@ public class ClusterBehavior : GameBehavior
         Debug.Log("Remaining Clusters: " + gameMaster.spawnManager.SystemClusters.Count().ToString());
         Destroy(gameObject);
     }
-
     public void BFSRefresh()
     {
         BlockBehavior currentBlock;
@@ -193,7 +166,6 @@ public class ClusterBehavior : GameBehavior
         currentCenter /= totalMass;
         UpdateCenter(currentCenter);
     }
-
     Vector3 GetFurthestBlock(Vector3 root)
     {
         Vector3 max = blocks.First().transform.position;
@@ -210,14 +182,12 @@ public class ClusterBehavior : GameBehavior
         }
         return max;
     }
-
     void UpdateDiagonal()
     {
         Vector3 furthestFromMiddle = GetFurthestBlock(trackingBlock.transform.position);
         Vector3 furthestFromFurthest = GetFurthestBlock(furthestFromMiddle);
         diagonal = Vector3.Distance(furthestFromFurthest, furthestFromMiddle) + 1;
     }
-
     void UpdateCenter(Vector3 currentCenter)
     {
         float closestDistance = -1;
@@ -239,7 +209,6 @@ public class ClusterBehavior : GameBehavior
         UpdatePosition();
         UpdateDiagonal();
     }
-
     public void UpdatePosition()
     {
         transform.parent = trackingBlock.transform;
@@ -269,6 +238,7 @@ public class ClusterBehavior : GameBehavior
     public void DistributeForce(Vector3 forceVector, ForceMode forceMode)
     {
         Vector3 distributedForce = forceVector / blocks.Count;
+        distributedForce = distributedForce / 10;
         //Vector3 distributedForce = forceVector;
         foreach (BlockBehavior block in blocks)
         {

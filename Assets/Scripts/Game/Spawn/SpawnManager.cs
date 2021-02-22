@@ -11,6 +11,7 @@ public class SpawnManager : MonoBehaviour
 
     public GameObject cageRef;
     public GameObject playerRef;
+    public GameObject aiRef;
     public GameObject clusterRef;
     public GameObject blockRef;
     public GameObject baseParticleRef;
@@ -27,6 +28,11 @@ public class SpawnManager : MonoBehaviour
     public PlayerInputManager playerInputManager
     {
         get { return GetComponent<PlayerInputManager>(); }
+    }
+
+    void Update()
+    {
+        players.Remove(null);
     }
 
     public void ClearPlayers()
@@ -74,26 +80,18 @@ public class SpawnManager : MonoBehaviour
     public void OnPlayerJoined(PlayerInput playerInput)
     {
         PlayerController player = playerInput.gameObject.GetComponent<PlayerController>();
-
-        Controller[] controllers = player.GetComponents<Controller>();
-        for(int i = 0; i < controllers.Length; i++)
-        {
-            controllers[i].gameMaster = gameMaster;
-        }
+        //BaseController[] controllers = player.GetComponents<BaseController>();
+        //for(int i = 0; i < controllers.Length; i++)
+        //{
+        //    controllers[i].gameMaster = gameMaster; //Sets GameMaster
+        //}
         players.Add(player);
-        if(playMenuManager != null)
-        {
-            playMenuManager.AddPlayer(player);
-        }
-        //TODO Maybe coupling together with PlayMenuManager is not the best choice, but will have to do for now.
     }
 
     public void OnPlayerLeft(PlayerInput playerInput)
     {
-        //PlayerController player = playerInput.gameObject.GetComponent<PlayerController>();
-        //players.Remove(player);
-        //playMenuManager.RemovePlayer(player);
-        //TODO Maybe coupling together with PlayMenuManager is not the best choice, but will have to do for now.
+        PlayerController player = playerInput.gameObject.GetComponent<PlayerController>();
+        players.Remove(player);
     }
 
     //Spawn Utils
@@ -122,18 +120,13 @@ public class SpawnManager : MonoBehaviour
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
-        GameObject aiPlayer = Instantiate(playerRef);
-        PlayerController aiPlayerController = aiPlayer.GetComponent<PlayerController>();
-        aiPlayerController.gameMaster = gameMaster;
+        GameObject aiPlayer = Instantiate(aiRef);
+        PlayerController aiController = aiPlayer.GetComponent<PlayerController>();
+        aiController.gameMaster = gameMaster;
 
-        Destroy(aiPlayer.GetComponent<PlayerInput>());
-        aiPlayer.AddComponent<AIController>();
-        aiPlayer.GetComponent<AIController>().Start();
-
-        aiPlayers.Add(aiPlayerController);
+        aiPlayers.Add(aiController);
         spawnedObjects.Add(aiPlayer);
-        aiPlayerController.primaryCamera.gameObject.SetActive(false);
-        return aiPlayerController;
+        return aiController;
     }
 
     public CageBehavior CreateCage(Vector3 bounds)

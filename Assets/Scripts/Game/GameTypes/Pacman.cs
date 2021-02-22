@@ -44,8 +44,8 @@ public class Pacman : GameRules
     void PacManSetUp()
     {
         pacMan.transform.position = Vector3.zero;
-        pacMan.cluster.SetSize(2);
-        pacMan.cluster.SetColor(pacManColor);
+        pacMan.Cluster.SetSize(2);
+        pacMan.Cluster.SetColor(pacManColor);
         //TODO make size twice as big, if no block count;
         //TODO change texture of block
         //TODO disable adding of blocks, except for player blocks.
@@ -64,7 +64,7 @@ public class Pacman : GameRules
                 {
                     pacMan = players[i];
                 }
-                players[i].cluster.trackingBlock.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
+                players[i].Cluster.trackingBlock.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             }
         }
     }
@@ -89,6 +89,6 @@ public class Pacman : GameRules
 
     public override bool SlotMessageCheck(SlotBehavior slot)
     {
-        return false;
+        return true;
     }
 }

@@ -37,7 +37,7 @@ public abstract class GameRules : MonoBehaviour
         return true;
     }
 
-    public bool ClusterMessageCheck(ClusterBehavior cluster) //Todo Move to GameRules
+    public bool ClusterMessageCheck(ClusterBehavior cluster)
     {
         return cluster.totalMass >= 0.25f * gameMaster.physicsManager.TotalSystemMass() && cluster.totalMass >= 16; //TODO fix arbitrary number, squares?
     }

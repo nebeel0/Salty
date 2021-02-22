@@ -15,7 +15,7 @@ public class CharacterManagerBehavior : MonoBehaviour
         get { return Character.Player; }
     }
 
-    public GhostPlayerController Ghost
+    public GhostController Ghost
     {
         get { return Character.Player.Ghost; }
     }

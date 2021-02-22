@@ -21,32 +21,48 @@ public class PlayMenuManager : CustomMenuBehavior
     TabBehavior CurrentParentTab;
     TabBehavior CurrentChildTab;
 
-    Dictionary<PlayerController, CustomTextBehavior> players = new Dictionary<PlayerController, CustomTextBehavior>();
-
-    void Start()
+    SpawnManager spawnManager
     {
-        menuManager.gameMaster.spawnManager.ClearPlayers();
+        get { return menuManager.gameMaster.spawnManager; }
+    }
+
+    public override void Start()
+    {
+        spawnManager.ClearPlayers();
         SetUpChildTabs();
         SetUpParentTabs();
 
         CurrentParentTab = ParentTabs.Keys.ToList()[0];
         CurrentParentTab.GetComponent<TabBehavior>().Select();
 
-        menuManager.gameMaster.spawnManager.playMenuManager = this;
-        menuManager.gameMaster.spawnManager.playerInputManager.EnableJoining();
+        spawnManager.playMenuManager = this;
+        spawnManager.playerInputManager.EnableJoining();
     }
 
-    public void AddPlayer(PlayerController player)
+    void Update()
     {
-        players[player] = Instantiate(CustomTextRef, Players.transform).GetComponent<CustomTextBehavior>();
-        players[player].SetText("Player " + players.Count.ToString());
+        foreach(Transform child in Players.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        foreach (PlayerController player in spawnManager.players)
+        {
+            CustomTextBehavior playerText = Instantiate(CustomTextRef, Players.transform).GetComponent<CustomTextBehavior>();
+            playerText.SetText("Player " + spawnManager.players.Count.ToString());
+        }
     }
 
-    public void RemovePlayer(PlayerController player)
-    {
-        Destroy(players[player].gameObject);
-        players.Remove(player);
-    }
+    //public void AddPlayer(ClusterController player)
+    //{
+    //    players[player] = Instantiate(CustomTextRef, Players.transform).GetComponent<CustomTextBehavior>();
+    //    players[player.SetText("Player " + players.Count.ToString());
+    //}
+
+    //public void RemovePlayer(ClusterController player)
+    //{
+    //    Destroy(players[player].gameObject);
+    //    players.Remove(player);
+    //}
 
     GameObject InstantiateTab(string name, Transform parent = null) //TODO handle enums for type of button
     {
@@ -97,7 +113,7 @@ public class PlayMenuManager : CustomMenuBehavior
         else if (tab == Initialize)
         {
             //TODO go to gameMaster and start game.
-            if(players.Count > 0)
+            if(spawnManager.players.Count > 0)
             {
                 menuManager.gameMaster.SetRules(ChildTabs[CurrentChildTab]);
                 Death();
@@ -115,8 +131,8 @@ public class PlayMenuManager : CustomMenuBehavior
 
     public override void Death()
     {
-        menuManager.gameMaster.spawnManager.playMenuManager = null;
-        menuManager.gameMaster.spawnManager.playerInputManager.DisableJoining();
+        spawnManager.playMenuManager = null;
+        spawnManager.playerInputManager.DisableJoining();
         base.Death();
     }
 

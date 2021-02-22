@@ -12,6 +12,10 @@ public class CharacterBehavior : GameBehavior
     public string primaryAlias;
     public HashSet<string> aliases;
     public Queue<DialogueAction> thoughts = new Queue<DialogueAction>();
+    public bool IsAI
+    {
+        get { return GetComponent<AI>() != null; }
+    }
     public CharacterDialogueManager CharacterDialogueManager
     {
         get { return GetComponent<CharacterDialogueManager>(); }
@@ -22,7 +26,7 @@ public class CharacterBehavior : GameBehavior
     }
     public ClusterBehavior Cluster
     {
-        get { return Player.cluster; }
+        get { return Player.Cluster; }
     }
     public PlayerController Player
     {
@@ -31,5 +35,5 @@ public class CharacterBehavior : GameBehavior
     public override void Start()
     {
         base.Start();
-    } 
+    }
 }
