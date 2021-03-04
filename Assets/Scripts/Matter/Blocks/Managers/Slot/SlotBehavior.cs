@@ -51,11 +51,11 @@ public class SlotBehavior : MonoBehaviour
     {
         if(this.otherSlot != otherSlot)
         {
-            OccupantBlock = otherSlot.slotManager.block;
+            OccupantBlock = otherSlot.slotManager.Block;
             this.otherSlot = otherSlot;
             Entangle(otherSlot);
 
-            otherSlot.OccupantBlock = slotManager.block;
+            otherSlot.OccupantBlock = slotManager.Block;
             otherSlot.otherSlot = this;
         }
     }
@@ -81,7 +81,7 @@ public class SlotBehavior : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        if (!IsOccupied() && other.gameObject.CompareTag("Block") && slotManager.gameMaster.SlotMessageCheck(this)) //Check if position doesn't equal the same and a connection hasn't been made
+        if (!IsOccupied() && other.gameObject.CompareTag("Block") && slotManager.slotLockEnabled) //Check if position doesn't equal the same and a connection hasn't been made
         {
             if (!HasOccupantBlock())
             {
@@ -112,7 +112,7 @@ public class SlotBehavior : MonoBehaviour
                     }
                     else
                     {
-                        Vector3Utils.Align(rootObject: slotManager.block.gameObject, objectToAttract: other.gameObject, desiredTransform: transform, attractionFactor: slotManager.attractionFactor);
+                        Vector3Utils.Align(rootObject: slotManager.Block.gameObject, objectToAttract: other.gameObject, desiredTransform: transform, attractionFactor: slotManager.attractionFactor);
                     }
                 }
             }
@@ -129,7 +129,7 @@ public class SlotBehavior : MonoBehaviour
 
     bool OccupantAlignedCheck()
     {
-        GameObject thisBlock = slotManager.block.gameObject;
+        GameObject thisBlock = slotManager.Block.gameObject;
         GameObject otherBlock = OccupantBlock.gameObject; //Other collider is actually the rigidbody collider attached to the object
 
         float threshold = 0.05f;
@@ -146,7 +146,7 @@ public class SlotBehavior : MonoBehaviour
 
     void LockOccupant()
     {
-        GameObject thisBlock = slotManager.block.gameObject;
+        GameObject thisBlock = slotManager.Block.gameObject;
         GameObject otherBlock = OccupantBlock.gameObject;
 
         otherBlock.transform.eulerAngles = thisBlock.transform.eulerAngles;
@@ -205,7 +205,7 @@ public class SlotBehavior : MonoBehaviour
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
             Vector3 relativePosition = GetRelativeElectronPosition(connectingElectronPositions[i]);
-            ElectronPosition otherElectronPosition = otherSlot.slotManager.block.electronManager.electronPositionDictionary[relativePosition.ToString()];
+            ElectronPosition otherElectronPosition = otherSlot.slotManager.Block.electronManager.electronPositionDictionary[relativePosition.ToString()];
             connectingElectronPositions[i].Entangle(otherElectronPosition);
         }
     }
@@ -215,7 +215,7 @@ public class SlotBehavior : MonoBehaviour
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
             Vector3 relativePosition = GetRelativeElectronPosition(connectingElectronPositions[i]);
-            ElectronPosition otherElectronPosition = otherSlot.slotManager.block.electronManager.electronPositionDictionary[relativePosition.ToString()];
+            ElectronPosition otherElectronPosition = otherSlot.slotManager.Block.electronManager.electronPositionDictionary[relativePosition.ToString()];
             connectingElectronPositions[i].Untangle(otherElectronPosition);
         }
     }
@@ -273,7 +273,7 @@ public class SlotBehavior : MonoBehaviour
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
             Vector3 relativePosition = GetRelativeElectronPosition(connectingElectronPositions[i]);
-            ElectronPosition otherElectronPosition = otherSlot.slotManager.block.electronManager.electronPositionDictionary[relativePosition.ToString()];
+            ElectronPosition otherElectronPosition = otherSlot.slotManager.Block.electronManager.electronPositionDictionary[relativePosition.ToString()];
             if(otherElectronPosition.electron != null && connectingElectronPositions[i].electron != null && connectingElectronPositions[i].electron != otherElectronPosition.electron)
             {
                 return true;
@@ -320,7 +320,7 @@ public class SlotBehavior : MonoBehaviour
     void AttractLineUpdate()
     {
         Vector3[] points = new Vector3[2];
-        points[0] = slotManager.block.transform.position;
+        points[0] = slotManager.Block.transform.position;
         points[1] = OccupantBlock.transform.position;
         lineRenderer.positionCount = points.Length;
         lineRenderer.SetPositions(points);
@@ -331,7 +331,7 @@ public class SlotBehavior : MonoBehaviour
         Vector3[] points = new Vector3[4];
         for(int i=0; i < points.Length; i++)
         {
-            points[i] = slotManager.block.transform.TransformPoint(connectingElectronPositions[i].position);
+            points[i] = slotManager.Block.transform.TransformPoint(connectingElectronPositions[i].position);
         }
         lineRenderer.positionCount = points.Length;
         lineRenderer.SetPositions(points);
@@ -344,7 +344,7 @@ public class SlotBehavior : MonoBehaviour
         {
             if(connectingElectronPositions[i].electron != null)
             {
-                points.Add(slotManager.block.transform.TransformPoint(connectingElectronPositions[i].position));
+                points.Add(slotManager.Block.transform.TransformPoint(connectingElectronPositions[i].position));
             }
         }
         lineRenderer.positionCount = points.Count;

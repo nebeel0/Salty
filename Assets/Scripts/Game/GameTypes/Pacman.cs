@@ -9,43 +9,30 @@ public class Pacman : GameRules
     //Players can grow bigger by connecting to other blocks.
     //Largest player becomes pac man, and can no longer grow except by consuming players
     //Other players are incentivized to break apart pac man, or become larger than pac man.
-    public PlayerController pacMan;
+    public PlayerControlManager pacMan;
+
+    float timer = 5; 
+
 
     Color pacManColor = new Color(1, 0, 0, 0.4f);
     Vector3 bounds = new Vector3(50, 50, 50);
     int seed = 50;
-
 
     public override string GetGameDescription()
     {
         return "A game where the biggest player hunts everyone else.";
     }
 
-    public override void Start()
-    {
-        Debug.Log("Setting Up Pacman level");
-        PlayersSetup();
-        PacManSetUp();
-        LevelSetup();
-    }
-
     public override void Update()
     {
-        if (TransitionCondition())
-        {
-
-        }
-        if (EndCondition())
-        {
-
-        }
+        base.Update();
     }
 
     void PacManSetUp()
     {
         pacMan.transform.position = Vector3.zero;
-        pacMan.Cluster.SetSize(2);
-        pacMan.Cluster.SetColor(pacManColor);
+        //pacMan.Cluster.SetSize(2);
+        //pacMan.Cluster.SetColor(pacManColor);
         //TODO make size twice as big, if no block count;
         //TODO change texture of block
         //TODO disable adding of blocks, except for player blocks.
@@ -53,7 +40,7 @@ public class Pacman : GameRules
 
     public override void PlayersSetup()
     {
-        List<PlayerController> players = gameMaster.spawnManager.players.ToList();
+        List<PlayerControlManager> players = gameMaster.spawnManager.players.ToList();
         if(pacMan == null)
         {
             int randomPlayer = Random.Range(0, players.Count);
@@ -64,9 +51,10 @@ public class Pacman : GameRules
                 {
                     pacMan = players[i];
                 }
-                players[i].Cluster.trackingBlock.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
+                //players[i].Cluster.trackingBlock.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             }
         }
+        PacManSetUp();
     }
 
     public override void LevelSetup()
@@ -75,8 +63,6 @@ public class Pacman : GameRules
         gameMaster.spawnManager.SpawnBlocks(seed, bounds);
     }
 
-
-
     public override bool TransitionCondition()
     {
         return false;
@@ -84,11 +70,11 @@ public class Pacman : GameRules
 
     public override bool EndCondition()
     {
+        //timer -= Time.deltaTime;
+        //if(timer <= 0)
+        //{
+        //    return true;
+        //}
         return false;
-    }
-
-    public override bool SlotMessageCheck(SlotBehavior slot)
-    {
-        return true;
     }
 }

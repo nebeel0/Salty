@@ -23,7 +23,6 @@ public class ClusterGridBehavior : GameBehavior
         }
     }
 
-
     public void CreateGrid()
     {
         displacementFactor = Mathf.Max(displacementFactor, 1.1f); //cannot be less than 1.1
@@ -61,6 +60,7 @@ public class ClusterGridBehavior : GameBehavior
                     instatiatedBlock.GetComponent<BlockBehavior>().gameMaster = gameMaster;
                     instatiatedBlock.GetComponent<BlockBehavior>().BeginnerElementFlag = true;
                     instatiatedBlock.GetComponent<BlockBehavior>().slotManager.displacementFactor = displacementFactor;
+                    instatiatedBlock.GetComponent<BlockBehavior>().slotManager.slotLockEnabled = true;
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;
                     instatiatedBlock.transform.localScale = blockDimension;

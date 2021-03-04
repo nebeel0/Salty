@@ -45,7 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameMaster: {fileID: 0}
-  MessageSphere: {fileID: 900530350318824401}
+  gravityEnabled: 0
+  GravitySphere: {fileID: 900530350318824401}
   trackingBlock: {fileID: 0}
   totalMass: 0
   averageDrag: 0

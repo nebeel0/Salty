@@ -39,8 +39,6 @@ public class GameMaster : MonoBehaviour
     public NetworkManager networkManager;
     public CageBehavior cage;
 
-    //Mass Rules Check
-
     public void SetRules(Type gameRules)
     {
         if(CurrentGameRules != null)
@@ -67,15 +65,5 @@ public class GameMaster : MonoBehaviour
         Type currentRules = CurrentGameRules.GetType();
         ClearGame();
         SetRules(currentRules);
-    }
-
-    public bool SlotMessageCheck(SlotBehavior slot)
-    {
-        return CurrentGameRules == null || CurrentGameRules.SlotMessageCheck(slot);
-    }
-
-    public bool ClusterMessageCheck(ClusterBehavior cluster)
-    {
-        return CurrentGameRules == null || CurrentGameRules.ClusterMessageCheck(cluster);
     }
 }

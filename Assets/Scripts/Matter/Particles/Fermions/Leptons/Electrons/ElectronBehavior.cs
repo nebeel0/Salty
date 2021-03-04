@@ -25,7 +25,7 @@ public class ElectronBehavior : LeptonBehavior
             lineRenderer.enabled = true;
             List<Vector3> points = new List<Vector3>();
 
-            BlockBehavior block = electronPosition.electronManager.block;
+            BlockBehavior block = electronPosition.electronManager.Block;
 
             points.Add(transform.position);
 

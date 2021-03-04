@@ -7,22 +7,23 @@ using Unity.Collections;
 //Aggregates blocks
 public class ClusterBehavior : GameBehavior
 {
-    public SphereCollider MessageSphere;
-    public void UpdateMessageSphereRadius()
+    public bool gravityEnabled = false;
+    public SphereCollider GravitySphere;
+    public void UpdateGravitySphereRadius()
     {
-        if (gameMaster.ClusterMessageCheck(this))
+        bool largeRelativeMass = totalMass >= 0.25f * gameMaster.physicsManager.TotalSystemMass() && totalMass >= 1000;
+        if (largeRelativeMass && gravityEnabled)
         {
-            MessageSphere.enabled = true;
-            MessageSphere.radius = Mathf.Pow(2 * Vector3Utils.GetRadiusFromVolume(totalMass), 2);
+            GravitySphere.enabled = true;
+            GravitySphere.radius = Mathf.Pow(2 * Vector3Utils.GetRadiusFromVolume(totalMass), 2);
         }
         else
         {
-            MessageSphere.enabled = false;
+            GravitySphere.enabled = false;
         }
     }
 
     public HashSet<BlockBehavior> blocks = new HashSet<BlockBehavior>();
-    public PlayerController driver;
     public BlockBehavior trackingBlock;
     Vector3 offset;
     public bool IsOccupying()
@@ -40,23 +41,6 @@ public class ClusterBehavior : GameBehavior
     public float totalMass; //We're going to treat each block as having the same mass.
     public float averageDrag; //We're going to treat each block as having the same mass.
     public float diagonal;
-
-    public void DetachDriver(PlayerController newDriver=null)
-    {
-        if(newDriver != driver)
-        {
-            if(driver != null)
-            {
-                driver.Cluster = null;
-                driver.Ghost.enabled = true;
-            }
-
-            driver = newDriver == null ? gameMaster.spawnManager.CreateAIPlayer() : newDriver;
-            driver.Cluster = this;
-            driver.enabled = true;
-            UpdateMessageSphereRadius();
-        }
-    }
 
     public void AddBlock(BlockBehavior block)
     {
@@ -76,15 +60,14 @@ public class ClusterBehavior : GameBehavior
                     childBlock.name = "Block";
                 }
                 parentCluster.blocks.Add(childBlock);
-                Physics.IgnoreCollision(childBlock.collider, childCluster.MessageSphere, false);
-                Physics.IgnoreCollision(childBlock.collider, parentCluster.MessageSphere);
+                Physics.IgnoreCollision(childBlock.collider, childCluster.GravitySphere, false);
+                Physics.IgnoreCollision(childBlock.collider, parentCluster.GravitySphere);
             }
 
             parentCluster.BFSRefresh();
             childCluster.blocks.Clear();
             childCluster.Death();
-            //parentCluster.driver.ResetParenting();
-            parentCluster.UpdateMessageSphereRadius();
+            parentCluster.UpdateGravitySphereRadius();
         }
     }
     public void RemoveBlock(BlockBehavior block)
@@ -111,7 +94,6 @@ public class ClusterBehavior : GameBehavior
     {
         transform.DetachChildren();
         gameMaster.spawnManager.SystemClusters.Remove(this);
-        Debug.Log("Remaining Clusters: " + gameMaster.spawnManager.SystemClusters.Count().ToString());
         Destroy(gameObject);
     }
     public void BFSRefresh()
@@ -132,7 +114,7 @@ public class ClusterBehavior : GameBehavior
             {
                 currentBlock.cluster = this;
                 seenBlocks.Add(currentBlock);
-                Physics.IgnoreCollision(currentBlock.collider, MessageSphere);
+                Physics.IgnoreCollision(currentBlock.collider, GravitySphere);
                 Vector3 currentBlockPosition = currentBlock.transform.position;
                 totalMass += 1;
                 averageDrag += currentBlock.GetComponent<Rigidbody>().drag;
@@ -154,7 +136,7 @@ public class ClusterBehavior : GameBehavior
             if(!seenBlocks.Contains(originalBlock))
             {
                 removedBlocks.Add(originalBlock);
-                Physics.IgnoreCollision(originalBlock.collider, MessageSphere, false);
+                Physics.IgnoreCollision(originalBlock.collider, GravitySphere, false);
             }
         }
         if(removedBlocks.Count > 0)
@@ -209,66 +191,27 @@ public class ClusterBehavior : GameBehavior
         UpdatePosition();
         UpdateDiagonal();
     }
-    public void UpdatePosition()
+    void UpdatePosition()
     {
         transform.parent = trackingBlock.transform;
         transform.localPosition = offset;
         transform.localEulerAngles = Vector3.zero;
     }
 
-    //Possible Actions
-    //TODO fire particle
-    //TODO fire energy
-    public void SetSize(float scaleFactor)
-    {
-        foreach (BlockBehavior block in blocks)
-        {
-            block.transform.localScale = transform.localScale * scaleFactor;
-        }
-    }
-
-    public void SetColor(Color color)
-    {
-        foreach (BlockBehavior block in blocks)
-        {
-            block.SetColor(color);
-        }
-    }
-
-    public void DistributeForce(Vector3 forceVector, ForceMode forceMode)
-    {
-        Vector3 distributedForce = forceVector / blocks.Count;
-        distributedForce = distributedForce / 10;
-        //Vector3 distributedForce = forceVector;
-        foreach (BlockBehavior block in blocks)
-        {
-            block.GetComponent<Rigidbody>().AddForce(distributedForce, forceMode);
-        }
-    }
-    public void Brake()
-    {
-        foreach(BlockBehavior block in blocks)
-        {
-            block.GetComponent<Rigidbody>().velocity = Vector3.zero;
-            block.GetComponent<Rigidbody>().freezeRotation = true;
-        }
-    }
-    public void UnBrake()
-    {
-        foreach (BlockBehavior block in blocks)
-        {
-            block.GetComponent<Rigidbody>().freezeRotation = false;
-        }
-    }
-
-    //Character Routing Actions
 
     void OnTriggerStay(Collider other)
     {
-        //if(driver != null)
-        //{
-        //    driver.Character.CharacterAutomationManager.ClusterMessageTrigger(other);
-        //}
+        if (other.CompareTag("Block"))
+        {
+            BlockBehavior otherBlock = other.gameObject.GetComponent<BlockBehavior>();
+            if (otherBlock != null)
+            {
+                if (!otherBlock.cluster.IsOccupying() && !IsOccupying() && otherBlock.cluster != this)
+                {
+                    Vector3Utils.Attract(other: other, transform: transform);
+                }
+            }
+        }
     }
 
 }

@@ -12,9 +12,9 @@ public class AI : MonoBehaviour
 
     bool active;
 
-    PlayerController Player //TODO remove this as it can be any controller
+    PlayerControlManager Player //TODO remove this as it can be any controller
     {
-        get { return GetComponent<PlayerController>(); }
+        get { return GetComponent<PlayerControlManager>(); }
     }
 
     public void Start()
@@ -25,17 +25,17 @@ public class AI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //if(Player.Ghost.enabled)
-        //{
-        //    Player.gameMaster.spawnManager.DestroyAI(Player);
-        //}
-        //else
-        //{
-        //    //if(active)
-        //    //{
-        //    //    TargetPlayerWalk();
-        //    //}
-        //}
+        if (Player.IsGhost())
+        {
+            Player.gameMaster.spawnManager.DestroyAI(Player);
+        }
+        else
+        {
+            if (active)
+            {
+                //TargetPlayerWalk();
+            }
+        }
     }
 
 
@@ -48,7 +48,9 @@ public class AI : MonoBehaviour
         else
         {
             timer = cooldown;
-            Vector2 randomPerspective = new Vector2(Random.Range(-20f, 20f), Random.Range(-20f, 20f));
+            //Vector2 randomPerspective = new Vector2(Random.Range(-20f, 20f), Random.Range(-20f, 20f));
+            //Player.GetComponent<Controller.RotationSubController>().LookAt(firstPlayer.transform);
+            //Player.GetComponent<Controller.MovementSubController>().OnMove(new Vector2(0, 1));
             //Player.SetLookDelta(randomPerspective);
             //Player.OnHold();
         }
@@ -56,6 +58,11 @@ public class AI : MonoBehaviour
 
     void TargetPlayerWalk()
     {
+        if (Player.GetComponent<Controller.JumpMovementSubController>() != null)
+        {
+            Player.OnScrollSlot(new Vector2(0, 1));
+        }
+
         if (timer > 0)
         {
             timer -= Time.deltaTime;
@@ -63,11 +70,11 @@ public class AI : MonoBehaviour
         else
         {
             timer = cooldown;
-            PlayerController firstPlayer = Player.gameMaster.spawnManager.players.First();
-            if(firstPlayer != null && !firstPlayer.Ghost.enabled)
+            PlayerControlManager firstPlayer = Player.gameMaster.spawnManager.players.First();
+            if (firstPlayer != null && !firstPlayer.IsGhost())
             {
-                //Player.LookAt(firstPlayer.transform);
-                //Player.OnHold();
+                Player.GetComponent<Controller.RotationSubController>().LookAt(firstPlayer.transform);
+                Player.GetComponent<Controller.MovementSubController>().OnMove(new Vector2(0, 1));
             }
             else
             {

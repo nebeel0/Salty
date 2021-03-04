@@ -11,46 +11,26 @@ namespace Controller
 {
     public class SubController : MonoBehaviour
     {
-        public PlayerController Player
+        public PlayerControlManager Player
         {
-            get { return GetComponent<PlayerController>(); }
+            get { return GetComponent<PlayerControlManager>(); }
         }
-        public ClusterBehavior Cluster
+        public ClusterBehavior GetCluster()
         {
-            get { return Player.Cluster; }
+            return Player.GetCluster();
         }
-        //String ProcessorBaseType
-        //{
-        //    get { return GetType().Name.Replace("SubController", "Processor"); }
-        //}
+        public bool IsGhost()
+        {
+            return Player.IsGhost();
+        }
+        public bool IsBlock()
+        {
+            return Player.IsBlock();
+        }
+        public bool IsCluster()
+        {
+            return Player.IsCluster();
+        }
 
-        //void Start()
-        //{
-        //    if(GetProcessor() == null)
-        //    {
-        //        List<Type> processors = GetAvailableProcessors();
-        //        SetProcessor(processors[0]);
-        //    }
-        //}
-
-        //public void SetProcessor(Type processor)
-        //{
-        //    if(GetProcessor() != null)
-        //    {
-        //        //TODO delete the current processor
-        //    }
-        //    gameObject.AddComponent(processor);
-        //}
-
-        //public Processor GetProcessor()
-        //{
-        //    return (Processor) GetComponent(ProcessorBaseType);
-        //}
-
-        //public List<Type> GetAvailableProcessors()
-        //{
-        //    List<Type> availableProccessors = Assembly.GetExecutingAssembly().GetTypes().Where(t => String.Equals(t.BaseType.Name, ProcessorBaseType, StringComparison.Ordinal)).ToList();
-        //    return availableProccessors;
-        //}
     }
 }

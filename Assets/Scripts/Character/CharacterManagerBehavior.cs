@@ -10,18 +10,8 @@ public class CharacterManagerBehavior : MonoBehaviour
         get { return GetComponent<CharacterBehavior>(); }
     }
 
-    public PlayerController Player
+    public PlayerControlManager Player
     {
         get { return Character.Player; }
-    }
-
-    public GhostController Ghost
-    {
-        get { return Character.Player.Ghost; }
-    }
-
-    public ClusterBehavior Cluster
-    {
-        get { return Character.Cluster; }
     }
 }

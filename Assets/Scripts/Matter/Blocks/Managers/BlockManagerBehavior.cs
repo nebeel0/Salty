@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BlockManagerBehavior : MonoBehaviour
 {
-    public BlockBehavior block
+    public BlockBehavior Block
     {
         get { 
             if(transform.parent != null && transform.parent.CompareTag("Block"))
@@ -19,7 +19,7 @@ public class BlockManagerBehavior : MonoBehaviour
     {
         get
         {
-            return block.gameMaster;
+            return Block.gameMaster;
         }
     }
 

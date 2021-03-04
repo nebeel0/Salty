@@ -12,7 +12,7 @@ public class ElectronManagerBehavior : BlockManagerBehavior
 
     public bool IsNetPositiveOrNeutral(ElectronBehavior electron)
     {
-        return electron.effectiveCharge + block.GetNetCharge() >= 0;
+        return electron.effectiveCharge + Block.GetNetCharge() >= 0;
     }
 
     public bool HasSpace()
@@ -72,13 +72,13 @@ public class ElectronManagerBehavior : BlockManagerBehavior
         electronPositions = new ElectronPosition[electronsMax];
         for (int i = 0; i < 2; i++)
         {
-            float currX = Mathf.Pow(-1, i) * 0.5f * transform.localScale.x * block.slotManager.displacementFactor;
+            float currX = Mathf.Pow(-1, i) * 0.5f * transform.localScale.x * Block.slotManager.displacementFactor;
             for (int ii = 0; ii < 2; ii++)
             {
-                float currY = Mathf.Pow(-1, ii) * 0.5f * transform.localScale.y * block.slotManager.displacementFactor;
+                float currY = Mathf.Pow(-1, ii) * 0.5f * transform.localScale.y * Block.slotManager.displacementFactor;
                 for (int iii = 0; iii < 2; iii++)
                 {
-                    float currZ = Mathf.Pow(-1, iii) * 0.5f * transform.localScale.z * block.slotManager.displacementFactor;
+                    float currZ = Mathf.Pow(-1, iii) * 0.5f * transform.localScale.z * Block.slotManager.displacementFactor;
                     Vector3 currPos = new Vector3(currX, currY, currZ);
                     ElectronPosition electronPosition = new ElectronPosition
                     {

@@ -6,6 +6,7 @@ using Unity.Collections;
 
 public class SlotManagerBehavior : BlockManagerBehavior
 {
+    public bool slotLockEnabled = false;
     public float attractionFactor = 1f;
     public float displacementFactor = 1.1f;
     public Dictionary<string, SlotBehavior> slots = new Dictionary<string, SlotBehavior>();
@@ -28,9 +29,9 @@ public class SlotManagerBehavior : BlockManagerBehavior
     {
         get
         {
-            if (block != null)
+            if (Block != null)
             {
-                return block.cluster;
+                return Block.cluster;
             }
             return null;
         }
@@ -75,8 +76,8 @@ public class SlotManagerBehavior : BlockManagerBehavior
     public ElectronPosition[] GetConnectingElectronPositions(Vector3 position)
     {
         //TODO cache this as well.
-        block.electronManager.Start();
-        ElectronPosition[] allElectronPositions = block.electronManager.electronPositions;
+        Block.electronManager.Start();
+        ElectronPosition[] allElectronPositions = Block.electronManager.electronPositions;
         Dictionary<int, List<ElectronPosition>> electronPositionsDictionary = new Dictionary<int, List<ElectronPosition>>();
 
         int closestDistance = -1;

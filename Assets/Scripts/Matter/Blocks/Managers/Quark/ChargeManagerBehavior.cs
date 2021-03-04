@@ -50,7 +50,7 @@ public class ChargeManagerBehavior : BlockManagerBehavior
         particle.Free();
         if (DeathCheck())
         {
-            block.Death();
+            Block.Death();
         }
     }
 

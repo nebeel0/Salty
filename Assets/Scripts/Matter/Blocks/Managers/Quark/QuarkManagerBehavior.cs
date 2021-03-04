@@ -30,7 +30,7 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
 
     ElectronManagerBehavior leptonManager
     {
-        get { return block.electronManager; }
+        get { return Block.electronManager; }
     }
 
     // Start is called before the first frame update
@@ -112,7 +112,7 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
         {
             foreach (ParticleBehavior quark in quarkGroups[i].quarks)
             {
-                quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], block.particleAnimationSpeed / 2 * Time.deltaTime);
+                quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], Block.particleAnimationSpeed / 2 * Time.deltaTime);
                 quarkPositionI++; // So that the particles will be displaced from each other, if they are not in the same groups
             }
         }

@@ -75,7 +75,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
 
     public void Jumping()
     {
-        electron.transform.localPosition = Vector3.Lerp(electron.transform.localPosition, position, electronManager.block.particleAnimationSpeed * Time.deltaTime);
+        electron.transform.localPosition = Vector3.Lerp(electron.transform.localPosition, position, electronManager.Block.particleAnimationSpeed * Time.deltaTime);
     }
 
     public void Jump()

@@ -43,9 +43,4 @@ public class Story : GameRules
     {
         return false;
     }
-
-    public override bool SlotMessageCheck(SlotBehavior slot)
-    {
-        return false;
-    }
 }

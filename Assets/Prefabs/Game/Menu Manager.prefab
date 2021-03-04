@@ -134,15 +134,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameMaster: {fileID: 0}
+  canvasGroupTransitionBehavior: {fileID: 0}
+  currentPanel: {fileID: 0}
+  toLoadPanel: {fileID: 0}
   mainCamera: {fileID: 5935016954928190420}
   overallCanvas: {fileID: 5823083434007433069}
-  currentMenu: {fileID: 0}
   startMenuRef: {fileID: 1789902767493247812, guid: d2323645c7e17f24c834a7dcd30eadb5,
     type: 3}
   playMenuRef: {fileID: 1668983231127422733, guid: 7573a8bd3c33b97468bd043b3556311c,
     type: 3}
-  endMenuRef: {fileID: 0}
-  toLoadMenu: {fileID: 0}
+  endMenuRef: {fileID: 6466647030135617691, guid: c5e25d9bc8a79cb47be019fe2830519f,
+    type: 3}
   pauseGroup: {fileID: 8528969501769944162}
   dialogueManager: {fileID: 1580672989305725887}
 --- !u!1001 &385217392680095822
@@ -761,6 +763,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8713575676196963982}
     m_Modifications:
+    - target: {fileID: 1917086722004989086, guid: c6c0c01dd5f520a4288b1bbd60daa6a1,
+        type: 3}
+      propertyPath: m_Padding.m_Bottom
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1917086722004989086, guid: c6c0c01dd5f520a4288b1bbd60daa6a1,
+        type: 3}
+      propertyPath: m_ChildAlignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1917086722004989152, guid: c6c0c01dd5f520a4288b1bbd60daa6a1,
+        type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 1917086722004989153, guid: c6c0c01dd5f520a4288b1bbd60daa6a1,
         type: 3}
       propertyPath: m_LocalPosition.x

@@ -10,6 +10,9 @@ public class BlockBehavior : GameBehavior
     // TODO on merge change camera position
     // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
     // TODO rotate on block place
+
+    public bool subAtomic = false; //TODO deterministic based on size
+
     public static Color defaultColor = new Color(0.4f,0.4f,0.4f,0.06f);
 
     public GameObject ParticleRef;
