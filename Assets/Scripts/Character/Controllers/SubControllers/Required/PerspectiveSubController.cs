@@ -31,10 +31,7 @@ namespace Controller
 
         private void Update()
         {
-            if(!IsGhost())
-            {
-                UpdateCameraOffset();
-            }
+            UpdateCameraOffset();
         }
 
         public void OnTogglePerspective()
@@ -52,10 +49,10 @@ namespace Controller
         {
             if(GetCluster() != null)
             {
-                transform.position = GetCluster().trackingBlock.transform.position;
+                transform.localPosition = Vector3.zero;
                 if (thirdPerson) //default third person
                 {
-                    float displacement = Mathf.Max(GetCluster().diagonal * 4, 4);
+                    float displacement = Mathf.Max(GetCluster().diagonal, 4);
                     PrimaryCamera.transform.localPosition = primaryCameraRootPosition + Vector3.back * displacement;
                 }
                 else
@@ -66,6 +63,7 @@ namespace Controller
             else
             {
                 PrimaryCamera.transform.localPosition = primaryCameraRootPosition;
+                thirdPerson = false;
             }
 
         }

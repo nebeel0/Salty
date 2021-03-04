@@ -127,11 +127,11 @@ public class SpawnManager : MonoBehaviour
         return cageBehavior;
     }
 
-    public BlockBehavior CreateBlock()
+    public BlockBehavior CreateBlock(Transform transform=null)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
-        GameObject block = Instantiate(blockRef);
+        GameObject block = Instantiate(blockRef, transform);
         BlockBehavior blockBehavior = block.GetComponent<BlockBehavior>();
         blockBehavior.gameMaster = gameMaster;
         blockBehavior.Start();

@@ -37,6 +37,8 @@ public static class ControlsUtil
         controls.LockedMapping[typeof(Controller.ClusterSubController)] = typeof(Controller.ClusterSubController);
         controls.CustomSlots.Add(DefaultCustomSlot());
         controls.CustomSlots.Add(FlyCustomSlot());
+        controls.CustomSlots.Add(BlockCustomSlot_Fracture());
+        controls.CustomSlots.Add(BlockCustomSlot_Size());
         return controls;
     }
 
@@ -55,7 +57,6 @@ public static class ControlsUtil
     {
         TypeDictionary customDictionary = new TypeDictionary();
         customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.JumpMovementSubController);
-        customDictionary[typeof(Controller.BlockSpecialSubController)] = typeof(Controller.ShrinkBlockSpecialSubController);
         return customDictionary;
     }
 
@@ -66,6 +67,21 @@ public static class ControlsUtil
         return customDictionary;
     }
 
+    public static TypeDictionary BlockCustomSlot_Fracture()
+    {
+        TypeDictionary customDictionary = new TypeDictionary();
+        customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.FlyMovementSubController);
+        customDictionary[typeof(Controller.BlockSpecialSubController)] = typeof(Controller.FractureBlockSpecialSubController);
+        return customDictionary;
+    }
+
+    public static TypeDictionary BlockCustomSlot_Size()
+    {
+        TypeDictionary customDictionary = new TypeDictionary();
+        customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.FlyMovementSubController);
+        customDictionary[typeof(Controller.BlockSpecialSubController)] = typeof(Controller.SizeBlockSpecialSubController);
+        return customDictionary;
+    }
     //String Utils
     public static string StripSubType(Type type)
     {

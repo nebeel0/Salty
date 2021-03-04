@@ -5,27 +5,27 @@ using UnityEngine.InputSystem;
 
 namespace Controller
 {
-    public class ShrinkBlockSpecialSubController : BlockSpecialSubController
+    public class SizeBlockSpecialSubController : BlockSpecialSubController
     {
         //Take a block, if its big enough splits it into 9.
 
         public override string GetSpecialAbility1Description()
         {
-            return "Shrink by splitting yourself into 9 equal parts, and taking control of the center block. Only works if remaining blocks meet the min size requirements.";
+            return "Enlarge.";
         }
 
         public override void OnSpecialAbility1()
         {
-            Debug.Log("Ima shrink.");
+            GetCluster().trackingBlock.transform.localScale *= 2;
         }
 
         public override string GetSpecialAbility2Description()
         {
-            return "N/A";
+            return "Shrink";
         }
         public override void OnSpecialAbility2()
         {
-
+            GetCluster().trackingBlock.transform.localScale /= 2;
         }
 
         public override string GetSpecialAbility3Description()

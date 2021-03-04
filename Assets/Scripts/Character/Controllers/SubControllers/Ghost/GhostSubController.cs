@@ -11,16 +11,12 @@ namespace Controller
         {
             GetComponent<SphereCollider>().enabled = true;
         }
-        public void OnGhostMode()
-        {
-            //TODO implement
-        }
 
-        void OnTriggerEnter(Collider other)
+        void OnTriggerStay(Collider other)
         {
             if (other.gameObject.CompareTag("Block"))
             {
-                //Debug.Log("Colliding for ghost");
+                Debug.Log("Colliding for ghost");
                 ClusterBehavior cluster = other.gameObject.GetComponent<BlockBehavior>().cluster;
                 if(NoPlayers(cluster))
                 {
@@ -34,9 +30,17 @@ namespace Controller
         {
             for(int i =0; i < cluster.transform.childCount; i++)
             {
-                if(cluster.transform.GetChild(i).GetComponent<PlayerControlManager>() != null)
+                PlayerControlManager clusterPlayer = cluster.transform.GetChild(i).GetComponent<PlayerControlManager>();
+                if (clusterPlayer != null)
                 {
-                    return false;
+                    if(clusterPlayer.IsAI())
+                    {
+                        Destroy(clusterPlayer.gameObject);
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
             return true;

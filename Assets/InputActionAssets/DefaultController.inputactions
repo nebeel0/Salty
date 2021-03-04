@@ -76,6 +76,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "DetachCluster",
+                    "type": "Button",
+                    "id": "d6c2724c-179d-46ce-a328-988e167b105c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -334,6 +342,17 @@
                 },
                 {
                     "name": "",
+                    "id": "1afe7c64-a70c-44b0-a298-08229aef818b",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TogglePerspective",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "8d7478bd-30ec-4c10-901f-ba7832f0c695",
                     "path": "<Keyboard>/q",
                     "interactions": "",
@@ -362,6 +381,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SpecialAbility3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "db7b0596-b48c-4460-b1d7-62f342c284f1",
+                    "path": "<Keyboard>/g",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DetachCluster",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

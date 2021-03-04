@@ -81,6 +81,12 @@ public class PlayerControlManager : GameBehavior
         //UpdateMessageSphereRadius();
     }
 
+    public void OnDetachCluster()
+    {
+        transform.parent = null;
+        transform.position = primaryCamera.transform.position;
+    }
+
     public void SetUpSubControllerMapping()
     {
         HashSet<Type> neededSubControllers = new HashSet<Type>();
