@@ -55,15 +55,23 @@ public class SpawnManager : MonoBehaviour
         {
             Destroy(spawnedObject);
         }
+        GameObject[] remainingObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+        for(int i =0; i < remainingObjects.Length; i++)
+        {
+            if(remainingObjects[i] != gameMaster.gameObject)
+            {
+                Destroy(remainingObjects[i]);
+            }
+        }
+
     }
 
     public void EquipDefaultPlayer(PlayerControlManager player)
     {
-        //player.OnGhostMode();
         BlockBehavior defaultBlock = CreateBlock();
         defaultBlock.BeginnerElementFlag = true;
         defaultBlock.Start();
-        player.AttachPlayer(defaultBlock.cluster);
+        //player.AttachPlayer(defaultBlock.cluster);
     }
 
     //Player Join/Left Utils

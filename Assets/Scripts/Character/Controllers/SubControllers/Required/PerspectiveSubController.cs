@@ -52,20 +52,28 @@ namespace Controller
                 transform.localPosition = Vector3.zero;
                 if (thirdPerson) //default third person
                 {
-                    float displacement = Mathf.Max(GetCluster().diagonal, 4);
+                    float displacement = 4;
                     PrimaryCamera.transform.localPosition = primaryCameraRootPosition + Vector3.back * displacement;
                 }
                 else
                 {
                     PrimaryCamera.transform.localPosition = primaryCameraRootPosition;
                 }
+                if(GetCluster().blocks.Count == 1)
+                {
+                    gameObject.transform.localScale = Vector3.one;
+                }
+                else
+                {
+                    gameObject.transform.localScale = Vector3.one * GetCluster().diagonal; //TODO we can get the exact math for size to diagonal
+                }
             }
             else
             {
+                gameObject.transform.localScale = Vector3.one;
                 PrimaryCamera.transform.localPosition = primaryCameraRootPosition;
                 thirdPerson = false;
             }
-
         }
 
     }

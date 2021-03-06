@@ -5,33 +5,34 @@ using UnityEngine.InputSystem;
 
 namespace Controller
 {
-    public class SizeBlockSpecialSubController : BlockSpecialSubController
+    public class BaseClusterSpecialSubController : ClusterSpecialSubController
     {
-        //Take a block, if its big enough splits it into 9.
-
         public override string GetSpecialAbility1Description()
         {
-            return "Enlarge.";
+            return "Toggle Locking.";
         }
 
         public override void OnSpecialAbility1()
         {
-            //TODO round
-            GetCluster().trackingBlock.transform.localScale *= 2;
+            bool lockFlag = !GetCluster().trackingBlock.slotManager.slotLockEnabled;
+            foreach (BlockBehavior block in GetCluster().blocks)
+            {
+                block.slotManager.slotLockEnabled = lockFlag;
+            }
         }
 
         public override string GetSpecialAbility2Description()
         {
-            return "Shrink";
+            return "Release All Blocks";
         }
         public override void OnSpecialAbility2()
         {
-            GetCluster().trackingBlock.transform.localScale /= 2;
+            GetCluster().RemoveBlocks(GetCluster().blocks);
         }
 
         public override string GetSpecialAbility3Description()
         {
-            return "";
+            return "Combine";
         }
 
         public override void OnSpecialAbility3()

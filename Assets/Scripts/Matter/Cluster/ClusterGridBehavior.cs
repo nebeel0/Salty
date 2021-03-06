@@ -56,11 +56,11 @@ public class ClusterGridBehavior : GameBehavior
                     currZ /= transform.localScale.z;
 
                     Vector3 blockPosition = new Vector3(currX, currY, currZ);
-                    GameObject instatiatedBlock = Instantiate(BlockRef, transform);
-                    instatiatedBlock.GetComponent<BlockBehavior>().gameMaster = gameMaster;
-                    instatiatedBlock.GetComponent<BlockBehavior>().BeginnerElementFlag = true;
-                    instatiatedBlock.GetComponent<BlockBehavior>().slotManager.displacementFactor = displacementFactor;
-                    instatiatedBlock.GetComponent<BlockBehavior>().slotManager.slotLockEnabled = true;
+                    BlockBehavior instatiatedBlock = gameMaster.spawnManager.CreateBlock(transform);
+                    instatiatedBlock.gameMaster = gameMaster;
+                    instatiatedBlock.BeginnerElementFlag = true;
+                    instatiatedBlock.slotManager.displacementFactor = displacementFactor;
+                    instatiatedBlock.slotManager.slotLockEnabled = true;
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;
                     instatiatedBlock.transform.localScale = blockDimension;

@@ -49,6 +49,7 @@ public static class ControlsUtil
         controls.Name = "DefaultCluster";
         controls.LockedMapping[typeof(Controller.ClusterSubController)] = typeof(Controller.ClusterSubController);
         controls.CustomSlots.Add(DefaultCustomSlot());
+        controls.CustomSlots.Add(ClusterCustomSlot_Base());
         controls.CustomSlots.Add(FlyCustomSlot());
         return controls;
     }
@@ -80,6 +81,14 @@ public static class ControlsUtil
         TypeDictionary customDictionary = new TypeDictionary();
         customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.FlyMovementSubController);
         customDictionary[typeof(Controller.BlockSpecialSubController)] = typeof(Controller.SizeBlockSpecialSubController);
+        return customDictionary;
+    }
+
+    public static TypeDictionary ClusterCustomSlot_Base()
+    {
+        TypeDictionary customDictionary = new TypeDictionary();
+        customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.FlyMovementSubController);
+        customDictionary[typeof(Controller.ClusterSpecialSubController)] = typeof(Controller.BaseClusterSpecialSubController);
         return customDictionary;
     }
     //String Utils

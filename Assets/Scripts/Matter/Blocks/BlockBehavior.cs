@@ -54,7 +54,11 @@ public class BlockBehavior : GameBehavior
             StartCoroutine(BeginnerElement()); //TODO replace with RandomElement
             BeginnerElementFlag = false;
         }
-        if (cluster == null) //TODO move into callback when blocks break links
+    }
+
+    private void Update()
+    {
+        if (cluster == null || !cluster.blocks.Contains(this)) //TODO move into callback when blocks break links
         {
             cluster = gameMaster.spawnManager.CreateCluster(new HashSet<BlockBehavior>() { this });
         }

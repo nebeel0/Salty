@@ -18,7 +18,7 @@ namespace Controller
             {
                 Debug.Log("Colliding for ghost");
                 ClusterBehavior cluster = other.gameObject.GetComponent<BlockBehavior>().cluster;
-                if(NoPlayers(cluster))
+                if(cluster != null && NoPlayers(cluster))
                 {
                     Player.AttachPlayer(cluster);
                 }

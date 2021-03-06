@@ -28,6 +28,7 @@ public class PlayMenuManager : CustomMenuBehavior
 
     public override void Start()
     {
+        Debug.Log(menuManager.ToString());
         spawnManager.ClearPlayers();
         SetUpChildTabs();
         SetUpParentTabs();
@@ -39,7 +40,7 @@ public class PlayMenuManager : CustomMenuBehavior
         spawnManager.playerInputManager.EnableJoining();
     }
 
-    void Update()
+    protected override void Update()
     {
         foreach(Transform child in Players.transform)
         {

@@ -112,12 +112,17 @@ public class SlotManagerBehavior : BlockManagerBehavior
         }
     }
 
-    public void Death()
+    public void ReleaseBlocks()
     {
         foreach (SlotBehavior slot in slots.Values)
         {
             slot.ReleaseBlock();
         }
+    }
+
+    public void Death()
+    {
+        ReleaseBlocks();
         Destroy(this);
     }
 

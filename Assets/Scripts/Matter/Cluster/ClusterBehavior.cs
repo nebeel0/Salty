@@ -70,32 +70,45 @@ public class ClusterBehavior : GameBehavior
             parentCluster.UpdateGravitySphereRadius();
         }
     }
-    public void RemoveBlock(BlockBehavior block)
+    public void RemoveBlocks(HashSet<BlockBehavior> removedBlocks)
     {
-        blocks.Remove(block);
-        if (!DeathCheck())
+        BlockBehavior[] toBeRemovedBlocks = new BlockBehavior[removedBlocks.Count];
+        removedBlocks.CopyTo(toBeRemovedBlocks);
+        for(int i = 0; i < toBeRemovedBlocks.Length; i++)
         {
-            BFSRefresh();
+            if(toBeRemovedBlocks[i] != trackingBlock)
+            {
+                toBeRemovedBlocks[i].slotManager.ReleaseBlocks();
+                blocks.Remove(toBeRemovedBlocks[i]);
+            }
         }
-        else
+    }
+
+    void Update() //Garbage Cleanup
+    {
+        if(DeathCheck())
         {
             Death();
         }
     }
+
+
     bool DeathCheck()
     {
-        if (blocks.Count == 0)
+        if (blocks.Count == 0 || transform.parent == null)
         {
             return true;
         }
         return false;
     }
+
     void Death()
     {
         transform.DetachChildren();
         gameMaster.spawnManager.SystemClusters.Remove(this);
         Destroy(gameObject);
     }
+
     public void BFSRefresh()
     {
         BlockBehavior currentBlock;

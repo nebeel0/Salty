@@ -53,6 +53,7 @@ public class PlayerControlManager : GameBehavior
         blockControls = ControlsUtil.DefaultBlockControls();
         clusterControls = ControlsUtil.DefaultClusterControls();
         currentControls = ghostControls;
+        SetUpSubControllerMapping();
     }
 
     void Update()
@@ -61,24 +62,37 @@ public class PlayerControlManager : GameBehavior
         bool dead = GetCluster() == null;
         bool becomeAlive = currentControls == ghostControls && alive;
         bool becomeDead = currentControls != ghostControls && dead;
+        bool becomeBlock = currentControls != blockControls && IsBlock();
+        bool becomeCluster = currentControls != clusterControls && IsCluster();
 
-        if (becomeAlive)
-        {
-            currentControls = GetCluster().blocks.Count > 1 ? clusterControls : blockControls;
-            SetUpSubControllerMapping();
-        }
-        else if(becomeDead)
+
+        if(becomeDead)
         {
             currentControls = ghostControls;
             SetUpSubControllerMapping();
         }
+        else if (becomeAlive || becomeBlock || becomeCluster)
+        {
+            currentControls = GetCluster().blocks.Count > 1 ? clusterControls : blockControls;
+            SetUpSubControllerMapping();
+        }
+
+        //TODO make this process more efficient
+        if (gameMaster.CurrentGameRules == null && hudManager.gameObject.activeSelf)
+        {
+            hudManager.gameObject.SetActive(false);
+        }
+        else if (gameMaster.CurrentGameRules != null && !hudManager.gameObject.activeSelf)
+        {
+            hudManager.gameObject.SetActive(true);
+        }
+
     }
     public void AttachPlayer(ClusterBehavior cluster)
     {
         transform.parent = cluster.transform;
         transform.localPosition = Vector3.zero;
         transform.localEulerAngles = Vector3.zero;
-        //UpdateMessageSphereRadius();
     }
 
     public void OnDetachCluster()
