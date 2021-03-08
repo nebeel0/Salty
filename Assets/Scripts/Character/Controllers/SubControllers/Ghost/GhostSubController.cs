@@ -14,7 +14,7 @@ namespace Controller
 
         void OnTriggerStay(Collider other)
         {
-            if (other.gameObject.CompareTag("Block"))
+            if (BlockUtils.IsBlock(other.gameObject))
             {
                 Debug.Log("Colliding for ghost");
                 ClusterBehavior cluster = other.gameObject.GetComponent<BlockBehavior>().cluster;

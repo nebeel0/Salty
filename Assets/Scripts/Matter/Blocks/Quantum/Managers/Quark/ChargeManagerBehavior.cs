@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ChargeManagerBehavior : BlockManagerBehavior
+public class ChargeManagerBehavior : QuantumBlockManagerBehavior
 {
 
     public Dictionary<int, HashSet<FermionBehavior>> particleDictionary = new Dictionary<int, HashSet<FermionBehavior>>();

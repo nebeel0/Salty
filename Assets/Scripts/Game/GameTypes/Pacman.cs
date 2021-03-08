@@ -60,7 +60,7 @@ public class Pacman : GameRules
     public override void LevelSetup()
     {
         gameMaster.spawnManager.CreateCage(bounds);
-        gameMaster.spawnManager.SpawnBlocks(seed, bounds);
+        gameMaster.spawnManager.SpawnQuantumBlocks(seed, bounds);
     }
 
     public override bool TransitionCondition()

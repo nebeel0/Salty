@@ -4,19 +4,30 @@ using UnityEngine;
 using System.Linq;
 using Unity.Collections;
 
-public class SlotManagerBehavior : BlockManagerBehavior
+public class QuantumSlotManagerBehavior : SlotManagerBehavior
 {
-    public bool slotLockEnabled = false;
-    public float attractionFactor = 1f;
-    public float displacementFactor = 1.1f;
-    public Dictionary<string, SlotBehavior> slots = new Dictionary<string, SlotBehavior>();
-
-
-    int numFaceVertices = 4; //TODO store in Vector3Utils and determine faceVertices from type of shape.
-
-    public bool IsOccupying()
+    public QuantumBlockBehavior Block
     {
-        foreach(SlotBehavior slot in slots.Values)
+        get
+        {
+            if (transform.parent != null && BlockUtils.IsBlock(transform.parent.gameObject))
+            {
+                return transform.parent.gameObject.GetComponent<QuantumBlockBehavior>();
+            }
+            return null;
+        }
+    }
+
+    public Dictionary<string, QuantumSlotBehavior> slots = new Dictionary<string, QuantumSlotBehavior>();
+    public override Dictionary<string, SlotBehavior> GetSlots()
+    {
+        Dictionary<string, SlotBehavior> baseSlots = CodingUtils.CastDict(slots).ToDictionary(entry => (string)entry.Key, entry => (SlotBehavior)entry.Value);
+        return baseSlots;
+    }
+
+    public override bool IsOccupying()
+    {
+        foreach(QuantumSlotBehavior slot in slots.Values)
         {
             if(slot.IsOccupying())
             {
@@ -24,17 +35,6 @@ public class SlotManagerBehavior : BlockManagerBehavior
             }
         }
         return false;
-    }
-    public ClusterBehavior cluster
-    {
-        get
-        {
-            if (Block != null)
-            {
-                return Block.cluster;
-            }
-            return null;
-        }
     }
 
     public void Start()
@@ -45,7 +45,7 @@ public class SlotManagerBehavior : BlockManagerBehavior
         }
     }
 
-    void SetUpSlots()
+    protected override void SetUpSlots()
     {
         //TODO cache all setups
         //Note this might not be able to be cached without accidently sharing items
@@ -63,11 +63,11 @@ public class SlotManagerBehavior : BlockManagerBehavior
                     newSlot.transform.parent = gameObject.transform;
                     newSlot.transform.localPosition = newSlotPosition;
                     newSlot.transform.localEulerAngles = Vector3.zero;
-                    SlotBehavior newBlockSlotBehavior = newSlot.AddComponent<SlotBehavior>();
-                    newBlockSlotBehavior.slotManager = this;
-                    newBlockSlotBehavior.RelativeLocalPosition = newSlotPosition;
-                    newBlockSlotBehavior.connectingElectronPositions = GetConnectingElectronPositions(newSlotPosition);
-                    slots[newSlotPosition.ToString()] = newBlockSlotBehavior;
+                    QuantumSlotBehavior newBlockQuantumSlotBehavior = newSlot.AddComponent<QuantumSlotBehavior>();
+                    newBlockQuantumSlotBehavior.slotManager = this;
+                    newBlockQuantumSlotBehavior.RelativeLocalPosition = newSlotPosition;
+                    newBlockQuantumSlotBehavior.connectingElectronPositions = GetConnectingElectronPositions(newSlotPosition);
+                    slots[newSlotPosition.ToString()] = newBlockQuantumSlotBehavior;
                 }
             }
         }
@@ -104,26 +104,19 @@ public class SlotManagerBehavior : BlockManagerBehavior
         return electronPositionsDictionary[closestDistance].ToArray();
     }
 
-    public void OccupantsUpdate()
+    public override void OccupantsUpdate()
     {
-        foreach(SlotBehavior slot in slots.Values)
+        foreach(QuantumSlotBehavior slot in slots.Values)
         {
             slot.OccupantUpdate();
         }
     }
 
-    public void ReleaseBlocks()
+    public override void ReleaseBlocks()
     {
-        foreach (SlotBehavior slot in slots.Values)
+        foreach (QuantumSlotBehavior slot in slots.Values)
         {
             slot.ReleaseBlock();
         }
     }
-
-    public void Death()
-    {
-        ReleaseBlocks();
-        Destroy(this);
-    }
-
 }

@@ -13,12 +13,12 @@ GameObject:
   - component: {fileID: 4819842358078350346}
   - component: {fileID: 4819842358078350357}
   - component: {fileID: 4819842358078350345}
-  - component: {fileID: 4819842358078350350}
   - component: {fileID: 1930148272952556960}
   - component: {fileID: 3495518266855570757}
   - component: {fileID: 5999335435937414837}
+  - component: {fileID: 5833758873088694855}
   m_Layer: 8
-  m_Name: Block
+  m_Name: Quantum Block
   m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -117,27 +117,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &4819842358078350350
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4819842358078350356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c8902839c2323d4497a8f954a914757, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameMaster: {fileID: 0}
-  ParticleRef: {fileID: 674584312230123643, guid: 4c15830bc4ae7cd478374956cbe0fa72,
-    type: 3}
-  particleAnimationSpeed: 5
-  quarkManager: {fileID: 9127637164676717139}
-  electronManager: {fileID: 1296837904613337655}
-  slotManager: {fileID: 7494104011008557882}
-  cluster: {fileID: 0}
-  BeginnerElementFlag: 0
 --- !u!114 &1930148272952556960
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -268,6 +247,27 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5833758873088694855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4819842358078350356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31c660a08cc89374b865a0c8acad7ed9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameMaster: {fileID: 0}
+  slotManager: {fileID: 0}
+  cluster: {fileID: 0}
+  rigidbody: {fileID: 4819842358078350345}
+  particleAnimationSpeed: 5
+  quarkManager: {fileID: 9127637164676717139}
+  electronManager: {fileID: 1296837904613337655}
+  slotManager: {fileID: 7494104011008557882}
+  BeginnerElementFlag: 0
 --- !u!1 &5596466921845298081
 GameObject:
   m_ObjectHideFlags: 0
@@ -311,6 +311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4306b9249b259594d92e33ba5b7861d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  slotLockEnabled: 0
   attractionFactor: 10
   displacementFactor: 1.1
 --- !u!1 &7526534644969014389

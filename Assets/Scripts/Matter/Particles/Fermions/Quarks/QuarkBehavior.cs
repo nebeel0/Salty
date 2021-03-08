@@ -12,7 +12,7 @@ public class QuarkBehavior : FermionBehavior
         if (ParticleUtils.isQuarkPos(gameObject) && ParticleUtils.isQuarkNeg(gameObject) && col.collider.enabled && particleCollider.enabled) //Strong force interaction, generate a new block
         {
             //By default if quarks interact they are free
-            BlockBehavior newBlock = gameMaster.spawnManager.CreateBlock();
+            QuantumBlockBehavior newBlock = gameMaster.spawnManager.CreateQuantumBlock();
             newBlock.transform.position = transform.position;
             newBlock.CollideParticle(gameObject);
             newBlock.CollideParticle(col.gameObject);

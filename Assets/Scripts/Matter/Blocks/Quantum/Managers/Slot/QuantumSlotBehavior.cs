@@ -2,21 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SlotBehavior : MonoBehaviour
+public class QuantumSlotBehavior : SlotBehavior
 {
     // Start is called before the first frame update
-    public Vector3 RelativeLocalPosition;
     public ElectronPosition[] connectingElectronPositions;
 
-    public FixedJoint fixedJoint;
-    public BlockBehavior OccupantBlock;
-    public BoxCollider slotCollider;
-    public SlotManagerBehavior slotManager;
+    public QuantumBlockBehavior OccupantBlock;
+    public QuantumSlotManagerBehavior slotManager;
 
-    SlotBehavior otherSlot;
+    QuantumSlotBehavior otherSlot;
     LineRenderer lineRenderer;
 
-    bool OccupantCheck(Collider other)
+    public override BlockBehavior GetOccupantBlock()
+    {
+        return OccupantBlock;
+    }
+
+    protected override bool OccupantCheck(Collider other)
     {
         return OccupantBlock != null && OccupantBlock.gameObject == other.gameObject;
     }
@@ -34,20 +36,7 @@ public class SlotBehavior : MonoBehaviour
         LineUpdate();
     }
 
-    public void OccupantUpdate()
-    {
-        if (IsOccupied() && slotCollider.enabled)
-        {
-            slotCollider.enabled = false;
-        }
-        else if (!slotCollider.enabled && !IsOccupied())
-        {
-            slotCollider.enabled = true;
-            StopOccupying();
-        }
-    }
-
-    void StartOccupying(SlotBehavior otherSlot)
+    void StartOccupying(QuantumSlotBehavior otherSlot)
     {
         if(this.otherSlot != otherSlot)
         {
@@ -60,11 +49,11 @@ public class SlotBehavior : MonoBehaviour
         }
     }
 
-    void StopOccupying()
+    protected override void StopOccupying()
     {
         if(IsOccupying())
         {
-            SlotBehavior removedSlot = otherSlot;
+            QuantumSlotBehavior removedSlot = otherSlot;
             Untangle(otherSlot);
             OccupantBlock = null;
             fixedJoint = null;
@@ -79,15 +68,15 @@ public class SlotBehavior : MonoBehaviour
     }
 
 
-    void OnTriggerStay(Collider other)
+    protected override void OnTriggerStay(Collider other)
     {
-        if (!IsOccupied() && other.gameObject.CompareTag("Block") && slotManager.slotLockEnabled) //Check if position doesn't equal the same and a connection hasn't been made
+        if (!IsOccupied() && BlockUtils.IsBlock(other.gameObject) && slotManager.slotLockEnabled) //Check if position doesn't equal the same and a connection hasn't been made
         {
             if (!HasOccupantBlock())
             {
-                SlotBehavior otherSlot = GetOtherSlot(other.gameObject);
-                bool validOtherBlock = !otherSlot.slotManager.cluster.IsOccupying() && !otherSlot.HasOccupantBlock();
-                bool validThisBlock = !slotManager.cluster.IsOccupying() && !HasOccupantBlock();
+                QuantumSlotBehavior otherSlot = GetOtherSlot(other.gameObject);
+                bool validOtherBlock = !otherSlot.slotManager.Cluster.IsOccupying() && !otherSlot.HasOccupantBlock();
+                bool validThisBlock = !slotManager.Cluster.IsOccupying() && !HasOccupantBlock();
 
                 if (validThisBlock && validOtherBlock && ValidElectrons(otherSlot))
                 {
@@ -119,15 +108,7 @@ public class SlotBehavior : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Block") && OccupantCheck(other))
-        {
-            StopOccupying();
-        }
-    }
-
-    bool OccupantAlignedCheck()
+    protected override bool OccupantAlignedCheck()
     {
         GameObject thisBlock = slotManager.Block.gameObject;
         GameObject otherBlock = OccupantBlock.gameObject; //Other collider is actually the rigidbody collider attached to the object
@@ -144,7 +125,7 @@ public class SlotBehavior : MonoBehaviour
         return false;
     }
 
-    void LockOccupant()
+    protected override void LockOccupant()
     {
         GameObject thisBlock = slotManager.Block.gameObject;
         GameObject otherBlock = OccupantBlock.gameObject;
@@ -161,11 +142,10 @@ public class SlotBehavior : MonoBehaviour
         OccupantUpdate();
 
         AddJointToElectrons();
-        slotManager.cluster.AddBlock(OccupantBlock);
+        slotManager.Cluster.AddBlock(OccupantBlock);
     }
 
-
-    public void ReleaseBlock()
+    public override void ReleaseBlock()
     {
         if(IsOccupied())
         {
@@ -182,25 +162,13 @@ public class SlotBehavior : MonoBehaviour
     }
 
     //State Utils
-    public bool IsFixed()
-    {
-        return fixedJoint != null;
-    }
-    public bool IsOccupied()
-    {
-        return HasOccupantBlock() && IsFixed();
-    }
-    public bool IsOccupying()
-    {
-        return HasOccupantBlock() && !IsFixed(); //Returns true if occupant block is true, but no fixed joint, false otherwise 
-    }
-    public bool HasOccupantBlock()
+    public override bool HasOccupantBlock()
     {
         return OccupantBlock != null;
     }
 
     //Electron Utils
-    void Entangle(SlotBehavior otherSlot)
+    void Entangle(QuantumSlotBehavior otherSlot)
     {
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
@@ -210,7 +178,7 @@ public class SlotBehavior : MonoBehaviour
         }
     }
 
-    void Untangle(SlotBehavior otherSlot)
+    void Untangle(QuantumSlotBehavior otherSlot)
     {
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
@@ -225,7 +193,7 @@ public class SlotBehavior : MonoBehaviour
         return electronPosition.position - RelativeLocalPosition;
     }
 
-    public bool ValidElectrons(SlotBehavior otherSlot)
+    public bool ValidElectrons(QuantumSlotBehavior otherSlot)
     {
         bool validElectrons; //electron check; check for interfering electrons, and check if there are any available electron for attracting
         if (GetOccupiedElectronPositions().Count == 0 && otherSlot.GetOccupiedElectronPositions().Count == 0)
@@ -268,7 +236,7 @@ public class SlotBehavior : MonoBehaviour
         return electronPositions;
     }
 
-    public bool HasInterferingElectrons(SlotBehavior otherSlot)
+    public bool HasInterferingElectrons(QuantumSlotBehavior otherSlot)
     {
         for (int i = 0; i < connectingElectronPositions.Length; i++)
         {
@@ -282,12 +250,12 @@ public class SlotBehavior : MonoBehaviour
         return false;
     }
 
-    public SlotBehavior GetOtherSlot(GameObject other)
+    public QuantumSlotBehavior GetOtherSlot(GameObject other)
     {
-        BlockBehavior otherBlockBehavior = other.GetComponent<BlockBehavior>();
+        QuantumBlockBehavior otherBlockBehavior = other.GetComponent<QuantumBlockBehavior>();
         Vector3 otherBlockRelativeLocalPosition = -1 * RelativeLocalPosition;
 
-        SlotBehavior otherBlockSlot = otherBlockBehavior.slotManager.slots[otherBlockRelativeLocalPosition.ToString()];
+        QuantumSlotBehavior otherBlockSlot = otherBlockBehavior.slotManager.slots[otherBlockRelativeLocalPosition.ToString()];
         return otherBlockSlot;
     }
 
@@ -299,7 +267,7 @@ public class SlotBehavior : MonoBehaviour
         lineRenderer.startWidth = 0.03f;
         lineRenderer.startColor = Color.grey;
         lineRenderer.endColor = Color.grey;
-        lineRenderer.material = slotManager.gameMaster.spawnManager.particleLit;
+        lineRenderer.material = slotManager.Block.gameMaster.spawnManager.particleLit;
         lineRenderer.enabled = false;
     }
 

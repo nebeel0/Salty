@@ -8,6 +8,13 @@ public static class Vector3Utils
     //euler's formula
 
     //TODO implement all platonic solids https://en.wikipedia.org/wiki/Platonic_solid
+    public static void NeutralParent(Transform parent, Transform child)
+    {
+        child.transform.parent = parent;
+        child.transform.localPosition = Vector3.zero;
+        child.transform.localEulerAngles = Vector3.zero;
+        child.transform.localScale = Vector3.one;
+    }
 
     public static Vector3 RelativeFromOther(Vector3 rootLocalPosition, Transform root, Transform other)
     {

@@ -14,10 +14,10 @@ namespace Controller
 
         public override void OnSpecialAbility1()
         {
-            bool lockFlag = !GetCluster().trackingBlock.slotManager.slotLockEnabled;
+            bool lockFlag = !GetCluster().trackingBlock.GetSlotManager().slotLockEnabled;
             foreach (BlockBehavior block in GetCluster().blocks)
             {
-                block.slotManager.slotLockEnabled = lockFlag;
+                block.GetSlotManager().slotLockEnabled = lockFlag;
             }
         }
 

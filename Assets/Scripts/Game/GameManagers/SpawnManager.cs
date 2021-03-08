@@ -14,7 +14,7 @@ public class SpawnManager : MonoBehaviour
     public GameObject aiRef;
     public GameObject clusterGridRef;
     public GameObject clusterRef;
-    public GameObject blockRef;
+    public GameObject baseBlockRef;
     public GameObject baseParticleRef;
     public Material particleLit;
 
@@ -63,12 +63,11 @@ public class SpawnManager : MonoBehaviour
                 Destroy(remainingObjects[i]);
             }
         }
-
     }
 
     public void EquipDefaultPlayer(PlayerControlManager player)
     {
-        BlockBehavior defaultBlock = CreateBlock();
+        QuantumBlockBehavior defaultBlock = CreateQuantumBlock();
         defaultBlock.BeginnerElementFlag = true;
         defaultBlock.Start();
         //player.AttachPlayer(defaultBlock.cluster);
@@ -89,11 +88,11 @@ public class SpawnManager : MonoBehaviour
     }
 
     //Spawn Utils
-    public void SpawnBlocks(int seed, Vector3 bounds)
+    public void SpawnQuantumBlocks(int seed, Vector3 bounds)
     {
         for (int i = 0; i < seed; i++)
         {
-            BlockBehavior block = CreateBlock();
+            QuantumBlockBehavior block = CreateQuantumBlock();
             block.BeginnerElementFlag = true;
             block.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             block.transform.eulerAngles = Vector3Utils.RandomEulerAngles();
@@ -135,17 +134,30 @@ public class SpawnManager : MonoBehaviour
         return cageBehavior;
     }
 
-    public BlockBehavior CreateBlock(Transform transform=null)
+    public QuantumBlockBehavior CreateQuantumBlock(Transform transform=null)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
-        GameObject block = Instantiate(blockRef, transform);
-        BlockBehavior blockBehavior = block.GetComponent<BlockBehavior>();
+        GameObject block = Instantiate(baseBlockRef, transform);
+        QuantumBlockBehavior blockBehavior = block.AddComponent<QuantumBlockBehavior>();
         blockBehavior.gameMaster = gameMaster;
         blockBehavior.Start();
         spawnedObjects.Add(block);
         return blockBehavior;
     }
+
+    public ClassicalBlockBehavior CreateClassicalBlock(Transform transform = null)
+    //Created when collions occur between same types. Quarks, Leptons.
+    //Created when mass is too high
+    {
+        GameObject block = Instantiate(baseBlockRef, transform);
+        ClassicalBlockBehavior blockBehavior = block.AddComponent<ClassicalBlockBehavior>();
+        blockBehavior.gameMaster = gameMaster;
+        blockBehavior.Start();
+        spawnedObjects.Add(block);
+        return blockBehavior;
+    }
+
 
     public ClusterBehavior CreateCluster(HashSet<BlockBehavior> blocks)
     //Created when collions occur between same types. Quarks, Leptons.

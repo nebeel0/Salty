@@ -9,6 +9,7 @@ public class ClusterGridBehavior : GameBehavior
     public Vector3 blockDimension = Vector3.one;
     public float displacementFactor = 1.1f;
     public bool createGridFlag;
+    public bool quantumFlag;
 
     public override void Start()
     {
@@ -56,11 +57,19 @@ public class ClusterGridBehavior : GameBehavior
                     currZ /= transform.localScale.z;
 
                     Vector3 blockPosition = new Vector3(currX, currY, currZ);
-                    BlockBehavior instatiatedBlock = gameMaster.spawnManager.CreateBlock(transform);
+                    BlockBehavior instatiatedBlock;
+                    if (quantumFlag)
+                    {
+                        instatiatedBlock = gameMaster.spawnManager.CreateQuantumBlock(transform);
+                        ((QuantumBlockBehavior) instatiatedBlock).BeginnerElementFlag = true;
+                    }
+                    else
+                    {
+                        instatiatedBlock = gameMaster.spawnManager.CreateClassicalBlock(transform);
+                    }
                     instatiatedBlock.gameMaster = gameMaster;
-                    instatiatedBlock.BeginnerElementFlag = true;
-                    instatiatedBlock.slotManager.displacementFactor = displacementFactor;
-                    instatiatedBlock.slotManager.slotLockEnabled = true;
+                    instatiatedBlock.GetSlotManager().displacementFactor = displacementFactor;
+                    instatiatedBlock.GetSlotManager().slotLockEnabled = true;
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;
                     instatiatedBlock.transform.localScale = blockDimension;

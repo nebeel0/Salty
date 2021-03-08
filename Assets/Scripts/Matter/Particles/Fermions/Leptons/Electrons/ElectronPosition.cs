@@ -13,7 +13,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     public int id;
     public int nextNeighbor = 0;
 
-    public Dictionary<FixedJoint, SlotBehavior> connectedJoints = new Dictionary<FixedJoint, SlotBehavior>();
+    public Dictionary<FixedJoint, QuantumSlotBehavior> connectedJoints = new Dictionary<FixedJoint, QuantumSlotBehavior>();
     public HashSet<ElectronPosition> entangledPositions = new HashSet<ElectronPosition>();
     public bool IsEntangled
     {
@@ -199,7 +199,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     }
 
     //Slot Utils
-    public void AddJoint(FixedJoint fixedJoint, SlotBehavior slot)
+    public void AddJoint(FixedJoint fixedJoint, QuantumSlotBehavior slot)
     {
         if(!connectedJoints.ContainsKey(fixedJoint))
         {
@@ -215,7 +215,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
     {
         if (connectedJoints.ContainsKey(fixedJoint))
         {
-            SlotBehavior slot = connectedJoints[fixedJoint];
+            QuantumSlotBehavior slot = connectedJoints[fixedJoint];
             connectedJoints.Remove(fixedJoint);
             if (slot.GetOccupiedElectronPositions().Count == 1)
             {

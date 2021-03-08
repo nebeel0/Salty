@@ -30,7 +30,7 @@ public class ClusterBehavior : GameBehavior
     {
         foreach (BlockBehavior block in blocks)
         {
-            if (block.slotManager.IsOccupying())
+            if (block.GetSlotManager().IsOccupying())
             {
                 return true;
             }
@@ -60,8 +60,8 @@ public class ClusterBehavior : GameBehavior
                     childBlock.name = "Block";
                 }
                 parentCluster.blocks.Add(childBlock);
-                Physics.IgnoreCollision(childBlock.collider, childCluster.GravitySphere, false);
-                Physics.IgnoreCollision(childBlock.collider, parentCluster.GravitySphere);
+                Physics.IgnoreCollision(childBlock.Collider, childCluster.GravitySphere, false);
+                Physics.IgnoreCollision(childBlock.Collider, parentCluster.GravitySphere);
             }
 
             parentCluster.BFSRefresh();
@@ -78,7 +78,7 @@ public class ClusterBehavior : GameBehavior
         {
             if(toBeRemovedBlocks[i] != trackingBlock)
             {
-                toBeRemovedBlocks[i].slotManager.ReleaseBlocks();
+                toBeRemovedBlocks[i].GetSlotManager().ReleaseBlocks();
                 blocks.Remove(toBeRemovedBlocks[i]);
             }
         }
@@ -91,7 +91,6 @@ public class ClusterBehavior : GameBehavior
             Death();
         }
     }
-
 
     bool DeathCheck()
     {
@@ -123,21 +122,21 @@ public class ClusterBehavior : GameBehavior
         while (BlockQueue.Count != 0)
         {
             currentBlock = BlockQueue.Dequeue();
-            if (currentBlock != null && !seenBlocks.Contains(currentBlock) && currentBlock.slotManager.slots != null)
+            if (currentBlock != null && !seenBlocks.Contains(currentBlock) && currentBlock.GetSlotManager().GetSlots() != null)
             {
                 currentBlock.cluster = this;
                 seenBlocks.Add(currentBlock);
-                Physics.IgnoreCollision(currentBlock.collider, GravitySphere);
+                Physics.IgnoreCollision(currentBlock.Collider, GravitySphere);
                 Vector3 currentBlockPosition = currentBlock.transform.position;
                 totalMass += 1;
                 averageDrag += currentBlock.GetComponent<Rigidbody>().drag;
                 currentCenter += currentBlockPosition;
 
-                foreach (SlotBehavior slot in currentBlock.slotManager.slots.Values)
+                foreach (SlotBehavior slot in currentBlock.GetSlotManager().GetSlots().Values)
                 {
-                    if (!seenBlocks.Contains(slot.OccupantBlock) && slot.IsOccupied())
+                    if (!seenBlocks.Contains(slot.GetOccupantBlock()) && slot.IsOccupied())
                     {
-                        BlockQueue.Enqueue(slot.OccupantBlock);
+                        BlockQueue.Enqueue(slot.GetOccupantBlock());
                     }
                 }
             }
@@ -149,7 +148,7 @@ public class ClusterBehavior : GameBehavior
             if(!seenBlocks.Contains(originalBlock))
             {
                 removedBlocks.Add(originalBlock);
-                Physics.IgnoreCollision(originalBlock.collider, GravitySphere, false);
+                Physics.IgnoreCollision(originalBlock.Collider, GravitySphere, false);
             }
         }
         if(removedBlocks.Count > 0)
@@ -214,7 +213,7 @@ public class ClusterBehavior : GameBehavior
 
     void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Block"))
+        if (BlockUtils.IsBlock(other.gameObject))
         {
             BlockBehavior otherBlock = other.gameObject.GetComponent<BlockBehavior>();
             if (otherBlock != null)

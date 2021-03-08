@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ElectronManagerBehavior : BlockManagerBehavior
+public class ElectronManagerBehavior : QuantumBlockManagerBehavior
 {
     public Dictionary<string, ElectronPosition> electronPositionDictionary = new Dictionary<string, ElectronPosition>();
     public ElectronPosition[] electronPositions; //Used for determining neighbors
@@ -61,10 +61,7 @@ public class ElectronManagerBehavior : BlockManagerBehavior
         {
             SetUpElectronPositions();
         }
-
     }
-
-
 
     void SetUpElectronPositions()
     {

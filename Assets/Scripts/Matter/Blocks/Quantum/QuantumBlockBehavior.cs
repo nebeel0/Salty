@@ -3,31 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 
-public class BlockBehavior : GameBehavior
+public class QuantumBlockBehavior : BlockBehavior
 {
     // Overall Manager Class Instance
 
     // TODO on merge change camera position
     // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
     // TODO rotate on block place
-
-    public bool subAtomic = false; //TODO deterministic based on size
-
-    public static Color defaultColor = new Color(0.4f,0.4f,0.4f,0.06f);
-
-    public GameObject ParticleRef;
     public int particleAnimationSpeed = 5;
 
     public QuarkManagerBehavior quarkManager;
     public ElectronManagerBehavior electronManager;
-    public SlotManagerBehavior slotManager;
-    public ClusterBehavior cluster;
-    public BoxCollider collider
-    {
-        get { return GetComponent<BoxCollider>(); }
-    }
+    public QuantumSlotManagerBehavior slotManager;
 
-    Rigidbody rigidbody;
+    public override SlotManagerBehavior GetSlotManager()
+    {
+        return slotManager;
+    }
 
     public int ActualNetCharge //Debugging TODO remove
     {
@@ -36,19 +28,9 @@ public class BlockBehavior : GameBehavior
 
     public bool BeginnerElementFlag;
 
-
-    public void SetColor(Color color)
-    {
-        GetComponent<Renderer>().material.color = color;
-    }
-
     public override void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
-        slotManager.Start();
-        electronManager.Start();
-        quarkManager.Start();
-
+        base.Start();
         if (BeginnerElementFlag)
         {
             StartCoroutine(BeginnerElement()); //TODO replace with RandomElement
@@ -56,24 +38,36 @@ public class BlockBehavior : GameBehavior
         }
     }
 
-    private void Update()
+    protected override void SetUpManagers()
     {
-        if (cluster == null || !cluster.blocks.Contains(this)) //TODO move into callback when blocks break links
+        if (slotManager == null)
         {
-            cluster = gameMaster.spawnManager.CreateCluster(new HashSet<BlockBehavior>() { this });
+            slotManager = new GameObject().AddComponent<QuantumSlotManagerBehavior>();
+            Vector3Utils.NeutralParent(parent: transform, child: slotManager.transform);
         }
+        if (electronManager == null)
+        {
+            electronManager = new GameObject().AddComponent<ElectronManagerBehavior>();
+            Vector3Utils.NeutralParent(parent: transform, child: electronManager.transform);
+        }
+        if (quarkManager == null)
+        {
+            quarkManager = new GameObject().AddComponent<QuarkManagerBehavior>();
+            Vector3Utils.NeutralParent(parent: transform, child: quarkManager.transform);
+        }
+        slotManager.Start();
+        electronManager.Start();
+        quarkManager.Start();
     }
 
-    public void Death()
+    public override void Death()
     {
-        //TODO callback to cluster
-        transform.DetachChildren();
         quarkManager.Death();
         electronManager.Death();
-        slotManager.Death();
+        base.Death();
     }
 
-    void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
+    protected override void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
     {
         if (col.gameObject.CompareTag("Particle"))
         {
@@ -142,7 +136,7 @@ public class BlockBehavior : GameBehavior
         return electronManager.GetNetCharge() + quarkManager.GetNetCharge();
     }
 
-    public bool DeathCheck()
+    public override bool DeathCheck()
     {
         return quarkManager.DeathCheck();
     }

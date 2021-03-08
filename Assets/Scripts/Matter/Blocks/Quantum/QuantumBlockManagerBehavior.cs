@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BlockManagerBehavior : MonoBehaviour
+public class QuantumBlockManagerBehavior : MonoBehaviour
 {
-    public BlockBehavior Block
+    public QuantumBlockBehavior Block
     {
         get { 
-            if(transform.parent != null && transform.parent.CompareTag("Block"))
+            if(transform.parent != null && BlockUtils.IsBlock(transform.parent.gameObject))
             {
-                return transform.parent.gameObject.GetComponent<BlockBehavior>();
+                return transform.parent.gameObject.GetComponent<QuantumBlockBehavior>();
             }
             return null;
         }
@@ -22,6 +22,4 @@ public class BlockManagerBehavior : MonoBehaviour
             return Block.gameMaster;
         }
     }
-
-
 }
