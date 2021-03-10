@@ -7,7 +7,6 @@ namespace Controller
 {
     public abstract class BlockSpecialSubController : SpecialSubController
     {
-
     }
 }
 

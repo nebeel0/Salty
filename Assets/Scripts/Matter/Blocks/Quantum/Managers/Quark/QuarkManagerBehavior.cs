@@ -36,7 +36,8 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
     // Start is called before the first frame update
     public void Start()
     {
-        if(quarkPositions == null)
+        gameObject.name = "Quark Manager";
+        if (quarkPositions == null)
         {
             SetUpQuarkPositions();
         }

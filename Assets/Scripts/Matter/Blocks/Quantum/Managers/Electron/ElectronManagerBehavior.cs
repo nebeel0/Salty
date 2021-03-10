@@ -57,7 +57,8 @@ public class ElectronManagerBehavior : QuantumBlockManagerBehavior
 
     public void Start()
     {
-        if(electronPositions == null)
+        gameObject.name = "Electron Manager";
+        if (electronPositions == null)
         {
             SetUpElectronPositions();
         }

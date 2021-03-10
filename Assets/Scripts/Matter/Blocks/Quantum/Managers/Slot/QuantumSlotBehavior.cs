@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Matter.Block.Base;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -75,16 +76,19 @@ public class QuantumSlotBehavior : SlotBehavior
             if (!HasOccupantBlock())
             {
                 QuantumSlotBehavior otherSlot = GetOtherSlot(other.gameObject);
-                bool validOtherBlock = !otherSlot.slotManager.Cluster.IsOccupying() && !otherSlot.HasOccupantBlock();
-                bool validThisBlock = !slotManager.Cluster.IsOccupying() && !HasOccupantBlock();
+                if(otherSlot.slotManager.Cluster != null)
+                {
+                    bool validOtherBlock = !otherSlot.slotManager.Cluster.IsOccupying() && !otherSlot.HasOccupantBlock();
+                    bool validThisBlock = !slotManager.Cluster.IsOccupying() && !HasOccupantBlock();
 
-                if (validThisBlock && validOtherBlock && ValidElectrons(otherSlot))
-                {
-                    StartOccupying(otherSlot);
-                }
-                else
-                {
-                    //TODO repulse if not attract
+                    if (validThisBlock && validOtherBlock && ValidElectrons(otherSlot))
+                    {
+                        StartOccupying(otherSlot);
+                    }
+                    else
+                    {
+                        //TODO repulse if not attract
+                    }
                 }
             }
             else if (OccupantCheck(other)) //Check if position doesn't equal the same and a connection hasn't been made

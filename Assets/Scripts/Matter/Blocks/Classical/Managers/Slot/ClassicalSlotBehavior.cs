@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Matter.Block.Base;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -70,16 +71,19 @@ public class ClassicalSlotBehavior : SlotBehavior
             if (!HasOccupantBlock())
             {
                 ClassicalSlotBehavior otherSlot = GetOtherSlot(other.gameObject);
-                bool validOtherBlock = !otherSlot.slotManager.Cluster.IsOccupying() && !otherSlot.HasOccupantBlock();
-                bool validThisBlock = !slotManager.Cluster.IsOccupying() && !HasOccupantBlock();
+                if(otherSlot.slotManager.Cluster != null)
+                {
+                    bool validOtherBlock = !otherSlot.slotManager.Cluster.IsOccupying() && !otherSlot.HasOccupantBlock();
+                    bool validThisBlock = !slotManager.Cluster.IsOccupying() && !HasOccupantBlock();
 
-                if (validThisBlock && validOtherBlock)
-                {
-                    StartOccupying(otherSlot);
-                }
-                else
-                {
-                    //TODO repulse if not attract
+                    if (validThisBlock && validOtherBlock)
+                    {
+                        StartOccupying(otherSlot);
+                    }
+                    else
+                    {
+                        //TODO repulse if not attract
+                    }
                 }
             }
             else if (OccupantCheck(other)) //Check if position doesn't equal the same and a connection hasn't been made

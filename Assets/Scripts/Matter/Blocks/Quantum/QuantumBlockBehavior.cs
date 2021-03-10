@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Matter.Block.Base;
 
 public class QuantumBlockBehavior : BlockBehavior
 {

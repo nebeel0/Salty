@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Matter.Block.Base;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -73,6 +74,7 @@ public class ClusterGridBehavior : GameBehavior
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;
                     instatiatedBlock.transform.localScale = blockDimension;
+                    instatiatedBlock.GetSlotManager().slotLockEnabled = true;
                 }
             }
         }

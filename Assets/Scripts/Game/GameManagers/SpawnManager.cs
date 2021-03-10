@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Matter.Block.Base;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -174,7 +175,7 @@ public class SpawnManager : MonoBehaviour
         return clusterBehavior;
     }
 
-    public void CreateClusterGrid(Transform transform)
+    public void CreateClusterGrid(Transform transform, bool quantumFlag)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
@@ -183,6 +184,7 @@ public class SpawnManager : MonoBehaviour
         clusterGrid.transform.position = transform.position;
         clusterGrid.transform.eulerAngles = transform.eulerAngles;
         clusterGrid.transform.localScale = transform.localScale;
+        clusterGrid.quantumFlag = quantumFlag;
         clusterGrid.CreateGrid();
     }
 

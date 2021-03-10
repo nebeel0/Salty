@@ -2,59 +2,62 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class SlotBehavior : MonoBehaviour
+namespace Matter.Block.Base
 {
-    public Vector3 RelativeLocalPosition;
-    public FixedJoint fixedJoint;
-    public BoxCollider slotCollider;
-
-    public abstract BlockBehavior GetOccupantBlock();
-
-    protected abstract bool OccupantCheck(Collider other);
-
-    public void OccupantUpdate()
+    public abstract class SlotBehavior : MonoBehaviour
     {
-        if (IsOccupied() && slotCollider.enabled)
+        public Vector3 RelativeLocalPosition;
+        public FixedJoint fixedJoint;
+        public BoxCollider slotCollider;
+
+        public abstract BlockBehavior GetOccupantBlock();
+
+        protected abstract bool OccupantCheck(Collider other);
+
+        public void OccupantUpdate()
         {
-            slotCollider.enabled = false;
+            if (IsOccupied() && slotCollider.enabled)
+            {
+                slotCollider.enabled = false;
+            }
+            else if (!slotCollider.enabled && !IsOccupied())
+            {
+                slotCollider.enabled = true;
+                StopOccupying();
+            }
         }
-        else if (!slotCollider.enabled && !IsOccupied())
+
+        protected abstract void StopOccupying();
+        protected abstract void OnTriggerStay(Collider other);
+
+        protected void OnTriggerExit(Collider other)
         {
-            slotCollider.enabled = true;
-            StopOccupying();
+            if (BlockUtils.IsBlock(other.gameObject) && OccupantCheck(other))
+            {
+                StopOccupying();
+            }
         }
-    }
 
-    protected abstract void StopOccupying();
-    protected abstract void OnTriggerStay(Collider other);
+        protected abstract bool OccupantAlignedCheck();
 
-    protected void OnTriggerExit(Collider other)
-    {
-        if (BlockUtils.IsBlock(other.gameObject) && OccupantCheck(other))
+        protected abstract void LockOccupant();
+
+        public abstract void ReleaseBlock();
+
+        //State Utils
+        public bool IsFixed()
         {
-            StopOccupying();
+            return fixedJoint != null;
         }
+        public bool IsOccupied()
+        {
+            return HasOccupantBlock() && IsFixed();
+        }
+        public bool IsOccupying()
+        {
+            return HasOccupantBlock() && !IsFixed(); //Returns true if occupant block is true, but no fixed joint, false otherwise 
+        }
+        public abstract bool HasOccupantBlock();
+
     }
-
-    protected abstract bool OccupantAlignedCheck();
-
-    protected abstract void LockOccupant();
-
-    public abstract void ReleaseBlock();
-
-    //State Utils
-    public bool IsFixed()
-    {
-        return fixedJoint != null;
-    }
-    public bool IsOccupied()
-    {
-        return HasOccupantBlock() && IsFixed();
-    }
-    public bool IsOccupying()
-    {
-        return HasOccupantBlock() && !IsFixed(); //Returns true if occupant block is true, but no fixed joint, false otherwise 
-    }
-    public abstract bool HasOccupantBlock();
-
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Unity.Collections;
+using Matter.Block.Base;
 
 public class QuantumSlotManagerBehavior : SlotManagerBehavior
 {
@@ -37,8 +38,9 @@ public class QuantumSlotManagerBehavior : SlotManagerBehavior
         return false;
     }
 
-    public void Start()
+    public override void Start()
     {
+        base.Start();
         if(slots.Count == 0)
         {
             SetUpSlots();

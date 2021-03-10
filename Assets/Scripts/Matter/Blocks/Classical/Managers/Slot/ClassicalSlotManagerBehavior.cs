@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Unity.Collections;
+using Matter.Block.Base;
 
 public class ClassicalSlotManagerBehavior : SlotManagerBehavior
 {
@@ -38,8 +39,9 @@ public class ClassicalSlotManagerBehavior : SlotManagerBehavior
         return false;
     }
 
-    public void Start()
+    public override void Start()
     {
+        base.Start();
         if(slots.Count == 0)
         {
             SetUpSlots();

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Matter.Block.Base;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,7 +18,7 @@ namespace Controller
             if (BlockUtils.IsBlock(other.gameObject))
             {
                 Debug.Log("Colliding for ghost");
-                ClusterBehavior cluster = other.gameObject.GetComponent<BlockBehavior>().cluster;
+                ClusterBehavior cluster = other.gameObject.GetComponent<BlockBehavior>().Cluster;
                 if(cluster != null && NoPlayers(cluster))
                 {
                     Player.AttachPlayer(cluster);

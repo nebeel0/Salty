@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Matter.Block.Base;
 
 //Aggregates blocks
 public class ClusterBehavior : GameBehavior
@@ -44,17 +45,17 @@ public class ClusterBehavior : GameBehavior
 
     public void AddBlock(BlockBehavior block)
     {
-        if (block.cluster != null && block.cluster != this && block.cluster.blocks.Count > 0 && blocks.Count > 0)
+        if (block.Cluster != null && block.Cluster != this && block.Cluster.blocks.Count > 0 && blocks.Count > 0)
         {
-            ClusterBehavior parentCluster = block.cluster.totalMass > totalMass ? block.cluster : this;
-            ClusterBehavior childCluster = block.cluster.totalMass <= totalMass ? block.cluster : this;
+            ClusterBehavior parentCluster = block.Cluster.totalMass > totalMass ? block.Cluster : this;
+            ClusterBehavior childCluster = block.Cluster.totalMass <= totalMass ? block.Cluster : this;
 
             parentCluster.trackingBlock.name = "Block";
             childCluster.trackingBlock.name = "Block";
 
             foreach (BlockBehavior childBlock in childCluster.blocks)
             {
-                childBlock.cluster = parentCluster;
+                childBlock.Cluster = parentCluster;
                 if (parentCluster.trackingBlock != childBlock)
                 {
                     childBlock.name = "Block";
@@ -124,7 +125,7 @@ public class ClusterBehavior : GameBehavior
             currentBlock = BlockQueue.Dequeue();
             if (currentBlock != null && !seenBlocks.Contains(currentBlock) && currentBlock.GetSlotManager().GetSlots() != null)
             {
-                currentBlock.cluster = this;
+                currentBlock.Cluster = this;
                 seenBlocks.Add(currentBlock);
                 Physics.IgnoreCollision(currentBlock.Collider, GravitySphere);
                 Vector3 currentBlockPosition = currentBlock.transform.position;
@@ -218,7 +219,7 @@ public class ClusterBehavior : GameBehavior
             BlockBehavior otherBlock = other.gameObject.GetComponent<BlockBehavior>();
             if (otherBlock != null)
             {
-                if (!otherBlock.cluster.IsOccupying() && !IsOccupying() && otherBlock.cluster != this)
+                if (!otherBlock.Cluster.IsOccupying() && !IsOccupying() && otherBlock.Cluster != this)
                 {
                     Vector3Utils.Attract(other: other, transform: transform);
                 }

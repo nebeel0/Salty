@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Matter.Block.Base;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,10 +18,11 @@ namespace Controller
         public override void OnSpecialAbility1()
         {
             ClusterBehavior cluster = GetCluster();
-            cluster.trackingBlock.GetComponent<BoxCollider>().enabled = false;
-            Player.gameMaster.spawnManager.CreateClusterGrid(cluster.trackingBlock.transform);
+            BlockBehavior block = cluster.trackingBlock;
+            block.GetComponent<BoxCollider>().enabled = false;
+            Player.gameMaster.spawnManager.CreateClusterGrid(block.transform, BlockUtils.IsQuantumBlock(block.gameObject));
             Player.OnDetachCluster();
-            Destroy(cluster.trackingBlock.gameObject);
+            Destroy(block.gameObject);
         }
 
         public override string GetSpecialAbility2Description()
