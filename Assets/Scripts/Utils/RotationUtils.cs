@@ -52,17 +52,17 @@ public static class RotationUtils
 
         public void UpdateTransform(Transform t)
         {
-            t.eulerAngles = new Vector3(pitch, yaw, roll);
+            t.rotation = Quaternion.Euler(new Vector3(pitch, yaw, roll));
         }
 
         public void UpdateLocalTransform(Transform t)
         {
-            t.localEulerAngles = new Vector3(pitch, yaw, roll);
+            t.localRotation = Quaternion.Euler(new Vector3(pitch, yaw, roll));
         }
     }
 
 
-    public static void UpdateRotation(Transform target, Vector2 delta, float lerpPercentage)
+    public static void UpdateRotation(Transform target, Vector3 delta, float lerpPercentage)
     {
         RotationState rotationTarget = new RotationState();
         RotationState interpolationHolder = new RotationState();
@@ -70,8 +70,17 @@ public static class RotationUtils
         rotationTarget.SetFromTransform(target);
         interpolationHolder.SetFromTransform(target);
 
-        rotationTarget.yaw += delta.x;
-        rotationTarget.pitch += delta.y;
+        rotationTarget.yaw += delta.y;
+        rotationTarget.yaw = Mathf.Clamp(rotationTarget.yaw, -90, 90);
+        if(rotationTarget.yaw > 90)
+        {
+            rotationTarget.yaw = 90;
+        }
+        else if(rotationTarget.yaw < -90)
+        {
+            rotationTarget.yaw = 270;
+        }
+        rotationTarget.pitch += delta.x;
 
         interpolationHolder.LerpTowards(rotationTarget, lerpPercentage);
         interpolationHolder.UpdateTransform(target);

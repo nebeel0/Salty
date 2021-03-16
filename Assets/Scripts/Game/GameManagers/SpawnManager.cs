@@ -18,6 +18,7 @@ public class SpawnManager : MonoBehaviour
     public GameObject baseBlockRef;
     public GameObject baseParticleRef;
     public Material particleLit;
+    public Material defaultLine;
 
     public HashSet<GameObject> spawnedObjects = new HashSet<GameObject>();
     public HashSet<CageBehavior> SystemCage = new HashSet<CageBehavior>();
@@ -169,7 +170,7 @@ public class SpawnManager : MonoBehaviour
         clusterBehavior.gameMaster = gameMaster;
         clusterBehavior.blocks = blocks;
         clusterBehavior.BFSRefresh();
-        CreateAIPlayer().AttachPlayer(clusterBehavior);
+        CreateAIPlayer().AttachCluster(clusterBehavior);
         SystemClusters.Add(clusterBehavior);
         spawnedObjects.Add(cluster);
         return clusterBehavior;
@@ -281,5 +282,16 @@ public class SpawnManager : MonoBehaviour
         wBosonBehavior.Start();
         spawnedObjects.Add(wBoson);
         return wBosonBehavior;
+    }
+
+
+    //Component Utils
+    public LineRenderer AttachLineRenderer(GameObject gameObject)
+    {
+        LineRenderer lineRenderer = gameObject.AddComponent<LineRenderer>();
+        lineRenderer.material = defaultLine;
+        lineRenderer.startWidth = 0.05f;
+        lineRenderer.endWidth = 0.05f;
+        return lineRenderer;
     }
 }

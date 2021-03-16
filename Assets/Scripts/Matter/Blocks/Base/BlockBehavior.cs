@@ -7,26 +7,21 @@ namespace Matter.Block.Base
 {
     public abstract class BlockBehavior : GameBehavior
     {
-        // Overall Manager Class Instance
-
-        // TODO on merge change camera position
-        // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
-        // TODO rotate on block place
-        public static Color defaultColor = new Color(0.4f, 0.4f, 0.4f, 0.06f);
         public ClusterBehavior Cluster;
+        public BlockPropertyManager blockPropertyManager;
         public BoxCollider Collider
         {
             get { return GetComponent<BoxCollider>(); }
         }
         public new Rigidbody rigidbody;
 
-        public void SetColor(Color color)
-        {
-            GetComponent<Renderer>().material.color = color;
-        }
-
         public override void Start()
         {
+            if(blockPropertyManager == null)
+            {
+                blockPropertyManager = gameObject.AddComponent<BlockPropertyManager>();
+            }
+            blockPropertyManager.Start();
             rigidbody = GetComponent<Rigidbody>();
             SetUpManagers();
         }
@@ -45,10 +40,6 @@ namespace Matter.Block.Base
         {
             transform.DetachChildren();
             Cluster.RemoveBlocks(new HashSet<BlockBehavior>() { this });
-        }
-
-        protected virtual void OnCollisionEnter(Collision col)
-        {
         }
 
         public abstract bool DeathCheck();

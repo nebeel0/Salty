@@ -7,6 +7,11 @@ namespace Matter.Block.Property
 {
     public abstract class BlockProperty<T> : MonoBehaviour
     {
+        protected Base.BlockBehavior Block
+        {
+            get { return GetComponent<Base.BlockBehavior>(); }
+        }
+
         public string PropertyName
         {
             get
@@ -20,14 +25,20 @@ namespace Matter.Block.Property
         {
             return property;
         }
-        public abstract bool CanSet();
+        public abstract bool ReadOnly();
+        public abstract bool PlayerControllable();
 
         public virtual void Set(T property)
         {
-            if(CanSet())
+            if(!ReadOnly())
             {
                 this.property = property;
             }
+        }
+
+        public override string ToString()
+        {
+            return GetType().Name + " : " + property.ToString();
         }
     }
 }

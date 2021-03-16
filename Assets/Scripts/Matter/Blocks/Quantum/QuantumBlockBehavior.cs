@@ -68,7 +68,7 @@ public class QuantumBlockBehavior : BlockBehavior
         base.Death();
     }
 
-    protected override void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
+    protected void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
     {
         if (col.gameObject.CompareTag("Particle"))
         {

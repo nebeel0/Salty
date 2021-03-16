@@ -11,7 +11,11 @@ namespace Matter
         {
             public class Mass : BlockProperty<float>
             {
-                public override bool CanSet()
+                public override bool PlayerControllable()
+                {
+                    return false;
+                }
+                public override bool ReadOnly()
                 {
                     return false;
                 }

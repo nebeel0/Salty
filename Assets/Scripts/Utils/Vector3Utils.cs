@@ -73,7 +73,7 @@ public static class Vector3Utils
         return pos;
     }
 
-    public static Vector3 PositionAlignment(GameObject otherObject, Transform transform)
+    static Vector3 PositionAlignment(GameObject otherObject, Transform transform)
     {
         Vector3 otherForce = transform.position - otherObject.transform.position;
 
@@ -81,7 +81,7 @@ public static class Vector3Utils
         //otherForce = Mathf.Sqrt(forceScalar) * otherForce.normalized;
         return otherForce;
     }
-    public static Vector3 RotationalAlignment(GameObject otherObject, Transform transform)
+    static Vector3 RotationalAlignment(GameObject otherObject, Transform transform)
     {
         Quaternion AngleDifference = Quaternion.FromToRotation(otherObject.transform.up, transform.up);
 

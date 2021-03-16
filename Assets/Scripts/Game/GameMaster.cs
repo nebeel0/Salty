@@ -22,16 +22,12 @@ public class GameMaster : MonoBehaviour
         transform.localScale = Vector3.one;
     }
 
-    public GameRules CurrentGameRules
+    public GameRules.Base.GameRules CurrentGameRules
     {
-        get { return GetComponent<GameRules>(); }
+        get { return GetComponent<GameRules.Base.GameRules>(); }
     }
 
-    public static List<Type> possibleRules = new List<Type>() 
-    { 
-        typeof(Pacman),
-        typeof(Story)
-    }; //TODO to turn this into a json that can be created and pulled dynamically
+    public static List<Type> possibleRules = ReflectionUtils.GetSubClasses(typeof(GameRules.Base.GameRules));
 
     public MenuManager menuManager;
     public PhysicsManager physicsManager;

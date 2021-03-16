@@ -70,11 +70,10 @@ public class ClusterGridBehavior : GameBehavior
                     }
                     instatiatedBlock.gameMaster = gameMaster;
                     instatiatedBlock.GetSlotManager().displacementFactor = displacementFactor;
-                    instatiatedBlock.GetSlotManager().slotLockEnabled = true;
                     instatiatedBlock.transform.localPosition = blockPosition;
                     instatiatedBlock.transform.parent = null;
                     instatiatedBlock.transform.localScale = blockDimension;
-                    instatiatedBlock.GetSlotManager().slotLockEnabled = true;
+                    instatiatedBlock.GetSlotManager().slotLockEnabled = false;
                 }
             }
         }

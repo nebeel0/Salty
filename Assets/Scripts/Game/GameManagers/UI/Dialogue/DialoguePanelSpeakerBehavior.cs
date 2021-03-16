@@ -5,6 +5,8 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using Character;
+
 public class DialoguePanelSpeakerBehavior : MonoBehaviour
 {
     public TMP_Text speakerName;

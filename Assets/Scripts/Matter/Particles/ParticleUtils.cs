@@ -12,8 +12,6 @@ public static class ParticleUtils
     public static int pBosonLayer = 13;
     public static int wBosonLayer = 14;
     public static int zBosonLayer = 15;
-    public static int noBlockCollisionLayer = 16;  //TODO make a better named layer
-    public static int blockLayer = 8;
 
     public static string leptonNeg = "leptonNeg";
     public static string quarkPos = "quarkPos";

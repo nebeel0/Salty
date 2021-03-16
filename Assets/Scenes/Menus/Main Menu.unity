@@ -429,6 +429,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1789902767493247812, guid: d2323645c7e17f24c834a7dcd30eadb5,
         type: 3}
+    - target: {fileID: 1703193490849354927, guid: 8bac7f7c04dd82343969d4dfefa3a62b,
+        type: 3}
+      propertyPath: defaultLine
+      value: 
+      objectReference: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
     - target: {fileID: 1863549414111756113, guid: 8bac7f7c04dd82343969d4dfefa3a62b,
         type: 3}
       propertyPath: m_AnchorMin.y

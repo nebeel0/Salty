@@ -22,9 +22,25 @@
                     "interactions": ""
                 },
                 {
+                    "name": "TargetLock",
+                    "type": "Value",
+                    "id": "bca490c1-d05b-4bd2-9e86-f5633ee05be5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "Fire",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "772696ad-23cd-47e7-8c10-9bc3f2374b20",
+                    "expectedControlType": "Analog",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "Hold",
+                    "type": "Value",
+                    "id": "a749da49-a94c-4cad-9d4c-aeddaac204e4",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -392,6 +408,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "DetachCluster",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "96ff8ca7-a2e4-4e16-8a37-ffcdeb258a3e",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0f3afcf4-6566-4cb1-9956-f9b8bbc481b2",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TargetLock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

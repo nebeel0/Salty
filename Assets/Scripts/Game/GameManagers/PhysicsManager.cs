@@ -25,9 +25,9 @@ public class PhysicsManager : MonoBehaviour
             }
         }
         Physics.IgnoreLayerCollision(layer1: messageColliderLayer, layer2: messageColliderLayer);
-        Physics.IgnoreLayerCollision(layer1: ParticleUtils.blockLayer, layer2: ParticleUtils.noBlockCollisionLayer);
-        Physics.IgnoreLayerCollision(layer1: ParticleUtils.noBlockCollisionLayer, layer2: ParticleUtils.noBlockCollisionLayer);
-        Physics.IgnoreLayerCollision(layer1: ParticleUtils.noBlockCollisionLayer, layer2: ParticleUtils.noBlockCollisionLayer);
+        Physics.IgnoreLayerCollision(layer1: BlockUtils.blockLayer, layer2: BlockUtils.noBlockCollisionLayer);
+        Physics.IgnoreLayerCollision(layer1: BlockUtils.noBlockCollisionLayer, layer2: BlockUtils.noBlockCollisionLayer);
+        Physics.IgnoreLayerCollision(layer1: BlockUtils.noBlockCollisionLayer, layer2: BlockUtils.noBlockCollisionLayer);
     }
 
     public float TotalSystemMass()

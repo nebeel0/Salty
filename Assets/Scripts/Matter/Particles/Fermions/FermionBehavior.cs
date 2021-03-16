@@ -48,7 +48,7 @@ public class FermionBehavior : ParticleBehavior
         rigidbody.drag = 1;
         rigidbody.angularDrag = 1;
         rigidbody.isKinematic = true;
-        gameObject.layer = ParticleUtils.noBlockCollisionLayer;
+        gameObject.layer = BlockUtils.noBlockCollisionLayer;
     }
 
     public void OnChargeChange()

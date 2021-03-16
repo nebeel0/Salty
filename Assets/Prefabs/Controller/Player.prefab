@@ -120,8 +120,6 @@ GameObject:
   - component: {fileID: 5763612623375676641}
   - component: {fileID: 4068120909504960637}
   - component: {fileID: 5166121965498520156}
-  - component: {fileID: 2843379374478908114}
-  - component: {fileID: 1480351849043432888}
   m_Layer: 8
   m_Name: Player
   m_TagString: Ghost
@@ -335,33 +333,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &2843379374478908114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5763612623375676646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fff3c2e43c93fe4428c2e9a0121196e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameMaster: {fileID: 0}
-  primaryAlias: 
---- !u!114 &1480351849043432888
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5763612623375676646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af305a1cf04ea274ab70adc0f4cf362f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initiateDialogue: 0
 --- !u!1 &6123744341680643953
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,6 +463,36 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 5763612623375676632}
     m_Modifications:
+    - target: {fileID: 320503824293230140, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 320503824293230140, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 320503824293230140, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 320503824293230140, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 320503824293230140, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 320503824293230140, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2719197477967122913, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
         type: 3}
       propertyPath: m_Name
@@ -600,6 +601,36 @@ PrefabInstance:
     - target: {fileID: 2719197477967122917, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
         type: 3}
       propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3799847353543169701, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3799847353543169701, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3799847353543169701, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3799847353543169701, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3799847353543169701, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3799847353543169701, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
+        type: 3}
+      propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5461431454454128723, guid: 47c2aa4b3a65d6e4d8c5a9de2f2a0c90,
