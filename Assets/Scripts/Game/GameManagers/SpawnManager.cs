@@ -41,6 +41,7 @@ public class SpawnManager : MonoBehaviour
     public void ClearPlayers()
     {
         players.Clear();
+        aiPlayers.Clear();
     }
 
     public void DestroyAI(PlayerControlManager aiPlayer)
@@ -90,11 +91,13 @@ public class SpawnManager : MonoBehaviour
     }
 
     //Spawn Utils
-    public void SpawnQuantumBlocks(int seed, Vector3 bounds)
+    public void SpawnQuantumBlocks(double seed, Vector3 bounds, bool antiMatterFlag=false)
     {
+        Debug.Log("Spawning " + seed.ToString() + " Blocks");
         for (int i = 0; i < seed; i++)
         {
             QuantumBlockBehavior block = CreateQuantumBlock();
+            block.antiMatterFlag = antiMatterFlag;
             block.BeginnerElementFlag = true;
             block.transform.position = Vector3Utils.RandomBoundedVector3(bounds);
             block.transform.eulerAngles = Vector3Utils.RandomEulerAngles();
@@ -203,40 +206,40 @@ public class SpawnManager : MonoBehaviour
         return neutrinoBehavior;
     }
 
-    public ElectronBehavior CreateElectron(int weightClass=1, float energy=100, int antiCharge=1)
+    public ElectronBehavior CreateElectron(int weightClass=1, float energy=100, bool antiMatterFlag=false)
     //Leptons can be created by wBosons decaying
     {
         GameObject electron = Instantiate(baseParticleRef);
         ElectronBehavior electronBehavior = electron.AddComponent<ElectronBehavior>();
         electronBehavior.energy = energy;
         electronBehavior.weightClass = weightClass;
-        electronBehavior.antiCharge = antiCharge;
+        electronBehavior.SetAntiMatter(antiMatterFlag);
         electronBehavior.gameMaster = gameMaster;
         electronBehavior.Start();
         spawnedObjects.Add(electron);
         return electronBehavior;
     }
     //Quarks can be created by wBosons decaying
-    public UpBehavior CreateQuarkPos(int weightClass, float energy, int antiCharge)
+    public UpBehavior CreateQuarkPos(int weightClass, float energy, bool antiMatterFlag = false)
     {
         GameObject posQuark = Instantiate(baseParticleRef);
         UpBehavior posQuarkBehavior = posQuark.AddComponent<UpBehavior>();
         posQuarkBehavior.energy = energy;
         posQuarkBehavior.weightClass = weightClass;
-        posQuarkBehavior.antiCharge = antiCharge;
+        posQuarkBehavior.SetAntiMatter(antiMatterFlag);
         posQuarkBehavior.gameMaster = gameMaster;
         posQuarkBehavior.Start();
         spawnedObjects.Add(posQuark);
         return posQuarkBehavior;
     }
-    public DownBehavior CreateQuarkNeg(int weightClass, float energy, int antiCharge)
+    public DownBehavior CreateQuarkNeg(int weightClass, float energy, bool antiMatterFlag = false)
     {
 
         GameObject negQuark = Instantiate(baseParticleRef);
         DownBehavior negQuarkBehavior = negQuark.AddComponent<DownBehavior>();
         negQuarkBehavior.energy = energy;
         negQuarkBehavior.weightClass = weightClass;
-        negQuarkBehavior.antiCharge = antiCharge;
+        negQuarkBehavior.SetAntiMatter(antiMatterFlag);
         negQuarkBehavior.gameMaster = gameMaster;
         negQuarkBehavior.Start();
         spawnedObjects.Add(negQuark);
@@ -269,7 +272,7 @@ public class SpawnManager : MonoBehaviour
         spawnedObjects.Add(zBoson);
         return zBosonBehavior;
     }
-    public WBosonBehavior CreateWBoson(int weightClass, float energy, int antiCharge)
+    public WBosonBehavior CreateWBoson(int weightClass, float energy, bool antiMatterFlag = false)
     //Created when collions occur between same types. Quarks, Leptons.
     //Created when mass is too high
     {
@@ -277,7 +280,7 @@ public class SpawnManager : MonoBehaviour
         WBosonBehavior wBosonBehavior = wBoson.AddComponent<WBosonBehavior>();
         wBosonBehavior.energy = energy;
         wBosonBehavior.weightClass = weightClass;
-        wBosonBehavior.antiCharge = antiCharge;
+        wBosonBehavior.SetAntiMatter(antiMatterFlag);
         wBosonBehavior.gameMaster = gameMaster;
         wBosonBehavior.Start();
         spawnedObjects.Add(wBoson);

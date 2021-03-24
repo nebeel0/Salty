@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class QuarkGroup
 {
-    QuarkManagerBehavior manager;
-
+    QuarkManagerBehavior quarkManager;
     public static int quarkGroupCapacity = 3;
     public HashSet<QuarkBehavior> quarks = new HashSet<QuarkBehavior>();
     public bool isFull
@@ -23,9 +22,9 @@ public class QuarkGroup
         return quarkString;
     }
 
-    public QuarkGroup(QuarkBehavior quark, QuarkManagerBehavior manager)
+    public QuarkGroup(QuarkBehavior quark, QuarkManagerBehavior quarkManager)
     {
-        this.manager = manager;
+        this.quarkManager = quarkManager;
         AddParticle(quark);
     }
 
@@ -34,38 +33,32 @@ public class QuarkGroup
         int netCharge = 0;
         foreach (ParticleBehavior quark in quarks)
         {
-            netCharge += quark.effectiveCharge;
+            netCharge += quark.charge;
         }
         return netCharge;
     }
 
-    public void OnChargeChange(QuarkBehavior quark, int previousCharge)
-    {
-        quarks.Remove(quark);
-        manager.OnParticleChargeChange(quark, previousCharge);
-    }
-
     public void AddParticle(QuarkBehavior quark)
     {
+        quark.Occupy(quarkManager);
         quarks.Add(quark);
-        manager.AddParticle(quark);
         quark.quarkGroup = this;
     }
 
     public void RemoveParticle(QuarkBehavior quark)
     {
         quarks.Remove(quark);
-        manager.RemoveParticle(quark);
         quark.quarkGroup = null;
+        quark.Free();
     }
 
     public bool Validate(QuarkBehavior quark)
     {
         int netCharge = GetNetCharge();
         bool capacityCheck = (quarks.Count + 1) <= quarkGroupCapacity;
-        bool maxTwoSame = quark.effectiveCharge * netCharge < 0;
+        bool maxTwoSame = quark.charge * netCharge < 0;
 
-        int totalCharge = quark.effectiveCharge + netCharge;
+        int totalCharge = quark.charge + netCharge;
         bool totalChargeCheck = totalCharge == 3 || totalCharge == 0;
 
         bool fullCheck = capacityCheck && maxTwoSame && totalChargeCheck;

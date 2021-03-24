@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Matter.Block.Property.Base;
 
 namespace Matter.Block.Base
 {
@@ -12,13 +13,14 @@ namespace Matter.Block.Base
 
         public void Start()
         {
-            properties = ReflectionUtils.GetSubClassesFromGeneric(typeof(Property.BlockProperty<>));
-            foreach(Type type in properties)
+            properties = InstantiationUtils.SetUpSubComponents(gameObject, typeof(BlockProperty<>));
+            if(BlockUtils.IsQuantumBlock(gameObject))
             {
-                if (gameObject.GetComponent(type) == null)
-                {
-                    gameObject.AddComponent(type);
-                }
+                properties.AddRange(InstantiationUtils.SetUpSubComponents(gameObject, typeof(QuantumBlockProperty<>)));
+            }
+            if (BlockUtils.IsClassicalBlock(gameObject))
+            {
+                properties.AddRange(InstantiationUtils.SetUpSubComponents(gameObject, typeof(ClassicalBlockProperty<>)));
             }
         }
 

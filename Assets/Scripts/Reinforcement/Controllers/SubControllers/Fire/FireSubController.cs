@@ -20,7 +20,7 @@ namespace Controller
             this.firing = firing;
         }
 
-        private void Update()
+        protected virtual void Update()
         {
             if(firing)
             {

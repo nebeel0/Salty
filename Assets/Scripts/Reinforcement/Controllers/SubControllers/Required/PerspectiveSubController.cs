@@ -13,8 +13,8 @@ namespace Controller
                 return Player.primaryCamera;
             }
         }
-        
         public Vector3 primaryCameraRootPosition = new Vector3(0, 0.5f, 0); //TODO static element?
+        public float thirdPersonCameraDisplacement = 4;
         public bool thirdPerson;
 
         private void Start()
@@ -34,46 +34,48 @@ namespace Controller
             UpdateCameraOffset();
         }
 
-        public void OnTogglePerspective()
+        void OnTogglePerspective()
         {
-            if (!enabled || IsGhost())
+            if (!enabled || IsGhost() || GetComponent<RotationSubController>().cameraZoomMode)
             {
                 return;
             }
             thirdPerson = !thirdPerson;
             UpdateCameraOffset();
-            Player.transform.localEulerAngles = Vector3.zero;
+            transform.localEulerAngles = Vector3.zero;
         }
 
-        public void UpdateCameraOffset()
+        void UpdateCameraOffset()
         {
-            if(GetCluster() != null)
+            Vector3 newScale;
+            Vector3 newCameraPosition;
+            if (GetCluster() != null)
             {
-                transform.localPosition = Vector3.zero;
                 if (thirdPerson) //default third person
                 {
-                    float displacement = 4;
-                    PrimaryCamera.transform.localPosition = primaryCameraRootPosition + Vector3.back * displacement;
+                    newCameraPosition = primaryCameraRootPosition + Vector3.back * thirdPersonCameraDisplacement;
                 }
                 else
                 {
-                    PrimaryCamera.transform.localPosition = primaryCameraRootPosition;
+                    newCameraPosition = primaryCameraRootPosition;
                 }
                 if(GetCluster().blocks.Count == 1)
                 {
-                    gameObject.transform.localScale = Vector3.one;
+                    newScale = Vector3.one;
                 }
                 else
                 {
-                    gameObject.transform.localScale = Vector3.one * GetCluster().diagonal; //TODO we can get the exact math for size to diagonal
+                    newScale = Vector3.one * GetCluster().diagonal; //TODO we can get the exact math for size to diagonal
                 }
             }
             else
             {
-                gameObject.transform.localScale = Vector3.one;
-                PrimaryCamera.transform.localPosition = primaryCameraRootPosition;
+                newScale = Vector3.one;
+                newCameraPosition = primaryCameraRootPosition;
                 thirdPerson = false;
             }
+            transform.localScale = Vector3.Lerp(transform.localScale, newScale, Time.deltaTime);
+            PrimaryCamera.transform.localPosition = Vector3.Lerp(PrimaryCamera.transform.localPosition, newCameraPosition, Time.deltaTime * 10);
         }
 
     }

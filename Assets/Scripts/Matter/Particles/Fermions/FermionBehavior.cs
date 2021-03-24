@@ -4,7 +4,20 @@ using UnityEngine;
 
 public class FermionBehavior : ParticleBehavior
 {
-    public int spinFactor = 1;
+    ChargeManagerBehavior ChargeManager
+    {
+        get
+        {
+            if(transform.parent == null)
+            {
+                return null;
+            }
+            else
+            {
+                return transform.parent.gameObject.GetComponent<ChargeManagerBehavior>();
+            }
+        }
+    }
     public bool isChargeChanging = false;
 
     protected override void Update()
@@ -16,39 +29,31 @@ public class FermionBehavior : ParticleBehavior
         }
     }
 
-    protected virtual void OnCollisionEnter(Collision col)
+    public virtual void Free()
     {
-        //TODO account for missing collisions when in blocks
-        //Account for double collision effects for fermions
-        if (ParticleUtils.isParticle(col.gameObject))
+        if(transform.parent != null || !particleCollider.enabled)
         {
-            ParticleBehavior otherParticle = col.gameObject.GetComponent<ParticleBehavior>();
-            if (ParticleUtils.areSameType(gameObject, col.gameObject) && otherParticle.antiCharge != antiCharge)
-            {
-                Annihilate(otherParticle);
-            }
+            transform.SetParent(null);
+            gameObject.layer = layer;
+            particleCollider.enabled = true;
+            rigidbody.drag = 0.25f;
+            rigidbody.angularDrag = 0.25f;
+            rigidbody.isKinematic = false;
         }
     }
 
-    public virtual void Free()
+    public virtual void Occupy(ChargeManagerBehavior chargeManager)
     {
-        transform.SetParent(null);
-        particleCollider.enabled = true;
-        rigidbody.drag = 0.25f;
-        rigidbody.angularDrag = 0.25f;
-        rigidbody.isKinematic = false;
-        gameObject.layer = layer;
-    }
-
-    public virtual void Occupy(GameObject block)
-    {
-        transform.SetParent(block.transform);
-        particleCollider.enabled = false;
-        rigidbody.velocity = new Vector3(0, 0, 0);
-        rigidbody.drag = 1;
-        rigidbody.angularDrag = 1;
-        rigidbody.isKinematic = true;
-        gameObject.layer = BlockUtils.noBlockCollisionLayer;
+        if((chargeManager != null && transform.parent != chargeManager.transform) || particleCollider.enabled)
+        {
+            transform.SetParent(chargeManager.transform);
+            particleCollider.enabled = false;
+            rigidbody.velocity = new Vector3(0, 0, 0);
+            rigidbody.drag = 1;
+            rigidbody.angularDrag = 1;
+            rigidbody.isKinematic = true;
+            gameObject.layer = BlockUtils.noBlockCollisionLayer;
+        }
     }
 
     public void OnChargeChange()

@@ -9,6 +9,7 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
     public List<QuarkGroup> quarkGroups = new List<QuarkGroup>(); //fifteen max
     Vector3[] quarkPositions;
     int quarkGroupMax;
+    bool initCheck;
 
     public override int GetNetCharge()
     {
@@ -23,8 +24,6 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
                 netCharge += quarkGroups[i].GetNetCharge();
             }
         }
-        //Debug.Log("Quark Net Charge");
-        //Debug.Log(netCharge);
         return netCharge;
     }
 
@@ -45,14 +44,20 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
 
     void Update()
     {
-        //TODO implement stack
-        //TODO not all the time
         PlaceQuarkGroups();
+        if(transform.childCount > 0)
+        {
+            initCheck = true;
+        }
+        if(DeathCheck())
+        {
+            Death();
+        }
     }
 
     public override bool DeathCheck() //Only call on subtract operations
     {
-        if(particleDictionary[2].Count == 0)
+        if(transform.childCount == 0 && initCheck)
         {
             return true;
         }
@@ -113,8 +118,11 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
         {
             foreach (ParticleBehavior quark in quarkGroups[i].quarks)
             {
-                quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], Block.particleAnimationSpeed / 2 * Time.deltaTime);
-                quarkPositionI++; // So that the particles will be displaced from each other, if they are not in the same groups
+                if(quark != null)
+                {
+                    quark.transform.localPosition = Vector3.Lerp(quark.transform.localPosition, quarkPositions[quarkPositionI], Block.particleAnimationSpeed / 2 * Time.deltaTime);
+                    quarkPositionI++; // So that the particles will be displaced from each other, if they are not in the same groups
+                }
             }
         }
     }
@@ -146,31 +154,30 @@ public class QuarkManagerBehavior : ChargeManagerBehavior
     public HashSet<FermionBehavior> ExtractExcessQuarks() // -1, -2, +1
     {
         //If netCharge != all quarks plus each other rescatter.
-        bool optimalProtonState = particleDictionary[2].Count >= (particleDictionary[-1].Count * 2);
+        bool optimalProtonState = fermionDictionary[2].Count >= (fermionDictionary[-1].Count * 2);
 
         if (!optimalProtonState)
         {
             quarkGroups = new List<QuarkGroup>(); //reset Quark Groups
 
-            HashSet<FermionBehavior> negativeQuarks = particleDictionary[-1];
-            HashSet<FermionBehavior> positiveQuarks = particleDictionary[2];
+            HashSet<FermionBehavior> negativeQuarks = fermionDictionary[-1];
+            HashSet<FermionBehavior> positiveQuarks = fermionDictionary[2];
 
-            particleDictionary[-1] = new HashSet<FermionBehavior>();
-            particleDictionary[2] = new HashSet<FermionBehavior>();
+            fermionDictionary[-1] = new HashSet<FermionBehavior>();
+            fermionDictionary[2] = new HashSet<FermionBehavior>();
 
-            int numProtons = particleDictionary[2].Count / 2;
+            int numProtons = fermionDictionary[2].Count / 2;
 
             //Creates as many protons
             for (int protonCounter = 0; protonCounter < numProtons; protonCounter++)
             {
-                FermionBehavior negativeQuark = GetFirstParticle(negativeQuarks);
+                FermionBehavior negativeQuark = GetFirstFermion(negativeQuarks);
                 negativeQuarks.Remove(negativeQuark);
-                ReAddParticle(negativeQuark);
 
                 QuarkGroup proton = new QuarkGroup((QuarkBehavior)negativeQuark, this);
                 for (int posCounter = 1; posCounter <= 2; posCounter++)
                 {
-                    FermionBehavior positiveQuark = GetFirstParticle(positiveQuarks);
+                    FermionBehavior positiveQuark = GetFirstFermion(positiveQuarks);
                     positiveQuarks.Remove(positiveQuark);
                     proton.AddParticle((QuarkBehavior)positiveQuark);
                 }

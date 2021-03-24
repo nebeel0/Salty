@@ -8,14 +8,38 @@ namespace Character.Managers
 {
     public class CharacterTargetManager : CharacterManagerBehavior
     {
-        public List<GameObject> targets = new List<GameObject>();
+        List<GameObject> targets = new List<GameObject>();
 
-        private void Update()
+        public bool HasTargets()
         {
+            return targets.Count > 0;
         }
-        
-        //public Vector3 GetTargetsCenter(
 
+        public void SetTarget(GameObject target)
+        {
+            targets = new List<GameObject>() { target };
+        }
 
+        public void SetTargets(List<GameObject> targets)
+        {
+            this.targets = targets;
+        }
+
+        public Vector3 GetTargetsCenter()
+        {
+            if(targets.Count == 0)
+            {
+                return transform.position;
+            }
+            else
+            {
+                Vector3 center = Vector3.zero;
+                foreach (GameObject gameObject in targets)
+                {
+                    center += gameObject.transform.position;
+                }
+                return center;
+            }
+        }
     }
 }

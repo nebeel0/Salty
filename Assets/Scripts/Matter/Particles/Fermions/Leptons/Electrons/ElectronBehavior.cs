@@ -17,7 +17,6 @@ public class ElectronBehavior : LeptonBehavior
         lineRenderer.enabled = false;
     }
 
-
     void OrbitLineUpdate()
     {
         if(electronPosition != null)
@@ -49,8 +48,6 @@ public class ElectronBehavior : LeptonBehavior
 
     }
 
-
-
     public ElectronPosition electronPosition = null; //Total of 8 blocks 
 
     public bool IsEntangled()
@@ -74,7 +71,11 @@ public class ElectronBehavior : LeptonBehavior
 
     public override void Free()
     {
-        electronPosition = null;
+        if(electronPosition != null)
+        {
+            electronPosition.ReleaseElectron();
+            electronPosition = null;
+        }
         base.Free();
     }
 

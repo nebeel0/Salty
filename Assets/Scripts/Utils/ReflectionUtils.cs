@@ -15,7 +15,7 @@ public static class ReflectionUtils
     public static List<Type> GetSubClassesFromGeneric(Type GenericBaseType)
     {
         return Assembly.GetExecutingAssembly().GetTypes()
-            .Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition().Equals(GenericBaseType)).ToList();
+            .Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition().Equals(GenericBaseType) && !t.IsGenericType).ToList();
     }
 
     public static HashSet<Type> GetAllGenericArguments(Type GenericBaseType)

@@ -9,26 +9,28 @@ public class QuarkBehavior : FermionBehavior
     protected override void OnCollisionEnter(Collision col)
     {
         base.OnCollisionEnter(col);
-        if (ParticleUtils.isQuarkPos(gameObject) && ParticleUtils.isQuarkNeg(gameObject) && col.collider.enabled && particleCollider.enabled) //Strong force interaction, generate a new block
+        if(ParticleUtils.isParticle(col.gameObject) && pseudoCollidingParticle == null)
         {
-            //By default if quarks interact they are free
-            QuantumBlockBehavior newBlock = gameMaster.spawnManager.CreateQuantumBlock();
-            newBlock.transform.position = transform.position;
-            newBlock.CollideParticle(gameObject);
-            newBlock.CollideParticle(col.gameObject);
-            if (newBlock.DeathCheck())
+            bool asymmetricalCheck = ParticleUtils.isQuarkPos(gameObject) && ParticleUtils.isQuarkNeg(col.gameObject);
+            bool sameMatter = ParticleUtils.IsAntiMatter(col.gameObject) == IsAntiMatter();
+            if (asymmetricalCheck && sameMatter) //Strong force interaction, generate a new block
             {
-                Debug.LogError("This should never happen.");
-                newBlock.Death();
+                //By default if quarks interact they are free
+                QuantumBlockBehavior newBlock = gameMaster.spawnManager.CreateQuantumBlock();
+                newBlock.transform.position = transform.position;
+                newBlock.CollideParticle(gameObject);
+                newBlock.CollideParticle(col.gameObject);
             }
         }
     }
 
-    public void OnChargeChange()
+    public override void Free()
     {
-        //TODO implement OnChargeChange
-        // Should automatically toggle, and retain knowledge of previous charge, and 
-        //quarkGroup.OnChargeChange();
+        if (quarkGroup != null)
+        {
+            quarkGroup.RemoveParticle(this);
+        }
+        base.Free();
     }
 
 }

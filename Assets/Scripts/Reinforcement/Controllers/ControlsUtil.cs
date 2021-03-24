@@ -58,7 +58,8 @@ public static class ControlsUtil
     public static TypeDictionary DefaultCustomSlot()
     {
         TypeDictionary customDictionary = new TypeDictionary();
-        customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.JumpMovementSubController);
+        customDictionary[typeof(Controller.MovementSubController)] = typeof(Controller.FlyMovementSubController);
+        customDictionary[typeof(Controller.FireSubController)] = typeof(Controller.SelectFireSubController);
         return customDictionary;
     }
 

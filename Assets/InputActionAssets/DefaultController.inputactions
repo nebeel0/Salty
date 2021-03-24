@@ -30,6 +30,14 @@
                     "interactions": ""
                 },
                 {
+                    "name": "Select",
+                    "type": "Button",
+                    "id": "176f69bd-b1fc-4fce-b51a-314a57d3057a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
                     "name": "Fire",
                     "type": "Value",
                     "id": "772696ad-23cd-47e7-8c10-9bc3f2374b20",
@@ -97,6 +105,22 @@
                     "name": "DetachCluster",
                     "type": "Button",
                     "id": "d6c2724c-179d-46ce-a328-988e167b105c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "CameraZoom",
+                    "type": "Value",
+                    "id": "cbf7ab31-65e4-45e9-8420-3b14f086360e",
+                    "expectedControlType": "Analog",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "LockRotation",
+                    "type": "Button",
+                    "id": "14fa5f0a-72ed-4dab-8294-38b2057986d0",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -430,6 +454,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "TargetLock",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4a03a03d-2a00-443e-b78c-87ea4862203f",
+                    "path": "<Keyboard>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "CameraZoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "26a5011a-73fd-47e0-add1-02dd0db94f17",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e383eedf-57f6-4dfc-8dca-78d4fbf18b33",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LockRotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

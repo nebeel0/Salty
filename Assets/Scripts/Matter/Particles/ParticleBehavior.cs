@@ -10,17 +10,18 @@ public class ParticleBehavior : GameBehavior
     //Max 6:3 Quarks or 7 Leptons
     //Eight possible charge spin combinations
     public string particleType;
-    public int antiCharge = 1;
+    protected int antiCharge = 1;
     public int weightClass = 1;
     public float energy;
 
+    public ParticleBehavior pseudoCollidingParticle;
     protected Color particleColor;
 
     public int charge
     {
         get {return ParticleUtils.possibleTypes[particleType].charge;}
     }
-    public int effectiveCharge
+    public int actualCharge
     {
         get { return antiCharge * charge; }
     }
@@ -30,18 +31,26 @@ public class ParticleBehavior : GameBehavior
     }
     public int layer
     {
-        get {return ParticleUtils.possibleTypes[particleType].layer;}
+        get 
+        {
+            if(pseudoCollidingParticle == null)
+            {
+                return ParticleUtils.possibleTypes[particleType].layer;
+            }
+            else
+            {
+                return ParticleUtils.particlePseudoCollisionsLayer;
+            }
+        }
     }
     public float mass
     {
         get {return ParticleUtils.possibleTypes[particleType].mass * weightClass; }
     }
-
     public float maxEnergy
     {
         get {return mass*ParticleUtils.maxEnergyFactor;}
     }
-
     public bool isOverExcited
     {
         get { return energy > maxEnergy; }
@@ -53,24 +62,75 @@ public class ParticleBehavior : GameBehavior
         get { return GetComponent<Rigidbody>(); }
     }
 
-    public virtual void Start()
+    public void SetAntiMatter(bool antiMatterFlag)
     {
+        antiCharge = antiMatterFlag ? -1 : 1;
+    }
+
+    public bool IsAntiMatter()
+    {
+        return antiCharge < 0;
+    }
+
+    public override void Start()
+    {
+        base.Start();
         particleCollider = GetComponent<SphereCollider>();
         SetParticleColor();
     }
 
     protected virtual void Update()
     {
-    }
+        if(deathFlag)
+        {
+            Debug.Log("Finishing Particle Destruction");
+            float energy = this.energy + mass * 100;
+            PhotonBehavior photon = gameMaster.spawnManager.CreatePhoton(energy: energy, direction: rigidbody.velocity);
+            SpawnNewParticles(new List<ParticleBehavior> { photon });
+            Destroy(gameObject);
+        }
+        else if(pseudoCollidingParticle != null)
+        {
+            PseudoCollisionUpdate();
+        }
 
-    protected virtual void Death()
+    }
+    public void TriggerPseudoCollision(ParticleBehavior otherParticle)
     {
-        //TODO in child classes are callbacks
-        // Also base.Death() is always last.
-        Destroy(gameObject);
+        if (pseudoCollidingParticle != otherParticle)
+        {
+            pseudoCollidingParticle = otherParticle;
+            otherParticle.TriggerPseudoCollision(this);
+        }
+    }
+    protected void PseudoCollisionUpdate()
+    {
+        Vector3Utils.PseudoCollide(particleCollider, pseudoCollidingParticle.transform);
     }
 
-    public void Annihilate(ParticleBehavior otherParticle)
+    protected virtual void OnCollisionEnter(Collision col)
+    {
+        if (ParticleUtils.isParticle(col.gameObject))
+        {
+            ParticleBehavior otherParticle = col.gameObject.GetComponent<ParticleBehavior>();
+            if(pseudoCollidingParticle != null && pseudoCollidingParticle == otherParticle)
+            {
+                pseudoCollidingParticle = null;
+            }
+            if (ParticleUtils.areSameType(gameObject, col.gameObject) && otherParticle.IsAntiMatter() != IsAntiMatter() && !IsAntiMatter())
+            {
+                Annihilate(otherParticle);
+            }
+        }
+    }
+
+    protected void StartDestruction()
+    {
+        deathFlag = true;
+    }
+
+
+    protected void Annihilate(ParticleBehavior otherParticle)
     {
         if(otherParticle.particleType != particleType)
         {
@@ -80,22 +140,21 @@ public class ParticleBehavior : GameBehavior
         {
             ParticleBehavior remainingParticle = otherParticle.weightClass > weightClass ? otherParticle : this;
             ParticleBehavior annihilatedParticle = otherParticle.weightClass < weightClass ? otherParticle : this;
-            remainingParticle.weightClass = remainingParticle.weightClass - annihilatedParticle.weightClass;
-            annihilatedParticle.Death();
+            remainingParticle.weightClass -= annihilatedParticle.weightClass;
+            annihilatedParticle.StartDestruction();
         }
         else
         {
-            otherParticle.Death();
-            Death();
+            otherParticle.StartDestruction();
+            StartDestruction();
         }
     }
-
     protected Color GetParticleColor()
     {
         Color particleColor = new Color();
         particleColor.r = 1 - (mass / (10 * weightClass)); // Dependent on the mass range
         particleColor.g = ((float)spinFactor / 2);
-        particleColor.b = ((float)charge + 3) / 6;
+        particleColor.b = ((float)actualCharge + 3) / 6;
         if (antiCharge < 0)
         {
             particleColor.r = 1 - particleColor.r;
@@ -104,14 +163,12 @@ public class ParticleBehavior : GameBehavior
         }
         return particleColor;
     }
-
     protected void SetParticleColor()
     {
         GetComponent<Renderer>().material.color = GetParticleColor();
         GetComponent<TrailRenderer>().startColor = GetParticleColor();
     }
-
-    public void SpawnNewParticles(List<ParticleBehavior> particleBehaviors)
+    protected void SpawnNewParticles(List<ParticleBehavior> particleBehaviors)
     //Set initial positions to be a sum of scale and colliding offset, should be automatically done
     //Set initial velocities, automatically done
     //Set colling to be Enabled

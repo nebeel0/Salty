@@ -5,15 +5,16 @@ using UnityEngine;
 
 public static class InstantiationUtils
 {
-    public static void SetUpManagers(GameObject gameObject, Type BaseType)
+    public static List<Type> SetUpSubComponents(GameObject gameObject, Type BaseType)
     {
-        List<Type> managers = ReflectionUtils.GetSubClasses(BaseType);
-        foreach(Type manager in managers)
+        List<Type> subComponents = BaseType.IsGenericType ? ReflectionUtils.GetSubClassesFromGeneric(BaseType) : ReflectionUtils.GetSubClasses(BaseType);
+        foreach (Type subComponent in subComponents)
         {
-            if(gameObject.GetComponent(manager) == null)
+            if(gameObject.GetComponent(subComponent) == null)
             {
-                gameObject.AddComponent(manager);
+                gameObject.AddComponent(subComponent);
             }
         }
+        return subComponents;
     }
 }

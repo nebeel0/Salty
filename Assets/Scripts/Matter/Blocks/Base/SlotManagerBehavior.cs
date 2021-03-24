@@ -53,7 +53,7 @@ namespace Matter.Block.Base
         public void Death()
         {
             ReleaseBlocks();
-            Destroy(this);
+            Destroy(gameObject);
         }
 
     }

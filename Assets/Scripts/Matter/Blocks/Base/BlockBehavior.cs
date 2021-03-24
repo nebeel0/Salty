@@ -7,6 +7,7 @@ namespace Matter.Block.Base
 {
     public abstract class BlockBehavior : GameBehavior
     {
+        public bool antiMatterFlag = false;
         public ClusterBehavior Cluster;
         public BlockPropertyManager blockPropertyManager;
         public BoxCollider Collider
@@ -28,7 +29,7 @@ namespace Matter.Block.Base
 
         protected abstract void SetUpManagers();
 
-        private void Update()
+        protected virtual void Update()
         {
             if (Cluster == null || !Cluster.blocks.Contains(this)) //TODO move into callback when blocks break links
             {
@@ -40,6 +41,7 @@ namespace Matter.Block.Base
         {
             transform.DetachChildren();
             Cluster.RemoveBlocks(new HashSet<BlockBehavior>() { this });
+            Destroy(gameObject);
         }
 
         public abstract bool DeathCheck();

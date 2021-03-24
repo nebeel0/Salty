@@ -12,19 +12,15 @@ public class QuantumBlockBehavior : BlockBehavior
     // TODO no mixing of anti and regular particles, when they clash, annihilation must happen, nvm I was wrong
     // TODO rotate on block place
     public int particleAnimationSpeed = 5;
-
     public QuarkManagerBehavior quarkManager;
     public ElectronManagerBehavior electronManager;
     public QuantumSlotManagerBehavior slotManager;
+    static float annihilationCooldownTime = 0.5f;
+    float annihilationCooldownTimer = annihilationCooldownTime;
 
     public override SlotManagerBehavior GetSlotManager()
     {
         return slotManager;
-    }
-
-    public int ActualNetCharge //Debugging TODO remove
-    {
-        get { return GetNetCharge(); }
     }
 
     public bool BeginnerElementFlag;
@@ -61,19 +57,57 @@ public class QuantumBlockBehavior : BlockBehavior
         quarkManager.Start();
     }
 
+    protected override void Update()
+    {
+        base.Update();
+        if (DeathCheck())
+        {
+            Death();
+        }
+    }
+
+
     public override void Death()
     {
-        quarkManager.Death();
+        if(quarkManager != null)
+        {
+            quarkManager.Death();
+        }
         electronManager.Death();
+        slotManager.Death();
         base.Death();
     }
 
     protected void OnCollisionEnter(Collision col)  // TODO Use C# Job System to avoid extra subatomic particles or leptons than possible
     {
-        if (col.gameObject.CompareTag("Particle"))
+        if (ParticleUtils.isParticle(col.gameObject))
         {
-            //Debug.Log("Particle Colliding");
             CollideParticle(col.gameObject);
+        }
+    }
+
+    protected void OnCollisionStay(Collision col)
+    {
+        if(BlockUtils.IsQuantumBlock(col.gameObject))
+        {
+            QuantumBlockBehavior otherQuantumBlock = col.gameObject.GetComponent<QuantumBlockBehavior>();
+            bool antiMatterCheck = otherQuantumBlock.antiMatterFlag != antiMatterFlag;
+            bool aysmmetricalCheck = antiMatterFlag;
+            bool cooldown = annihilationCooldownTimer < 0;
+            annihilationCooldownTimer -= Time.deltaTime;
+            if (antiMatterCheck && aysmmetricalCheck && cooldown)
+            {
+                annihilationCooldownTimer = annihilationCooldownTime;
+                List<FermionBehavior> otherFermions = otherQuantumBlock.GetFermions();
+                foreach (FermionBehavior fermion in otherFermions)
+                {
+                    if(AnnihilateFermion(fermion.gameObject))
+                    {
+                        return;
+                    }
+                    
+                }
+            }
         }
     }
 
@@ -81,21 +115,42 @@ public class QuantumBlockBehavior : BlockBehavior
     {
         if (ParticleUtils.isFermion(particle))
         {
-            if (ParticleUtils.isQuark(particle))
+            if(ParticleUtils.IsAntiMatter(particle) == antiMatterFlag)
             {
-                //Debug.Log("Quark Colliding.");
-                quarkManager.SetQuark(particle.GetComponent<QuarkBehavior>());
-            }
-            else if(ParticleUtils.isElectron(particle))
-            {
-                //Debug.Log("Lepton Colliding.");
-                electronManager.SetElectron(particle.GetComponent<ElectronBehavior>());
+                if (ParticleUtils.isQuark(particle))
+                {
+                    quarkManager.SetQuark(particle.GetComponent<QuarkBehavior>());
+                }
+                else if (ParticleUtils.isElectron(particle))
+                {
+                    electronManager.SetElectron(particle.GetComponent<ElectronBehavior>());
+                }
             }
             else
             {
-                Debug.LogError("Something went wrong.");
+                AnnihilateFermion(particle);
             }
         }
+    }
+
+    protected bool AnnihilateFermion(GameObject particle)
+    {
+        FermionBehavior fermion = particle.GetComponent<FermionBehavior>();
+        if (ParticleUtils.isElectron(particle))
+        {
+            if(electronManager.Annihilate(fermion))
+            {
+                return true;
+            }
+        }
+        else if (ParticleUtils.isQuark(particle))
+        {
+            if(quarkManager.Annihilate(fermion))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     // max number of particles is 10, acceptable indices are from 0-1, and a factor 3, min -2
@@ -107,23 +162,21 @@ public class QuantumBlockBehavior : BlockBehavior
             QuarkBehavior quarkBehavior;
             if (i % 3 != 0)
             {
-                quarkBehavior = gameMaster.spawnManager.CreateQuarkPos(10, 10, 1);
+                quarkBehavior = gameMaster.spawnManager.CreateQuarkPos(weightClass: 10, energy: 10, antiMatterFlag: antiMatterFlag);
             }
             else
             {
-                quarkBehavior = gameMaster.spawnManager.CreateQuarkNeg(10, 10, 1);
+                quarkBehavior = gameMaster.spawnManager.CreateQuarkNeg(weightClass: 10, energy: 10, antiMatterFlag: antiMatterFlag);
             }
             quarkBehavior.transform.parent = transform;
             quarkBehavior.transform.localPosition = Vector3.zero;
-            quarkBehavior.Occupy(gameObject);
 
 
             if ((i / 4) == 1 && i <= 4)
             {
-                LeptonBehavior leptonBehavior = gameMaster.spawnManager.CreateElectron(10, 10, 1);
+                LeptonBehavior leptonBehavior = gameMaster.spawnManager.CreateElectron(weightClass: 10, energy: 10, antiMatterFlag: antiMatterFlag);
                 leptonBehavior.transform.parent = transform;
                 leptonBehavior.transform.localPosition = Vector3.zero;
-                leptonBehavior.Occupy(gameObject);
                 CollideParticle(leptonBehavior.gameObject);
             }
             CollideParticle(quarkBehavior.gameObject);
@@ -137,8 +190,21 @@ public class QuantumBlockBehavior : BlockBehavior
         return electronManager.GetNetCharge() + quarkManager.GetNetCharge();
     }
 
+    public int GetActualNetCharge()
+    {
+        return antiMatterFlag ? GetNetCharge() * -1 : GetNetCharge();
+    }
+
+    public List<FermionBehavior> GetFermions()
+    {
+        List<FermionBehavior> fermions = new List<FermionBehavior>();
+        fermions.AddRange(electronManager.GetFermions());
+        fermions.AddRange(quarkManager.GetFermions());
+        return fermions;
+    }
+
     public override bool DeathCheck()
     {
-        return quarkManager.DeathCheck();
+        return quarkManager != null && quarkManager.DeathCheck();
     }
 }

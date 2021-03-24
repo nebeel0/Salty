@@ -9,12 +9,11 @@ namespace GameRules
     public class PvE : Base.GameRules
     {
         //Essentially a tower defense game, where you can be a hero/controller/builder etc to grow your system
-        public PlayerControlManager pacMan;
-
-        float timer = 5;
-
+        float timer = 2;
         Vector3 bounds = new Vector3(50, 50, 50);
-        int seed = 1;
+        int currentWave = 0;
+        float nextWaveCooldownCounter = 0;
+        float nextWaveCooldown = 10;
 
         public override string GetGameDescription()
         {
@@ -24,6 +23,33 @@ namespace GameRules
         public override void Update()
         {
             base.Update();
+            List<GameObject> enemies = new List<GameObject>();
+            foreach(PlayerControlManager ai in gameMaster.spawnManager.aiPlayers)
+            {
+                if(!gameMaster.spawnManager.players.Contains(ai.Character.ParentPlayer))
+                {
+                    enemies.Add(ai.gameObject);
+                }
+            }
+            foreach(PlayerControlManager player in gameMaster.spawnManager.players)
+            {
+                player.GetComponent<Character.Managers.CharacterTargetManager>().SetTargets(enemies);
+            }
+            if(enemies.Count == 0)
+            {
+                NextWave();
+            }
+        }
+
+        void NextWave()
+        {
+            if (nextWaveCooldownCounter <= 0)
+            {
+                nextWaveCooldownCounter = nextWaveCooldown;
+                currentWave++;
+                gameMaster.spawnManager.SpawnQuantumBlocks(System.Math.Pow(2, currentWave), bounds, antiMatterFlag: true);
+            }
+            nextWaveCooldownCounter -= Time.deltaTime;
         }
 
         public override void PlayersSetup()
@@ -39,7 +65,6 @@ namespace GameRules
         public override void LevelSetup()
         {
             gameMaster.spawnManager.CreateCage(bounds);
-            gameMaster.spawnManager.SpawnQuantumBlocks(seed, bounds);
         }
 
         public override bool TransitionCondition()
@@ -49,11 +74,19 @@ namespace GameRules
 
         public override bool EndCondition()
         {
-            //timer -= Time.deltaTime;
-            //if(timer <= 0)
-            //{
-            //    return true;
-            //}
+            foreach (PlayerControlManager player in gameMaster.spawnManager.players)
+            {
+                if (!player.IsGhost())
+                {
+                    timer = 1; //Reset Timer
+                    return false;
+                }
+            }
+            timer -= Time.deltaTime;
+            if (timer < 0)
+            {
+                return true;
+            }
             return false;
         }
     }

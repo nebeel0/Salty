@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameBehavior : MonoBehaviour
 {
     public GameMaster gameMaster;
+    public bool deathFlag;
 
     public virtual void Start()
     {

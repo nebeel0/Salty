@@ -156,4 +156,18 @@ public static class Vector3Utils
 
         otherRigidBody.AddForce(otherForce, ForceMode.Force);
     }
+
+    public static void PseudoCollide(Collider other, Transform transform, float forceMultipler=10)
+    {
+        //Equal and opposite reactions
+        GameObject otherObject = other.gameObject;
+        //otherObject.transform.position = Vector3.Lerp(otherObject.transform.position, transform.position, Time.deltaTime * forceMultipler);
+        //transform.position = Vector3.Lerp(transform.position, otherObject.transform.position, Time.deltaTime * forceMultipler);
+        Rigidbody otherRigidBody = otherObject.GetComponent<Rigidbody>();
+        Vector3 displacement = transform.localPosition - otherObject.transform.localPosition;
+
+        displacement = forceMultipler * displacement.normalized;
+        otherRigidBody.AddForce(displacement, ForceMode.Acceleration);
+    }
+
 }

@@ -7,7 +7,7 @@ public class BosonBehavior : ParticleBehavior
     public override void Start()
     {
         base.Start();
-        particleCollider.isTrigger = true;
+        particleCollider.isTrigger = false;
         gameObject.layer = layer;
     }
 

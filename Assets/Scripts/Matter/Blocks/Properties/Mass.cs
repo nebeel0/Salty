@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Matter.Block.Property.Base;
 
 namespace Matter
 {
@@ -11,10 +12,6 @@ namespace Matter
         {
             public class Mass : BlockProperty<float>
             {
-                public override bool PlayerControllable()
-                {
-                    return false;
-                }
                 public override bool ReadOnly()
                 {
                     return false;

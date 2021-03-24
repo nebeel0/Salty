@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 
-namespace Matter.Block.Property
+namespace Matter.Block.Property.Base
 {
     public abstract class BlockProperty<T> : MonoBehaviour
     {
-        protected Base.BlockBehavior Block
+        protected Block.Base.BlockBehavior Block
         {
-            get { return GetComponent<Base.BlockBehavior>(); }
+            get { return GetComponent<Block.Base.BlockBehavior>(); }
         }
 
         public string PropertyName
@@ -20,17 +20,16 @@ namespace Matter.Block.Property
             }
         }
         private T property;
-                    
+
         public virtual T Get()
         {
             return property;
         }
         public abstract bool ReadOnly();
-        public abstract bool PlayerControllable();
 
         public virtual void Set(T property)
         {
-            if(!ReadOnly())
+            if (!ReadOnly())
             {
                 this.property = property;
             }

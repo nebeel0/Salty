@@ -12,6 +12,7 @@ public static class ParticleUtils
     public static int pBosonLayer = 13;
     public static int wBosonLayer = 14;
     public static int zBosonLayer = 15;
+    public static int particlePseudoCollisionsLayer = 18;
 
     public static string leptonNeg = "leptonNeg";
     public static string quarkPos = "quarkPos";
@@ -92,6 +93,12 @@ public static class ParticleUtils
     {
         return gameObject.GetComponent<ParticleBehavior>() != null;
     }
+
+    public static bool IsAntiMatter(GameObject gameObject)
+    {
+        return gameObject.GetComponent<ParticleBehavior>().IsAntiMatter();
+    }
+
 
     public static string GetRandomState()
     {

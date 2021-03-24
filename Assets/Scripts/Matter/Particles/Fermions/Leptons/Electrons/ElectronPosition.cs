@@ -160,7 +160,7 @@ public class ElectronPosition : IEquatable<ElectronPosition>
             electron.electronPosition = this;
             if(oldPosition == null || oldPosition.electronManager != electronManager)
             {
-                electron.Occupy(electronManager.gameObject);
+                electron.Occupy(electronManager);
             }
             else
             {

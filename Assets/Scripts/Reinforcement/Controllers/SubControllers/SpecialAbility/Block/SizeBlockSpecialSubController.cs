@@ -9,6 +9,21 @@ namespace Controller
     {
         //Take a block, if its big enough splits it into 9.
 
+        Vector3 desiredScale;
+
+        private void Start()
+        {
+            desiredScale = GetCluster().trackingBlock.transform.localScale;
+        }
+
+        private void Update()
+        {
+            if(transform.localScale != desiredScale && GetCluster() != null && GetCluster().trackingBlock != null)
+            {
+                GetCluster().trackingBlock.transform.localScale = Vector3.Lerp(GetCluster().trackingBlock.transform.localScale, desiredScale, Time.deltaTime * 10);
+            }
+        }
+
         public override string GetSpecialAbility1Description()
         {
             return "Enlarge.";
@@ -17,7 +32,7 @@ namespace Controller
         public override void OnSpecialAbility1()
         {
             //TODO round
-            GetCluster().trackingBlock.transform.localScale *= 2;
+            desiredScale *= 2;
         }
 
         public override string GetSpecialAbility2Description()
@@ -26,7 +41,7 @@ namespace Controller
         }
         public override void OnSpecialAbility2()
         {
-            GetCluster().trackingBlock.transform.localScale /= 2;
+            desiredScale /= 2;
         }
 
         public override string GetSpecialAbility3Description()

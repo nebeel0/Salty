@@ -38,7 +38,6 @@ public class AI : MonoBehaviour
         }
     }
 
-
     void RandomWalk()
     {
         if (timer > 0)
@@ -58,29 +57,39 @@ public class AI : MonoBehaviour
 
     void TargetPlayerWalk()
     {
-        if (Player.GetComponent<Controller.JumpMovementSubController>() != null)
+        while (Player.GetComponent<Controller.FlyMovementSubController>() == null)
         {
             Player.OnScrollSlot(new Vector2(0, 1));
         }
 
-        if (timer > 0)
+
+        if (Player.Character.ParentPlayer == null)
         {
-            timer -= Time.deltaTime;
-        }
-        else
-        {
-            timer = cooldown;
-            PlayerControlManager firstPlayer = Player.gameMaster.spawnManager.players.First();
-            if (firstPlayer != null && !firstPlayer.IsGhost())
+            if (timer > 0)
             {
-                Player.GetComponent<Controller.RotationSubController>().LookAt(firstPlayer.transform);
-                Player.GetComponent<Controller.MovementSubController>().OnMove(new Vector2(0, 1));
+                timer -= Time.deltaTime;
             }
             else
             {
-                Debug.Log("Player doesn't exist yet.");
+                timer = cooldown;
+                PlayerControlManager firstPlayer = Player.gameMaster.spawnManager.players.First();
+                if (firstPlayer != null && !firstPlayer.IsGhost())
+                {
+                    Player.GetComponent<Character.Managers.CharacterTargetManager>().SetTarget(firstPlayer.gameObject);
+                    Player.GetComponent<Controller.RotationSubController>().OnTargetLock(1);
+                    Player.GetComponent<Controller.MovementSubController>().OnMove(new Vector2(0, 1));
+                }
+                else
+                {
+                    Debug.Log("Player doesn't exist yet.");
+                }
             }
         }
+        else
+        {
+            Player.GetComponent<Controller.MovementSubController>().OnMove(new Vector2(0, 0));
+        }
+
     }
 
 }

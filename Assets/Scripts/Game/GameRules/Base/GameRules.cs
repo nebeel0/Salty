@@ -49,7 +49,6 @@ namespace GameRules.Base
             endMenuManager.SetGameScore();
             endMenuManager.SetGameMessage();
             gameMaster.ClearGame();
-            gameObject.SetActive(false);
         }
 
 

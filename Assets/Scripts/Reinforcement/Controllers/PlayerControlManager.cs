@@ -16,6 +16,11 @@ public class PlayerControlManager : GameBehavior
     Controls blockControls; //editable and should be loadable from player's side. For any default, or custom loaded controls. Just needs to go through verification.
     Controls clusterControls; //editable
 
+    public CharacterBehavior Character
+    {
+        get { return GetComponent<CharacterBehavior>(); }
+    }
+
     public Camera primaryCamera;
     public GameObject gimbal;
     public HUDManager hudManager;

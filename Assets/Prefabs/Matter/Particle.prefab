@@ -112,7 +112,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &-4754747877218759825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,10 +126,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameMaster: {fileID: 0}
+  deathFlag: 0
   particleType: 
-  antiCharge: 1
   weightClass: 1
   energy: 0
+  pseudoCollidingParticle: {fileID: 0}
 --- !u!114 &674584312230123641
 MonoBehaviour:
   m_ObjectHideFlags: 0

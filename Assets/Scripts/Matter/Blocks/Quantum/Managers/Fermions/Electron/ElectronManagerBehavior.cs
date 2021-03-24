@@ -3,19 +3,19 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ElectronManagerBehavior : QuantumBlockManagerBehavior
+public class ElectronManagerBehavior : ChargeManagerBehavior
 {
     public Dictionary<string, ElectronPosition> electronPositionDictionary = new Dictionary<string, ElectronPosition>();
     public ElectronPosition[] electronPositions; //Used for determining neighbors
     public int electronsMax = 8;  //TODO programmatically figure out max number of electrons, which we can figure out from number of vertexes in shape
                                   // Start is called before the first frame update
 
-    public bool IsNetPositiveOrNeutral(ElectronBehavior electron)
+    protected bool IsNetPositiveOrNeutral(ElectronBehavior electron)
     {
-        return electron.effectiveCharge + Block.GetNetCharge() >= 0;
+        return electron.charge + Block.GetNetCharge() >= 0;
     }
 
-    public bool HasSpace()
+    protected bool HasSpace()
     {
         return GetElectronCount() <= electronsMax - 1;
     }
@@ -25,7 +25,7 @@ public class ElectronManagerBehavior : QuantumBlockManagerBehavior
         return GetElectronCount() == electronsMax;
     }
 
-    public int GetNetCharge()
+    public override int GetNetCharge()
     {
         return GetElectronCount() * -1;
     }
@@ -93,9 +93,7 @@ public class ElectronManagerBehavior : QuantumBlockManagerBehavior
 
     public void SetElectron(ElectronBehavior electron)
     {
-        bool isElectron = electron.antiCharge == 1;
-
-        if (isElectron && IsNetPositiveOrNeutral(electron) && HasSpace())
+        if (IsNetPositiveOrNeutral(electron) && HasSpace())
         {
             ElectronPosition openElectronPosition = GetAvailablePosition();
             openElectronPosition.SetElectron(electron);
@@ -123,13 +121,13 @@ public class ElectronManagerBehavior : QuantumBlockManagerBehavior
         return null;
     }
 
-    public void Death()
+    public override void Death()
     {
         for(int i=0; i<electronPositions.Length; i++)
         {
             electronPositions[i].ReleaseElectron();
         }
-        Destroy(this);
+        Destroy(gameObject);
     }
 
 }

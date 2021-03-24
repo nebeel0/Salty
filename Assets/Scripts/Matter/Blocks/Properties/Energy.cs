@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Matter.Block.Property.Base;
 
 namespace Matter
 {
@@ -14,7 +15,12 @@ namespace Matter
                 public LineRenderer lineRenderer;
                 float maxDistance = 100;
                 float timer = 0;
-                float ttl = 0.5f;
+                float ttl = 0.01f;
+
+                QuantumBlockBehavior quantumBlock
+                {
+                    get { return GetComponent<QuantumBlockBehavior>(); }
+                }
                 Vector3 Origin
                 {
                     get { return Block.transform.position; }
@@ -24,25 +30,41 @@ namespace Matter
                 {
                     get { return Block.transform.forward;  }
                 }
-
-                public override bool PlayerControllable()
-                {
-                    return true;
-                }
                 public override bool ReadOnly()
                 {
-                    return false;
+
+                    return quantumBlock != null;
                 }
+
+                public override float Get()
+                {
+                    if(quantumBlock == null)
+                    {
+                        return base.Get();
+                    }
+                    else
+                    {
+                        float energy = 0;
+                        foreach(FermionBehavior fermion in quantumBlock.GetFermions())
+                        {
+                            energy += fermion.energy;
+                        }
+                        return energy;
+                    }
+                }
+
 
                 void Start()
                 {
                     if(GetComponent<LineRenderer>() == null)
                     {
-
                         lineRenderer = Block.gameMaster.spawnManager.AttachLineRenderer(gameObject);
                         lineRenderer.enabled = false;
                     }
-                    Set(100);
+                    if (quantumBlock == null)
+                    {
+                        Set(100);
+                    }
                 }
 
                 void Update()
@@ -58,11 +80,15 @@ namespace Matter
                     else if(lineRenderer.enabled)
                     {
                         lineRenderer.enabled = false;
+                        GetComponent<Outline>().enabled = false;
                     }
 
-                    if(lineRenderer.enabled)
+                    if (lineRenderer.enabled)
                     {
                         LineUpdate();
+                        GetComponent<Outline>().enabled = true;
+                        GetComponent<Rigidbody>().velocity = Vector3.zero;
+                        GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
                     }
                 }
 

@@ -17,29 +17,53 @@ public class QuantumMaterialBehavior : MonoBehaviour
     public float fadeInPeriodMin = 10;
     float fadeInPeriod;
     bool fadingIn = true;
+    bool colliding;
+
 
     Color panelColor;
     Color currentColor;
 
+    
+
     protected virtual void Start()
     {
         coolDown = 0;
-        Loading();
-    }
-
-    protected virtual void Update()
-    {
-        VisualUpdate();
-    }
-
-    protected void Loading()
-    {
         Material panelMaterial = GetComponent<MeshRenderer>().material;
         coolDown = Random.Range(1, loadingTimeMax);
         panelColor = Color.clear;
         GetComponent<MeshRenderer>().enabled = false;
         currentColor = panelColor;
         panelMaterial.SetColor("_BaseColor", panelColor);
+    }
+
+    protected virtual void Update()
+    {
+        if(colliding)
+        {
+            Color lightWhite = new Color(0.2f, 0.2f, 0.2f, 1);
+            Material panelMaterial = GetComponent<MeshRenderer>().material;
+            panelMaterial.SetColor("_BaseColor", lightWhite);
+            GetComponent<MeshRenderer>().enabled = true;
+        }
+        else
+        {
+            VisualUpdate();
+        }
+    }
+
+    private void OnCollisionEnter()
+    {
+        colliding = true;
+    }
+
+    private void OnCollisionStay()
+    {
+        colliding = true;
+    }
+
+    private void OnCollisionExit()
+    {
+        colliding = false;
     }
 
     protected void VisualUpdate()
@@ -82,13 +106,13 @@ public class QuantumMaterialBehavior : MonoBehaviour
             GetComponent<MeshRenderer>().enabled = true;
             fadingIn = true;
             fadeInPeriod = Random.Range(fadeInPeriodMin, fadeOutPeriodMax);
+            currentColor = panelColor;
         }
         else
         {
             fadingIn = false;
             GetComponent<MeshRenderer>().enabled = false;
         }
-        currentColor = panelColor;
         fadeOutPeriod = Random.Range(1, fadeOutPeriodMax);
     }
 

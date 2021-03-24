@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Matter.Block.Property.Base;
 
 namespace Matter
 {
@@ -11,24 +12,26 @@ namespace Matter
         {
             public class BlockColor : BlockProperty<Color>
             {
-                public override bool PlayerControllable()
-                {
-                    return true;
-                }
+                static Color neutralColor = new Color(0.5f, 0.5f, 0.5f, 0.1f);
+                 
                 public override bool ReadOnly()
                 {
-                    return true;
-                }
-                public override Color Get()
-                {
-                    return GetComponent<Renderer>().material.color;
+                    return false;
                 }
 
-                public override void Set(Color property)
+                private void Start()
                 {
-                    GetComponent<Renderer>().material.color = property;
+                    Set(neutralColor);
                 }
 
+                private void Update()
+                {
+                    Color currentBlockColor = GetComponent<Renderer>().material.color;
+                    if (currentBlockColor != Get())
+                    {
+                        GetComponent<Renderer>().material.color = Color.Lerp(currentBlockColor, Get(), Time.deltaTime * 10);
+                    }
+                }
             }
         }
     }
